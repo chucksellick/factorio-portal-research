@@ -154,8 +154,6 @@ function createEntityData(entity)
       data.site = newSiteDataForSurface(entity.surface)
     end
     data.site.portals[data.id] = data
-
-    game.print("created entity data: " .. inspect(data))
     return data
   end
   return nil
@@ -395,16 +393,12 @@ function openPortalTargetSelectGUI(player, portal)
   for i,target in pairs(global.portals) do
     if target.entity.force == player.force and portal ~= target and target.teleport_target == nil then
       local buttonId = "portal-target-select-" .. target.entity.unit_number
-      if targetsFlow[buttonId] ~= nil then
-        game.print("Errror!! button id " .. buttonId)
-      else
-        local newButton = targetsFlow.add{
-          type="button",
-          name=buttonId,
-          caption=target.site.name
-        }
-        playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
-      end
+      local newButton = targetsFlow.add{
+        type="button",
+        name=buttonId,
+        caption=target.site.name
+      }
+      playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
     end
   end
   targetsFlow.add{type="button", name="cancel-portal-target-select", caption={"cancel-dialog-caption"}}
@@ -447,12 +441,8 @@ function onGuiClick(event)
       chosen.portal = generateSiteSurface(chosen.site)
     end
 
-    game.print(inspect(playerData.guiPortalCurrent))
-    game.print(inspect(chosen.portal))
     playerData.guiPortalCurrent.teleport_target = chosen.portal
     chosen.portal.teleport_target = playerData.guiPortalCurrent
-    game.print(inspect(playerData.guiPortalCurrent))
-    game.print(inspect(chosen.portal))
     closePortalTargetSelectGUI(player)
     return
   end
@@ -582,7 +572,6 @@ end
 
 function enterPortal(player, portal, direction)
   if portal.teleport_target == nil then
-    game.print(inspect(portal))
     openPortalTargetSelectGUI(player, portal)
     return
   end
