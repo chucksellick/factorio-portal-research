@@ -10,8 +10,8 @@ data:extend(
     corpse = "big-remnants",
     collision_box = {{-1.2, -0.1}, {1.2, 0.1}},
     selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
-    enable_gui = true,
-    allow_copy_paste = true,
+    enable_gui = false,
+    allow_copy_paste = false,
     energy_source =
     {
       type = "electric",

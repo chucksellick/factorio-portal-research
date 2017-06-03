@@ -51,7 +51,16 @@ data:extend(
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
-    order = "r[portal-lander]",
+    order = "r[portal-system]-a[portal-lander]",
+    stack_size = 1
+  },
+  {
+    type = "item",
+    name = "space-telescope",
+    icon = "__base__/graphics/icons/satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product", -- Subgroup??
+    order = "r[portal-system]-b[space-telescope]",
     stack_size = 1
   },
   {
@@ -63,5 +72,32 @@ data:extend(
     subgroup = "transport",
     order = "a[portal-system]-c[medium-portal]",
     stack_size = 10
+  },
+  {
+    type = "item",
+    name = "solar-array",
+    icon = "__base__/graphics/icons/satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "energy",
+    order = "d[solar-panel]-b[solar-array]",
+    stack_size = 1
+  },
+  {
+    type = "item",
+    name = "microwave-antenna", -- real name "rectenna"
+    icon = "__base__/graphics/icons/radar.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "energy",
+    order = "d[solar-panel]-c[microwave-antenna]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "orbital-mining-laser",
+    icon = "__base__/graphics/icons/satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product", -- Subgroup production instead?
+    order = "r[portal-system]-c[orbital-mining-laser]",
+    stack_size = 1
   }
 })
