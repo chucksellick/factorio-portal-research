@@ -11,7 +11,9 @@
     - No clouds :(  (seems ok at night tho)
   * Camera system similar to trains / factorissimo
   * Space-based solar power
-    - 
+    - Degradation over time due to micrometeors, solar flares, general weathering
+    - Send up repair drones
+
 --]]
 
 require("mod-gui")
@@ -262,6 +264,10 @@ function randomOffworldSite(force)
   -- TODO: Actually restrict the resources to iron, copper, stone, uranium (v rare). Player still
   -- needs trains to get coal, stone, factorium, oil, poss uranium, and any other modded ores.
   -- Should provided a script interface allowing mods to make their ores available.
+  -- (Well. Would be nice to have liquid logistics. Consider allowing oil, or a whole new type
+  -- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
+  -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
+  -- or something else...)
   for _, resource in pairs(resources) do
 
     if (math.random() > chance) then break end
