@@ -8,7 +8,7 @@
     - Different day/night cycle
     - No wind but is there anything to affect?
     - No burners allowed in atmosphere. (Unless some crazy atmosphericc bubble constructed)
-    - No clouds :(
+    - No clouds :(  (seems ok at night tho)
   * Camera system similar to trains / factorissimo
 --]]
 
@@ -52,6 +52,12 @@ for i = 97, 122 do table.insert(charset, string.char(i)) end
 for i = 65,  90 do table.insert(charset, string.char(i)) end
 for i = 48,  57 do table.insert(charset, string.char(i)) end
 
+function getForceData(force)
+  -- TODO: Create if doesn't exist, in fact do all that stuff here instead of events?
+  if type(force) ~= "string" then force = force.name end
+  return global.forces_portal_data[force]
+end
+
 function newPortalData(force)
   return {
     known_offworld_sites = {},
@@ -59,22 +65,28 @@ function newPortalData(force)
   }
 end
 
-function verifySiteData(site, force)
+function verifySiteData(data, site)
+  if site.surface ~= nil and data.sites_by_surface[site.surface.name] == nil then
+    data.sites_by_surface[site.surface.name] = site
+  end
 end
 
-function verifyPortalData(data, force)
+function verifyPortalData(data)
+  if data.sites_by_surface == nil then
+    data.sites_by_surface = {}
+  end
   if data.home_site == nil then
     data.home_site = newHomeSiteData()
   end
-  verifySiteData(data.home_site, force)
+  verifySiteData(data, data.home_site)
   for i, site in pairs(data.known_offworld_sites) do
-    verifySiteData(data, force)
+    verifySiteData(data, site)
   end
 end
 
 function newHomeSiteData(force)
   return {
-    name = "Nauvis",
+    name = "nauvis",
     force = force,
     surface_generated = true,
     surface = game.surfaces["nauvis"],
@@ -191,6 +203,10 @@ function findPortalInArea(surface, area)
   return nil
 end
 
+function getSiteBySurface(force, surface)
+  return getForceData(force).sites_by_surface[surface.name]
+end
+
 function randomOffworldSite(force)
   local site = {
     size = math.random(3),
@@ -246,18 +262,51 @@ function initGUI(player)
   if #global.forces_portal_data[player.force.name].known_offworld_sites == 0 then return end
 
   local button_flow = mod_gui.get_button_flow(player)
-  if button_flow.portal_research_gui_button then
-    button_flow.portal_research_gui_button.destroy()
+  if button_flow["portal-research-gui-button"] then
+    button_flow["portal-research-gui-button"].destroy()
   end
   local button = button_flow.add {
     --type = "sprite-button",
     type="button",
-    name = "portal_research_gui_button",
+    name = "portal-research-gui-button",
     --sprite = "item/rocket-silo",
     style = mod_gui.button_style,
     caption = {"gui-portal-research.portals-button-caption"},
     tooltip = {"gui-portal-research.portals-button-tooltip"}
   }
+  createEmergencyHomeButton(player)
+end
+
+function createEmergencyHomeButton(player)
+  local button_flow = mod_gui.get_button_flow(player)
+  if button_flow["portal-research-emergency-home-button"] then
+    button_flow["portal-research-emergency-home-button"].destroy()
+  end
+  local button = button_flow.add {
+    --type = "sprite-button",
+    type="button",
+    name = "portal-research-emergency-home-button",
+    --sprite = "item/rocket-silo",
+    style = mod_gui.button_style,
+    caption = {"gui-portal-research.emergency-home-button-caption"},
+    tooltip = {"gui-portal-research.emergency-home-button-tooltip"}
+  }
+  button.style.visible = false
+end
+
+function showEmergencyHomeButton(player)
+  local button_flow = mod_gui.get_button_flow(player)
+  if button_flow["portal-research-emergency-home-button"] == nil then
+    createEmergencyHomeButton(player)
+  end
+  button_flow["portal-research-emergency-home-button"].style.visible = true
+end
+
+function hideEmergencyHomeButton(player)
+  local button_flow = mod_gui.get_button_flow(player)
+  if button_flow["portal-research-emergency-home-button"] then
+    button_flow["portal-research-emergency-home-button"].style.visible = false
+  end
 end
 
 function showSiteDetailsGUI(player, site)
@@ -291,6 +340,7 @@ function showSiteDetailsGUI(player, site)
   detailsFlow.add{type="button", name="close-site-details-button", caption={"close-dialog-caption"}}
 end
 
+-- TODO: Just realised this isn't MP-safe. Need to store this information per-player instead.
 local guiPortalTargetButtons = {}
 local guiPortalCurrent = nil
 
@@ -332,7 +382,12 @@ end
 script.on_event(defines.events.on_gui_click, function(event)
   local player = game.players[event.element.player_index]
   local name = event.element.name
-  if name == "portals-button" then
+  if name == "portal-research-gui-button" then
+    -- TODO: Show us your GUI
+  end
+  if name == "portal-research-emergency-home-button" then
+    local data = getPlayerData(player)
+    -- TODO: Implement!!
   end
   if name == "close-site-details-button" then
     player.gui.center["portal-site-details"].destroy()
@@ -410,36 +465,36 @@ function generateSiteSurface(site)
   surface.set_tiles(tiles)
 
   -- TODO: Randomise landing position
-  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0,force = game.forces[site.force]}}
-  site.portal_entity = gate
+  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0},force = game.forces[site.force]}
+  site.portal = getPortalByEntity(gate)
   -- TODO: Create some crater marks on the ground
 
   site.arrival_position = {x = 0, y = 0} -- TODO: Position relative to Gate
-  -- TODO: Make indestructible, unmineable etc?
+
+  -- Set up some power
+
+  --local panel = surface.create_entity{name="solar-panel", position={x=-3,y=0},force = game.forces[site.force]}
+  --local pole = surface.create_entity{name="medium-electric-pole", position={x=0,y=-2},force = game.forces[site.force]}
+  --pole.connect_neighbour(gate)
+  --pole.connect_neighbour(panel)
+
+  -- TODO: Make it all indestructible, unmineable etc?
 
   -- TODO: Update site data with real resource count
 
   site.surface = surface
-
+  site.surface_generated = true
   -- To make void chunks show up on the map, you need to tell them they've finished generating.
-  local cx = 0
-  local cy = 0
-  surface.set_chunk_generated_status({cx-2, cy-2}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-1, cy-2}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+0, cy-2}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+1, cy-2}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-2, cy-1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-1, cy-1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+0, cy-1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+1, cy-1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-2, cy+0}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-1, cy+0}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+0, cy+0}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+1, cy+0}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-2, cy+1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx-1, cy+1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+0, cy+1}, defines.chunk_generated_status.entities)
-  surface.set_chunk_generated_status({cx+1, cy+1}, defines.chunk_generated_status.entities)
+  for cx = -2,1 do
+    for cy = -2,1 do
+      surface.set_chunk_generated_status({cx, cy}, defines.chunk_generated_status.entities)
+    end
+  end
+
+  -- Updates the sites_by_surface table
+  -- TODO: Not really happy with this, if these kind of calls are getting silly then need some
+  -- system for central entity/force/player/data management.
+  verifyPortalData(global.forces_portal_data[site.force])
 
 end
 
@@ -450,45 +505,93 @@ end)
 function playersEnterPortals()
   local tick = game.tick
   for player_index, player in pairs(game.players) do
+    -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for )
     if player.connected and not player.driving then -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
       local walking_state = player.walking_state
-      if walking_state.walking then
-        if walking_state.direction == defines.direction.north
-        or walking_state.direction == defines.direction.northeast
-        or walking_state.direction == defines.direction.northwest then
-          -- Enter portal
-          local portal = findPortalInArea(player.surface, {{player.position.x-0.2, player.position.y-0.3},{player.position.x+0.2, player.position.y}})
+      if walking_state.walking
+        and walking_state.direction ~= defines.direction.east
+        and walking_state.direction ~= defines.direction.west then
+          -- Look for a portal nearby
+          local portal = findPortalInArea(player.surface, {
+            {player.position.x-0.3, player.position.y-0.3},
+            {player.position.x+0.3, player.position.y+0.3}
+          })
+
+          -- Check we are in the center bit of the portal and walkingn the right direction
+          -- TODO: Allow portal rotation and support east/west portal entry
           if portal ~= nil then
-            enterPortal(player, portal)
+            if (((walking_state.direction == defines.direction.northwest
+            or walking_state.direction == defines.direction.north
+            or walking_state.direction == defines.direction.northeast)
+            and player.position.y > portal.entity.position.y
+            and player.position.y < portal.entity.position.y + 0.5)
+            or ((walking_state.direction == defines.direction.southwest
+            or walking_state.direction == defines.direction.south
+            or walking_state.direction == defines.direction.southeast)
+            and player.position.y < portal.entity.position.y
+            and player.position.y > portal.entity.position.y - 0.5)) then
+              -- Teleport
+              enterPortal(player, portal)
+            end
           end
-        end
       end
     end
   end
 end
 
 function enterPortal(player, portal)
-  game.print("Entering portal...")
+  player.print("Entering portal...")
   if portal.teleport_target == nil then
     openPortalTargetSelectGUI(player, portal)
     return
   end
   -- TODO: Adjust energy buffer based on required energy for distance
   local energyRequired = requiredEnergyForTeleport(player, portal)
-  if portal.entity.energy < energyRequired then
-    game.print("Not enough energy, required " .. energyRequired / 1000000 .. "MJ, had " .. portal.entity.energy / 1000000 .. "MJ")
+  local energyAvailable = portal.entity.energy
+  local site = portal.teleport_target
+  if site.surface_generated then
+    player.print("Remote available " .. site.portal.entity.energy)
+    energyAvailable = energyAvailable + site.portal.entity.energy
+  end
+
+  if energyAvailable < energyRequired then
+    player.print("Not enough energy, required " .. energyRequired / 1000000 .. "MJ, had " .. portal.entity.energy / 1000000 .. "MJ")
     -- TODO: Display a big charging progress bar (and animation?)
     return
   end
-  game.print("Using " .. energyRequired / 1000000 .. "MJ")
+  player.print("Using " .. energyRequired / 1000000 .. "MJ")
 
-  local site = portal.teleport_target
   if not site.surface_generated then
     generateSiteSurface(site)
   end
 
+  -- TODO: Things are currently working per-force but we'll get strange issues in multiplayer
+  -- when multiple people are doing things, mainly because site targets will change. Need to slightly
+  -- separate the data model so sites have multiple targets and players can have different home
+  -- locations
+  local currentSite = getSiteBySurface(player.force, player.surface)
+  player.print("current site " .. currentSite.name)
+  -- Set the other side of the portal to link back to this one
+  site.portal.teleport_target = currentSite
+  currentSite.arrival_position = portal.entity.position
+  currentSite.portal = portal -- TODO: Bad! Sites have many portals. Maybe a default_portal for emergency teleports.
+
+  -- TODO: Checking for nauvis isn't quite good enough. Need to check if the surface we're leaving
+  -- *isn't* an asteroid, if not then remember that surface (and portal) as the "home" surface.
+  if site.surface == game.surfaces["nauvis"] then
+    hideEmergencyHomeButton(player)
+  else
+    showEmergencyHomeButton(player)
+  end
+
+  -- TODO: Offset position to N or S depending on player movement direction
+  -- TODO: Freeze player and show teleport anim/sound for a second
   player.teleport({site.arrival_position.x, site.arrival_position.y},site.surface)
+
+  -- Sap energy from both ends of the portal, local end first
+  local missingEnergy = math.max(0, energyRequired - portal.entity.energy)
   portal.entity.energy = portal.entity.energy - energyRequired
+  site.portal.entity.energy = site.portal.entity.energy - missingEnergy
 end
 
 function requiredEnergyForTeleport(player, portal)
