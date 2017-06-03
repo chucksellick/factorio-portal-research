@@ -52,9 +52,34 @@ for i = 97, 122 do table.insert(charset, string.char(i)) end
 for i = 65,  90 do table.insert(charset, string.char(i)) end
 for i = 48,  57 do table.insert(charset, string.char(i)) end
 
-function newPortalData()
+function newPortalData(force)
   return {
-    known_offworld_sites = {}
+    known_offworld_sites = {},
+    home_site = newHomeSiteData(force)
+  }
+end
+
+function verifySiteData(site, force)
+end
+
+function verifyPortalData(data, force)
+  if data.home_site == nil then
+    data.home_site = newHomeSiteData()
+  end
+  verifySiteData(data.home_site, force)
+  for i, site in pairs(data.known_offworld_sites) do
+    verifySiteData(data, force)
+  end
+end
+
+function newHomeSiteData(force)
+  return {
+    name = "Nauvis",
+    force = force,
+    surface_generated = true,
+    surface = game.surfaces["nauvis"],
+    -- TODO: Logarythmic scale, increases with research, more resources found farther afield
+    distance = 0
   }
 end
 
@@ -67,9 +92,11 @@ function On_Init()
 
   if not global.forces_portal_data then
     global.forces_portal_data = {}
-    global.forces_portal_data["player"] = newPortalData()
+    global.forces_portal_data["player"] = newPortalData("player")
   end
-
+  for i,data in pairs(global.forces_portal_data) do
+    verifyPortalData(data, i)
+  end
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "update_gui")
 end
@@ -169,7 +196,7 @@ function randomOffworldSite(force)
     size = math.random(3),
     name = "",
     resource_estimate = {},
-    force = force,
+    force = force.name,
     surface_generated = false,
     -- TODO: Logarythmic scale, increases with research, more resources found farther afield
     distance = 1 + math.random()
@@ -383,7 +410,7 @@ function generateSiteSurface(site)
   surface.set_tiles(tiles)
 
   -- TODO: Randomise landing position
-  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0,force = site.force}}
+  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0,force = game.forces[site.force]}}
   site.portal_entity = gate
   -- TODO: Create some crater marks on the ground
 
