@@ -139,13 +139,22 @@ function getEntityData(entity)
       if entity.name == "medium-portal" then
         global.portals[data.id] = data
       end
+
+      if entity.name == "portal-chest" then
+        global.portals[data.id] = data
+        -- TODO: create virtual power consumer, register tick to transfer items
+      end
+
+      if entity.name == "portal-belt" then
+        -- TODO: Register a tick to utlise power, generate effects, transfer items
+      end
     end
   end
   return global.entities[entity.unit_number]
 end
 
 function createEntityData(entity)
-  if entity.name == "medium-portal" then
+  if entity.name == "medium-portal" or entity.name == "portal-chest" then
     local data = {
       id = entity.unit_number,
       teleport_target = nil,
@@ -155,6 +164,7 @@ function createEntityData(entity)
     if data.site == nil then
       data.site = newSiteDataForSurface(entity.surface)
     end
+
     data.site.portals[data.id] = data
     return data
   end
@@ -388,20 +398,30 @@ function openPortalTargetSelectGUI(player, portal)
     caption={"gui-portal-research.portal-target-select-caption"}
   }
   local targetsFlow = dialogFrame.add{type="flow", direction="vertical"}
+  -- TODO: List resources on both types of button
   -- List sites that don't yet have a portal
-  for i,site in pairs(global.sites) do
-    if not site.surface_generated and site.force == player.force.name then
-      local newButton = targetsFlow.add{
-        type="button",
-        name="portal-target-select-" .. site.name,
-        caption=site.name
-      }
-      playerData.guiPortalTargetButtons[newButton.name] = {site=site}
+  local allowLongRange = player.force.technologies["long-range-teleportation"].researched
+
+  -- TODO: It shouldn't be possible to have sites before long-range research ... maybe
+  -- don't need this conditional ;)
+  -- TODO: However, for box portals do check they're close enough on the surface until interplanetary is unlocked
+  -- TODO: Maybe shorter distances initially, go to 50 on long-range, go to infinite on interplanetary
+  if allowLongRange then  
+    for i,site in pairs(global.sites) do
+      if not site.surface_generated and site.force == player.force.name then
+        local newButton = targetsFlow.add{
+          type="button",
+          name="portal-target-select-" .. site.name,
+          caption={"site-name", site.name}
+        }
+        playerData.guiPortalTargetButtons[newButton.name] = {site=site}
+      end
     end
   end
   -- List portals that don't have a target
   for i,target in pairs(global.portals) do
-    if target.entity.force == player.force and portal ~= target and target.teleport_target == nil then
+    if target.entity.force == player.force and portal ~= target and target.teleport_target == nil
+      and (allowLongRange or target.entity.surface == portal.entity.surface) then
       local buttonId = "portal-target-select-" .. target.entity.unit_number
       local newButton = targetsFlow.add{
         type="button",
@@ -437,6 +457,7 @@ function onGuiClick(event)
     -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
     portal.entity.damage(portal.entity.health, player.force)
     -- TODO: Stage this a bit so we see it blow up before the player teleports in
+    -- TODO: And display warning and require confirmationn
     playerData.emergency_home_portal = nil
     playerData.emergency_home_position = nil
     hideEmergencyHomeButton(player)
@@ -534,6 +555,11 @@ function generateSiteSurface(site)
     end
   end
 
+  -- TODO: force.chart to reveal map properly?
+  if site.force then
+    site.force.chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
+  end
+
   -- Updates the sites_by_surface table
   -- TODO: Not really happy with this, if these kind of calls are getting silly then need some
   -- system for central entity/force/player/data management.
@@ -544,6 +570,7 @@ end
 
 script.on_event(defines.events.on_tick, function(event) 
   playersEnterPortals()
+  chestsMoveStacks(event)
 end)
 
 function playersEnterPortals()
@@ -647,6 +674,72 @@ function requiredEnergyForTeleport(player, portal)
 
 end
 
+function chestsMoveStacks(event)
+
+  -- Chests teleport every second (for now)
+  -- TODO: Tweak this value and maybe add some research to make it quicker.
+  local checkFrequency = 60
+  -- TODO: Optimisation. Move into a list we can traverse quickly.
+  local tick = event.tick % checkFrequency
+  local n = 0
+  for i,portal in global.portals do
+    if portal.entity.name == "portal-chest" then
+      n = n + 1
+      if portal.is_sender and portal.teleport_target and n % checkFrequency == tick then
+        teleportChestStacks(portal, 1)
+      end
+    end
+  end
+end
+
+function teleportChestStacks(source, num)
+
+  -- TODO: Check if energy is available (and use it)
+  local target = source.teleport_target
+  -- Move from stack to stack teleporting, but do skip empty stacks
+  local nextStack = source.next_stack or 1
+  local startStack = nextStack
+  local abort = false
+  local teleported = 0
+  local inventory = source.entity.get_inventory(defines.inventory.chest)
+  
+  -- Null operation
+  if inventory.is_empty() then return end
+  
+  local targetInventory = source.teleport_target.entity.get_inventory(defines.inventory.chest)
+
+  -- TODO: Could check hasbar() to avoid looping stacks that are always empty / should not be teleported?
+
+  while teleported < num and not abort do
+
+    local stack = inventory[num]
+    if stack.valid and stack.count > 0 then
+      -- Check if the stack can be moved
+      if targetInventory.can_insert(stack) then
+        local moved = targetInventory.insert(stack)
+        if moved == stack.count then
+          stack.clear()
+        else
+          stack.count = stack.count - moved
+        end
+        -- One has been moved!
+        num = num + 1
+      end
+    end
+
+    nextStack = nextStack + 1
+    nextStack = nextStack % #inventory
+    -- Abort if gone full circle
+    if nextStack == startStack then
+      abort=true
+    end
+  end
+
+  -- Remember stack for next tick
+  source.next_stack = nextStack
+
+end
+
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
   if event.rocket.get_item_count("portal-lander") == 0 then return end
@@ -668,6 +761,9 @@ script.on_event(defines.events.on_rocket_launched, onRocketLaunched)
 
 -- Handle technology upgrades
 function onResearchFinished(event)
+  -- TODO: On long-range teleportation, could upgrade portal belts to a different type?
+  -- Could have a series of research upgrades leading to interplanetary. Or nah ... just get straight there ;)
+  -- TODO: On large-mass teleportation, start teleporting all stacks not just 1 at a time.  
 end
 
 script.on_event(defines.events.on_research_finished, onResearchFinished)

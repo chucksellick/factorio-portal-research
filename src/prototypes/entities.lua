@@ -23,7 +23,6 @@ data:extend(
       input_flow_limit = "1MW",
       output_flow_limit = "0kW"
     },
-
     energy_production = "0kW",
     energy_usage = "100kW",
     -- also 'pictures' for 4-way sprite is available, or 'animation' resp. 'animations'
@@ -143,6 +142,9 @@ data:extend(
     starting_bottom = express_belt_starting_bottom,
     starting_side = express_belt_starting_side,
     fast_replaceable_group = "underground-belt",
+    -- TODO: This is maximum speed and is near instantaneous but still takes noticably
+    -- longer at distance. Need to do some trickery on_tick to make it actually work. Also
+    -- needs to draw power.
     speed = 1, --0.09375,
     structure =
     {

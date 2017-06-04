@@ -28,12 +28,6 @@ data:extend(
         amount = 1
       }
     },
-    crafting_machine_tint =
-    {
-      primary = {r=0.8, g=0.12, b=0.85, a=1.00},
-      secondary = {r=0.8, g=0.12, b=0.85, a=1.00},
-      tertiary = {r=0.8, g=0.12, b=0.85, a=1.00},
-    }
     --[[results =
     {
       {
@@ -75,8 +69,14 @@ data:extend(
       {type="fluid", name="lubricant", amount=25}, -- TODO: Dry ice for cooling? Lava?
       {type="fluid", name="steam", amount=50} -- Steam for destructive distillation of wood (but should it be higher temperature?)
     },
-    result = "plexiglass-lens"
-    --TODO: Expensive version, tint?
+    result = "plexiglass-lens",
+    crafting_machine_tint =
+    {
+      primary = {r=0.0, g=0.0, b=0.85, a=1.00},
+      secondary = {r=0.8, g=0.8, b=0.9, a=1.00},
+      tertiary = {r=0.6, g=0.65, b=0.85, a=1.00},
+    }
+    --TODO: Expensive version?
   },
   {
     type = "recipe",
@@ -188,6 +188,8 @@ data:extend(
       {"processing-unit", 100},
       {"medium-portal", 1},
       {"rocket-fuel", 200} -- 50 on satellite
+      -- TODO: Perhaps require a different type of fuel for space operation?
+      -- https://forums.factorio.com/viewtopic.php?f=6&t=3802
     },
     result = "portal-lander"
   }

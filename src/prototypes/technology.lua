@@ -96,35 +96,95 @@ data:extend(
       count = 200
     }
   },
-  --[[{
+  {
     type = "technology",
-    name = "long-range-teleportation",
-    prerequisites = {"short-range-teleportation"}
+    name = "short-range-teleportation",
+    icon = ICON_BASE .. "short-range-teleportation.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "portal-belt"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "portal-chest"
+      }
+    },
+    prerequisites = {"portal-research", "logistics-3", "logistic-system"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        {"high-tech-science-pack", 2},
+        {"portal-science-pack", 1}
+      },
+      time = 30,
+      count = 500
+    },
+    order = "e-p-b-c"
   },
   {
     type = "technology",
     name = "large-mass-teleportation",
-    prerequisites = {"short-range-teleportation"},
+    icon = ICON_BASE .. "large-mass-teleportation.png",
+    icon_size = 128,
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "medium-portal"
       }
-    }
+    },
+    prerequisites = {"short-range-teleportation"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        {"high-tech-science-pack", 2},
+        {"portal-science-pack", 1}
+      },
+      time = 30,
+      count = 500
+    },
+    order = "e-p-b-c"
   },
   {
     type = "technology",
     name = "interplanetary-teleportation",
-    prerequisites = {"long-range-teleportation"},
+    icon = ICON_BASE .. "interplanetary-teleportation.png",
+    icon_size = 128,
     effects =
     {
+      -- TODO: Also virtual effect of increasing belt distances? And allow boxes to be further apart
       {
         type = "unlock-recipe",
         recipe = "portal-lander"
       }
-    }
-  },
+    },
+    prerequisites = {"large-mass-teleportation"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        {"high-tech-science-pack", 2},
+        {"portal-science-pack", 1}
+      },
+      time = 30,
+      count = 500
+    },
+    order = "e-p-b-c"
+  }--[[,
   {
     type = "technology",
     name = "astronomy", -- Advanced optics? And unlock space telescope on astronomy instead
