@@ -38,12 +38,52 @@ data:extend(
   },
   {
     type = "item",
+    name = "plexiglass-lens",
+    icon = "__portal-research__/graphics/icons/factorium-crystal-small.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "h[plexiglass-lens]",
+    stack_size = 100
+  },
+  {
+    type = "tool",
+    name = "portal-science-pack",
+    icon = "__base__/graphics/icons/space-science-pack.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "science-pack",
+    order = "h[portal-science-pack]",
+    stack_size = 100,
+    durability = 1,
+    durability_description_key = "description.science-pack-remaining-amount"
+  },
+  {
+    type = "item",
     name = "portal-control-unit",
     icon = "__base__/graphics/icons/processing-unit.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[portal-control-unit]",
     stack_size = 100
+  },
+  {
+    type = "item",
+    name = "portal-chest",
+    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    flags = {"goes-to-quickbar"},
+    subgroup = "logistic-network",
+    order = "b[storage]-c[portal-chest]",
+    place_result = "portal-chest",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "portal-belt",
+    icon = "__base__/graphics/icons/express-underground-belt.png",
+    flags = {"goes-to-quickbar"},
+    subgroup = "belt",
+    order = "b[underground-belt]-d[portal-belt]",
+    place_result = "portal-belt",
+    stack_size = 50
   },
   {
     type = "item",

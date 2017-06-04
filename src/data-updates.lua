@@ -1,6 +1,8 @@
 enable_productivity_recipes = {
   "factorium-processing",
-  "portal-control-unit"
+  "portal-control-unit",
+  "plexiglass-lens",
+  "portal-science-pack"
 }
 
 for k, v in pairs(data.raw.module) do
@@ -12,3 +14,6 @@ for k, v in pairs(data.raw.module) do
     end
   end
 end
+
+-- TODO: Could require a specialised Portal research lab.
+table.insert(data.raw.lab.lab.inputs, "portal-science-pack")

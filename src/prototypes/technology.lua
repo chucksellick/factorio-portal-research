@@ -1,9 +1,11 @@
+local ICON_BASE = "__portal-research__/graphics/technology/"
 data:extend(
 {
   {
     type = "technology",
     name = "portal-research",
     icon = "__base__/graphics/technology/nuclear-power.png",
+    icon_size = 128,
     effects =
     {
       {
@@ -17,7 +19,7 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "portal-science-pack"
-      },
+      }
     },
     prerequisites = {"advanced-electronics-2"},
     unit =
@@ -37,32 +39,80 @@ data:extend(
   {
     type = "technology",
     name = "short-range-teleportation",
-    prerequisites = {"portal-research"},
+    icon = ICON_BASE .. "short-range-teleportation.png",
+    icon_size = 128,
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "portal-belt"
       },
+      {
+        type = "unlock-recipe",
+        recipe = "portal-chest"
+      }
     },
+    prerequisites = {"portal-research", "logistics-3", "logistic-system"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        {"high-tech-science-pack", 2},
+        {"portal-science-pack", 1}
+      },
+      time = 30,
+      count = 500
+    },
+    order = "e-p-b-c"
   },
   {
+    type = "technology",
+    name = "advanced-optics",
+    icon = "__base__/graphics/technology/optics.png",
+    --icon = ICON_BASE .. "advanced-optics.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "plexiglass-lens"
+      }
+      -- TODO: Unlock an advanced laser or laser gun or something to make this immediately useful
+    },
+    prerequisites = {"laser"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 2},
+      },
+      time = 30,
+      count = 200
+    }
+  },
+  --[[{
     type = "technology",
     name = "long-range-teleportation",
-    prerequisites = {"short-range-teleportation"},
+    prerequisites = {"short-range-teleportation"}
   },
   {
     type = "technology",
-    name = "bulk-mass-teleportation",
+    name = "large-mass-teleportation",
     prerequisites = {"short-range-teleportation"},
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "medium-portal"
-      },
-    },
-  }
+      }
+    }
+  },
   {
     type = "technology",
     name = "interplanetary-teleportation",
@@ -73,7 +123,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "portal-lander"
       }
-    },
+    }
   },
   {
     type = "technology",
@@ -86,7 +136,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "lens"
       }
-    },
+    }
   },
   {
     type = "technology",
@@ -98,7 +148,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "space-telescope"
       }
-    },
+    }
   },
   {
     type = "technology",
@@ -114,7 +164,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "orbital-mining-target"
       }
-    },
+    }
   },
   {
     type = "technology",
@@ -130,7 +180,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "microwave-transmitter"
       }
-    },
+    }
   },
   {
     type = "technology",
@@ -141,8 +191,8 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "solar-array"
-      },
-    },
+      }
+    }
   },
   {
     type = "technology",
@@ -165,11 +215,27 @@ data:extend(
         type = "unlock-recipe",
         recipe = "cargo-catapult"
       },
-      {
+      { 
         type = "unlock-recipe",
         recipe = "cargo-drop-site"
+      }
+    }
+  },
+  {
+    type = "technology",
+    name = "portal-robotics",
+    prerequisites = {"construction-robotics", "extraplanetary-logistics"},
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "portal-construction-robot"
       },
-    },
+      {
+        type = "unlock-recipe",
+        recipe = "portal-logistics-robot"
+      }
+    }
   },
   {
     type = "technology",
@@ -180,9 +246,8 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "orbital-repair-station"
-      },
-    },
-  },
-
-  -- TODO: teletrains!
+      }
+    }
+  }
+  -- TODO: teletrains!]]--
 })

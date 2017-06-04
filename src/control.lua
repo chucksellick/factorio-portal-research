@@ -229,6 +229,9 @@ function randomOffworldSite(force)
     surface_generated = false,
     -- TODO: Logarithmic scale, increases with research, more resources found farther afield
     distance = 1 + math.random(),
+    -- TODO: This directly translates to a light level but the exact curve is not clear. 0 is full daylight, 0.5 is midnight ... in between there is a curve.
+    -- Solar panels still give 100% at 0.25 but start losing power at 0.3 and have lost most at 0.4.
+    daytime = math.random(),
     portals = {},
     is_offworld = true
   }
@@ -331,6 +334,7 @@ function showEmergencyHomeButton(player)
 end
 
 function hideEmergencyHomeButton(player)
+  game.print("Hiding home button")
   local button_flow = mod_gui.get_button_flow(player)
   if button_flow["portal-research-emergency-home-button"] then
     button_flow["portal-research-emergency-home-button"].style.visible = false
@@ -428,7 +432,14 @@ function onGuiClick(event)
     -- TODO: Show us your GUI
   end
   if name == "portal-research-emergency-home-button" then
-    -- TODO: Implement!!
+    local portal = playerData.emergency_home_portal
+    player.teleport(playerData.emergency_home_position, portal.entity.surface)
+    -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
+    portal.entity.damage(portal.entity.health, player.force)
+    -- TODO: Stage this a bit so we see it blow up before the player teleports in
+    playerData.emergency_home_portal = nil
+    playerData.emergency_home_position = nil
+    hideEmergencyHomeButton(player)
   end
   if name == "close-site-details-button" then
     player.gui.center["portal-site-details"].destroy()
@@ -466,7 +477,7 @@ function generateSiteSurface(site)
   -- However this would preclude the possibility of space platform building :(
 
   local surface = game.create_surface("Asteroid " .. site.name, {width=2,height=2})--mapgen)
-  surface.daytime = 0.4 -- Make things dark even tho really not sure how realistic that is ;)
+  surface.daytime = site.daytime or 0
   surface.freeze_daytime = true -- TODO: For now, implement variable day/night later
   --surface.request_to_generate_chunks({0, 0}, 3) -- More?
 
@@ -538,7 +549,7 @@ end)
 function playersEnterPortals()
   local tick = game.tick
   for player_index, player in pairs(game.players) do
-    -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for )
+    -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for trains...)
     if player.connected and not player.driving then -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
       local walking_state = player.walking_state
       if walking_state.walking
@@ -563,10 +574,10 @@ function playersEnterPortals()
 
             if (direction == defines.direction.north
               and player.position.y > portal.entity.position.y
-              and player.position.y < portal.entity.position.y + 0.5)
+              and player.position.y < portal.entity.position.y + 1)
               or (walking_state.direction == defines.direction.south
               and player.position.y < portal.entity.position.y
-              and player.position.y > portal.entity.position.y - 0.5) then
+              and player.position.y > portal.entity.position.y - 1) then
               -- Teleport
               enterPortal(player, portal, direction)
             end
@@ -605,15 +616,10 @@ function enterPortal(player, portal, direction)
 
   -- TODO: Freeze player and show teleport anim/sound for a second
   local targetPos = {
-    -- x is the same relative to both portals
+    -- x is the same relative to both portals, y is inverted
     x = portal.teleport_target.entity.position.x + player.position.x - portal.entity.position.x,
-    y = portal.teleport_target.entity.position.y
+    y = portal.teleport_target.entity.position.y - player.position.y + portal.entity.position.y
   }
-  if direction == defines.direction.north then
-    targetPos.y = targetPos.y - 0.5
-  else
-    targetPos.y = targetPos.y + 0.5
-  end
   player.teleport(targetPos, portal.teleport_target.site.surface)
 
   -- TODO: emergency teleport, entity could be invalid, will be a completely different path
@@ -659,3 +665,9 @@ function onRocketLaunched(event)
 end
 
 script.on_event(defines.events.on_rocket_launched, onRocketLaunched)
+
+-- Handle technology upgrades
+function onResearchFinished(event)
+end
+
+script.on_event(defines.events.on_research_finished, onResearchFinished)
