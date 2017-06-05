@@ -83,7 +83,8 @@ data:extend(
       priority = "extra-high",
       width = 48,
       height = 34,
-      shift = {0.1875, 0}
+      shift = {0.1875, 0},
+      tint = {r=1, g=0.8, b=1, a=1}
     },
     circuit_wire_connection_point =
     {
@@ -99,7 +100,60 @@ data:extend(
       }
     },
     circuit_connector_sprites = get_circuit_connector_sprites({0.1875, 0.15625}, nil, 18),
-    circuit_wire_max_distance = 9
+    circuit_wire_max_distance = 9,
+    electric_energy_source = "fake-power-consumer"
+  },
+  {
+    type = "electric-energy-interface",
+    name = "portal-chest-power",
+    icon = "__base__/graphics/icons/logistic-requester-chest.png",
+    flags = {"placeable-off-grid"}
+    --flags = {"player-creation"},
+    --minable = {hardness = 0.2, mining_time = 0.5, result = "fake-power-consumer"},
+    --max_health = 150,
+    --corpse = "medium-remnants",
+    collision_box = {{0, 0}, {0, 0}},
+    selection_box = {{0, 0}, {0, 0}},
+    collision_mask = {"not-colliding-with-itself"},
+    enable_gui = false,
+    allow_copy_paste = false,
+    energy_source =
+    {
+      type = "electric",
+      buffer_capacity = "2MJ",
+      usage_priority = "terciary",
+      input_flow_limit = "500MW",
+      output_flow_limit = "0GW"
+    },
+    energy_production = "0GW",
+    energy_usage = "200kW",
+    -- also 'pictures' for 4-way sprite is available, or 'animation' resp. 'animations'
+    --[[
+    picture =
+    {
+      filename = "__base__/graphics/entity/accumulator/accumulator.png",
+      priority = "extra-high",
+      width = 124,
+      height = 103,
+      shift = {0.6875, -0.203125},
+      tint = {r=1, g=0.8, b=1, a=1}
+    },
+    ]]--
+    --vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
+    working_sound =
+    {
+      sound =
+      {
+        filename = "__base__/sound/accumulator-working.ogg",
+        volume = 1
+      },
+      idle_sound =
+      {
+        filename = "__base__/sound/accumulator-idle.ogg",
+        volume = 0.4
+      },
+      max_sounds_per_type = 5
+    }
   },
   {
     type = "underground-belt",
@@ -155,6 +209,7 @@ data:extend(
           filename = "__base__/graphics/entity/express-underground-belt/express-underground-belt-structure.png",
           priority = "extra-high",
           shift = {0.26, 0},
+          tint = {r=1, g=0.8, b=1, a=1},
           width = 57,
           height = 43,
           y = 43,
@@ -163,6 +218,7 @@ data:extend(
             filename = "__base__/graphics/entity/express-underground-belt/hr-express-underground-belt-structure.png",
             priority = "extra-high",
             shift = {0.15625, 0.0703125},
+          tint = {r=1, g=0.8, b=1, a=1},
             width = 106,
             height = 85,
             y = 85,
@@ -179,11 +235,13 @@ data:extend(
           shift = {0.26, 0},
           width = 57,
           height = 43,
+          tint = {r=1, g=0.8, b=1, a=1},
           hr_version =
           {
             filename = "__base__/graphics/entity/express-underground-belt/hr-express-underground-belt-structure.png",
             priority = "extra-high",
             shift = {0.15625, 0.0703125},
+          tint = {r=1, g=0.8, b=1, a=1},
             width = 106,
             height = 85,
             scale = 0.5
@@ -193,4 +251,5 @@ data:extend(
     },
     ending_patch = ending_patch_prototype
   }
+
 })

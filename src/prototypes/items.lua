@@ -48,7 +48,7 @@ data:extend(
   {
     type = "tool",
     name = "portal-science-pack",
-    icon = "__base__/graphics/icons/space-science-pack.png",
+    icons = { {icon = "__base__/graphics/icons/space-science-pack.png", tint = {r=0.8, g=0.12, b=0.85}} },
     flags = {"goes-to-main-inventory"},
     subgroup = "science-pack",
     order = "h[portal-science-pack]",
@@ -59,7 +59,7 @@ data:extend(
   {
     type = "item",
     name = "portal-control-unit",
-    icon = "__base__/graphics/icons/processing-unit.png",
+    icons = { {icon = "__base__/graphics/icons/processing-unit.png", tint = {r=0.8, g=0.12, b=0.85}} },
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[portal-control-unit]",
@@ -68,7 +68,7 @@ data:extend(
   {
     type = "item",
     name = "portal-chest",
-    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    icons = { {icon = "__base__/graphics/icons/logistic-chest-requester.png", tint = {r=0.8, g=0.12, b=0.85}} },
     flags = {"goes-to-quickbar"},
     subgroup = "logistic-network",
     order = "b[storage]-c[portal-chest]",
@@ -77,8 +77,19 @@ data:extend(
   },
   {
     type = "item",
+    name = "portal-chest-power",
+    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    icons = { {icon = "__base__/graphics/icons/accumulator.png", tint = {r=1, g=0.8, b=1, a=1}} },
+    flags = {"goes-to-quickbar", "hidden"},
+    subgroup = "energy",
+    order = "e[electric-energy-interface]-b[portal-chest-power]",
+    place_result = "electric-energy-interface",
+    stack_size = 50
+  },
+  {
+    type = "item",
     name = "portal-belt",
-    icon = "__base__/graphics/icons/express-underground-belt.png",
+    icons = { {icon = "__base__/graphics/icons/express-underground-belt.png", tint = {r=1, g=0.8, b=1, a=1}} },
     flags = {"goes-to-quickbar"},
     subgroup = "belt",
     order = "b[underground-belt]-d[portal-belt]",

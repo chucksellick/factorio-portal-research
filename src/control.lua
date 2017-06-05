@@ -81,11 +81,34 @@ function On_Init()
     global.portals_by_entity = nil
   end
 
+  for i,entity in pairs(global.entities) do
+    if entity.fake_power_consumer then
+      entity.fake_energy = entity.fake_power_consumer
+    end
+  end
+
   -- XXX: Up to here
 
+  -- Fix site data (XXX: some of this as well actually...)
   for i,site in pairs(global.sites) do
     verifySiteData(site, i)
+    if not site.surface_name then
+      if site.surface.name ~= site.name then
+        site.is_offworld = true
+        site.surface_name = site.surface.name
+        global.sites[site.surface_name] = site
+        global.sites[site.name] = nil
+        game.print(site.name .. " " .. site.surface_name)
+      elseif site.name == "nauvis" or site.name == "Nauvis" then
+        site.surface_name = site.name
+        game.print(site.name)
+      else
+        game.print(site.name)
+        global.sites[i] = nil
+      end
+    end
   end
+
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "update_gui")
 end
@@ -119,6 +142,7 @@ end
 function newSiteDataForSurface(surface, force)
   local site = {
     name = surface.name,
+    surface_name = surface.name,
     force = force,
     surface_generated = true,
     surface = surface,
@@ -126,7 +150,7 @@ function newSiteDataForSurface(surface, force)
     portals = {},
     is_offworld = false
   }
-  global.sites[site.name] = site
+  global.sites[surface.name] = site
   return site
 end
 
@@ -153,6 +177,7 @@ function getEntityData(entity)
   return global.entities[entity.unit_number]
 end
 
+-- TODO: This is more of a entire "initializeEntity" now it also ends up creating power entities
 function createEntityData(entity)
   if entity.name == "medium-portal" or entity.name == "portal-chest" then
     local data = {
@@ -166,23 +191,45 @@ function createEntityData(entity)
     end
 
     data.site.portals[data.id] = data
+    ensureEnergyInterface(data)
     return data
   end
   return nil
 end
 
-function deleteEntityData(entity)
-  local currentData = global.entities[entity.id]
-  if currentData == nil then return end
-  global.entities[entity.id] = nil
+function ensureEnergyInterface(entityData)
+  if entityData.fake_energy ~= nil then
+    return entityData.fake_energy
+  end
 
-  if global.portals[entity.id] ~= nil then
-    global.portals[entity.id] = nil
+  if --(entityData.entity.name == "portal-belt" or
+    entityData.entity.name == "portal-chest" --)
+    then
+
+    local consumer = entityData.entity.surface.create_entity {
+      name=entityData.entity.name .. "-power",
+      position=entityData.entity.position,
+      force=entityData.entity.force
+    }
+    entityData.fake_energy = consumer
+  end
+  return entityData.fake_energy or entityData.entity
+end
+
+function deleteEntityData(entityData)
+  global.entities[entityData.id] = nil
+  if entityData.fake_energy then
+    entityData.fake_energy.destroy()
+    entityData.fake_energy = nil
+  end
+  if global.portals[entityData.id] ~= nil then
+    global.portals[entityData.id] = nil
+    entityData.site.portals[entityData.id] = nil
     -- Clean up any references to the entity from elsewhere
-    if currentData.teleport_target ~= nil then
-      currentData.teleport_target.teleport_target = nil
-      currentData.site.portals[entity.id] = nil
+    if entityData.teleport_target ~= nil then
+      entityData.teleport_target.teleport_target = nil
     end
+    -- Clean up power
   end
 end
 
@@ -203,9 +250,10 @@ function onMinedItem(event)
 end
 
 function onEntityDied(event)
-  -- NOTE: Leaving as a separate event, even though it's currently the same there
-  -- might be differences later on, e.g. the capsule packer
-  onMinedItem(event)
+  local data = getEntityData(event.entity)
+  if data ~= nil then
+    deleteEntityData(data)
+  end
 end
 
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, onBuiltEntity)
@@ -255,9 +303,10 @@ function randomOffworldSite(force)
   for i = 1, 4 do
     site.name = site.name .. Util.charset[52 + math.random(10)]
   end
+  site.surface_name = "Asteroid " .. site.name
 
   -- Store in global table
-  global.sites[site.name] = site
+  global.sites[site.surface_name] = site
   -- TODO: Currently surfaces can never be destroyed but if they ever can, need to handle deletion of sites
   -- Also if all portals are removed due to catastrophe then we could remove the site
 
@@ -344,7 +393,6 @@ function showEmergencyHomeButton(player)
 end
 
 function hideEmergencyHomeButton(player)
-  game.print("Hiding home button")
   local button_flow = mod_gui.get_button_flow(player)
   if button_flow["portal-research-emergency-home-button"] then
     button_flow["portal-research-emergency-home-button"].style.visible = false
@@ -383,30 +431,42 @@ function showSiteDetailsGUI(player, site)
 end
 
 function openPortalTargetSelectGUI(player, portal)
+
+  local guiContainer = (portal.entity.name == "portal-chest" and mod_gui.get_frame_flow(player) or player.gui.center)
+
+  -- TODO: Prevent this being called when already open. Close GUI when running away from portal.
+  -- Open GUI for a different portal.
+  -- Note: intentionally not the other guiContainer, until portal UIs are fixed
   if player.gui.center["portal-target-select"] then
     return
   end
 
   local playerData = getPlayerData(player)
 
+  -- Player opened a different chest quickly
+  if playerData.guiPortalCurrent then
+    closePortalTargetSelectGUI(player)
+  end
+
   playerData.guiPortalTargetButtons = {}
   playerData.guiPortalCurrent = portal
 
-  local dialogFrame = player.gui.center.add{
+  local dialogFrame = guiContainer.add{
     type="frame",
     name="portal-target-select",
-    caption={"gui-portal-research.portal-target-select-caption"}
+    caption={"gui-portal-research.portal-target-select-caption." .. portal.entity.name}
   }
   local targetsFlow = dialogFrame.add{type="flow", direction="vertical"}
   -- TODO: List resources on both types of button
   -- List sites that don't yet have a portal
-  local allowLongRange = player.force.technologies["long-range-teleportation"].researched
+  local allowLongRange = player.force.technologies["interplanetary-teleportation"]
+    and player.force.technologies["interplanetary-teleportation"].researched
 
   -- TODO: It shouldn't be possible to have sites before long-range research ... maybe
   -- don't need this conditional ;)
   -- TODO: However, for box portals do check they're close enough on the surface until interplanetary is unlocked
   -- TODO: Maybe shorter distances initially, go to 50 on long-range, go to infinite on interplanetary
-  if allowLongRange then  
+  if portal.entity.name == "medium-portal" and allowLongRange then  
     for i,site in pairs(global.sites) do
       if not site.surface_generated and site.force == player.force.name then
         local newButton = targetsFlow.add{
@@ -418,15 +478,17 @@ function openPortalTargetSelectGUI(player, portal)
       end
     end
   end
-  -- List portals that don't have a target
+  -- List portals (of the same type) that don't have a target
   for i,target in pairs(global.portals) do
-    if target.entity.force == player.force and portal ~= target and target.teleport_target == nil
+    if portal.entity.name == target.entity.name and target.entity.force == player.force and portal ~= target and target.teleport_target == nil
+      -- Note: It seems like long range shouldn't happen before lander is created,
+      -- however we're also checking for different surfaces e.g. those created by Factorissimo
       and (allowLongRange or target.entity.surface == portal.entity.surface) then
       local buttonId = "portal-target-select-" .. target.entity.unit_number
       local newButton = targetsFlow.add{
         type="button",
         name=buttonId,
-        caption=target.site.name
+        caption=target.site.name -- And an additional identifier :(
       }
       playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
     end
@@ -439,6 +501,11 @@ function closePortalTargetSelectGUI(player)
 
   playerData.guiPortalTargetButtons = nil
   playerData.guiPortalCurrent = nil
+
+  local frameFlow = mod_gui.get_frame_flow(player)
+  if frameFlow["portal-target-select"] then
+    frameFlow["portal-target-select"].destroy()
+  end
   if player.gui.center["portal-target-select"] then
     player.gui.center["portal-target-select"].destroy()
   end
@@ -455,6 +522,7 @@ function onGuiClick(event)
     local portal = playerData.emergency_home_portal
     player.teleport(playerData.emergency_home_position, portal.entity.surface)
     -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
+    --       Could also use die() ... but that wouldn't attribute the kill to anyone!
     portal.entity.damage(portal.entity.health, player.force)
     -- TODO: Stage this a bit so we see it blow up before the player teleports in
     -- TODO: And display warning and require confirmationn
@@ -481,6 +549,15 @@ function onGuiClick(event)
 
     playerData.guiPortalCurrent.teleport_target = chosen.portal
     chosen.portal.teleport_target = playerData.guiPortalCurrent
+
+    -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
+    -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
+    -- TODO: (Much later) GUI can show connections diagrammatically
+    if chosen.portal.entity.name == "portal-chest" then
+      chosen.portal.is_sender = false
+      chosen.portal.teleport_target.is_sender = true      
+    end
+
     closePortalTargetSelectGUI(player)
     return
   end
@@ -497,7 +574,7 @@ function generateSiteSurface(site)
   -- TODO: Use a similar thing from Factorissimo where surfaces are reused with asteroids very far apart.
   -- However this would preclude the possibility of space platform building :(
 
-  local surface = game.create_surface("Asteroid " .. site.name, {width=2,height=2})--mapgen)
+  local surface = game.create_surface(site.surface_name, {width=2,height=2})--mapgen)
   surface.daytime = site.daytime or 0
   surface.freeze_daytime = true -- TODO: For now, implement variable day/night later
   --surface.request_to_generate_chunks({0, 0}, 3) -- More?
@@ -577,7 +654,22 @@ function playersEnterPortals()
   local tick = game.tick
   for player_index, player in pairs(game.players) do
     -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for trains...)
-    if player.connected and not player.driving then -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
+    -- TODO: Balance ticks...
+    -- Open chest GUI when player has chest open
+    local playerData = getPlayerData(player)
+    -- TODO: Chest stuff really in the right function here...
+    if not player.opened and playerData.guiPortalCurrent and playerData.guiPortalCurrent.entity.name == "portal-chest" then
+      closePortalTargetSelectGUI(player, chestData)
+    end
+    if player.opened and player.opened.name == "portal-chest" then
+      local chestData = getEntityData(player.opened)
+      if chestData.teleport_target == nil and playerData.guiPortalCurrent ~= chestData then
+        -- TODO: However, periodically refresh the list in case chests are being built elsewherre
+        openPortalTargetSelectGUI(player, chestData)
+      end
+    end
+    if player.connected and not player.driving then
+    -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
       local walking_state = player.walking_state
       if walking_state.walking
         and walking_state.direction ~= defines.direction.east
@@ -675,14 +767,13 @@ function requiredEnergyForTeleport(player, portal)
 end
 
 function chestsMoveStacks(event)
-
   -- Chests teleport every second (for now)
   -- TODO: Tweak this value and maybe add some research to make it quicker.
   local checkFrequency = 60
   -- TODO: Optimisation. Move into a list we can traverse quickly.
   local tick = event.tick % checkFrequency
   local n = 0
-  for i,portal in global.portals do
+  for i,portal in pairs(global.portals) do
     if portal.entity.name == "portal-chest" then
       n = n + 1
       if portal.is_sender and portal.teleport_target and n % checkFrequency == tick then
@@ -696,6 +787,10 @@ function teleportChestStacks(source, num)
 
   -- TODO: Check if energy is available (and use it)
   local target = source.teleport_target
+  
+  ensureEnergyInterface(source)
+  ensureEnergyInterface(target)
+
   -- Move from stack to stack teleporting, but do skip empty stacks
   local nextStack = source.next_stack or 1
   local startStack = nextStack
@@ -711,24 +806,25 @@ function teleportChestStacks(source, num)
   -- TODO: Could check hasbar() to avoid looping stacks that are always empty / should not be teleported?
 
   while teleported < num and not abort do
-
-    local stack = inventory[num]
-    if stack.valid and stack.count > 0 then
-      -- Check if the stack can be moved
-      if targetInventory.can_insert(stack) then
-        local moved = targetInventory.insert(stack)
-        if moved == stack.count then
-          stack.clear()
-        else
-          stack.count = stack.count - moved
+    local stack = inventory[nextStack]
+    if stack.valid_for_read then
+      if stack.count > 0 then
+        -- Check if the stack can be moved
+        if targetInventory.can_insert(stack) then
+          local moved = targetInventory.insert(stack)
+          if moved == stack.count then
+            stack.clear()
+          else
+            stack.count = stack.count - moved
+          end
+          -- One has been moved!
+          teleported = teleported + 1
         end
-        -- One has been moved!
-        num = num + 1
       end
     end
 
     nextStack = nextStack + 1
-    nextStack = nextStack % #inventory
+    nextStack = (nextStack-1) % #inventory + 1
     -- Abort if gone full circle
     if nextStack == startStack then
       abort=true
@@ -754,7 +850,7 @@ function onRocketLaunched(event)
     showSiteDetailsGUI(player, newSite)
   end
 
-  -- TODO: Populate some silo output science packs
+  -- TODO: Populate some silo output science packs?
 end
 
 script.on_event(defines.events.on_rocket_launched, onRocketLaunched)
