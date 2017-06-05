@@ -54,7 +54,7 @@ data:extend(
   {
     type = "container",
     name = "portal-chest",
-    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-neutral", "player-creation"},
     minable = {mining_time = 1, result = "portal-chest"},
     max_health = 500,
@@ -106,8 +106,8 @@ data:extend(
   {
     type = "electric-energy-interface",
     name = "portal-chest-power",
-    icon = "__base__/graphics/icons/logistic-requester-chest.png",
-    flags = {"placeable-off-grid"}
+    icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
+    flags = {"placeable-off-grid"},
     --flags = {"player-creation"},
     --minable = {hardness = 0.2, mining_time = 0.5, result = "fake-power-consumer"},
     --max_health = 150,
@@ -120,7 +120,7 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "2MJ",
+      buffer_capacity = "5MJ",
       usage_priority = "terciary",
       input_flow_limit = "500MW",
       output_flow_limit = "0GW"

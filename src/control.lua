@@ -81,15 +81,7 @@ function On_Init()
     global.portals_by_entity = nil
   end
 
-  for i,entity in pairs(global.entities) do
-    if entity.fake_power_consumer then
-      entity.fake_energy = entity.fake_power_consumer
-    end
-  end
-
-  -- XXX: Up to here
-
-  -- Fix site data (XXX: some of this as well actually...)
+  -- Fix site data
   for i,site in pairs(global.sites) do
     verifySiteData(site, i)
     if not site.surface_name then
@@ -108,6 +100,15 @@ function On_Init()
       end
     end
   end
+
+  for i,entity in pairs(global.entities) do
+    if entity.fake_power_consumer then
+      entity.fake_energy = entity.fake_power_consumer
+    end
+    entity.site = global.sites[entity.entity.surface.name]
+  end
+
+  -- XXX: Up to here
 
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "update_gui")
@@ -750,6 +751,7 @@ function enterPortal(player, portal, direction)
   portal.teleport_target.entity.energy = portal.teleport_target.entity.energy - missingEnergy
 end
 
+-- TODO: Rename
 function requiredEnergyForTeleport(player, portal)
 
   -- Algorithm as follows:
@@ -757,11 +759,32 @@ function requiredEnergyForTeleport(player, portal)
   --   Plus cost for player (adjust depending on inventory size? Items carried? In vehicle?)
   --   Multiplied by distance cost
 
+  -- TODO: Bring cost down on research levels for force
+
   local BASE_COST = 1000000 -- 1MJ
   local PLAYER_COST = 50000 -- 2MJ
   local DISTANCE_MODIFIER = 100
 
   return BASE_COST + PLAYER_COST * DISTANCE_MODIFIER
+    * math.abs(portal.teleport_target.site.distance - portal.site.distance)
+
+end
+
+function energyRequiredForStackTeleport(stack, portal)
+
+  -- Algorithm as follows:
+  --   Base cost to initate a teleport
+  --   Plus cost for player (adjust depending on inventory size? Items carried? In vehicle?)
+  --   Multiplied by distance cost
+
+  -- TODO: Bring cost down on research levels for force
+  -- TODO: Reduce cost for partial stacks
+
+  local BASE_COST = 100000 -- 1MJ
+  local STACK_COST = 10000
+  local DISTANCE_MODIFIER = 100
+
+  return BASE_COST + STACK_COST * DISTANCE_MODIFIER
     * math.abs(portal.teleport_target.site.distance - portal.site.distance)
 
 end
@@ -811,14 +834,29 @@ function teleportChestStacks(source, num)
       if stack.count > 0 then
         -- Check if the stack can be moved
         if targetInventory.can_insert(stack) then
-          local moved = targetInventory.insert(stack)
-          if moved == stack.count then
-            stack.clear()
+          -- First check we have enough energy
+          -- TODO: For chests/belts, use energy on *both* sides of the portal.
+          -- In fact do this for players too normally but allow power to balance from the other side.
+          -- Purely for gameplay convenience, not realism!
+          local energyRequired = energyRequiredForStackTeleport(stack, source)
+          if (source.fake_energy and source.fake_energy.energy >= energyRequired) then
+            source.fake_energy.energy = source.fake_energy.energy - energyRequired
+            local moved = targetInventory.insert(stack)
+            if moved == stack.count then
+              stack.clear()
+            else
+              stack.count = stack.count - moved
+            end
+            -- One has been moved!
+            teleported = teleported + 1
           else
-            stack.count = stack.count - moved
+            -- TODO: Locale
+            game.print(inspect(source.site))
+            source.entity.force.print("Not enough power in chest on " .. source.site.surface_name)
+            source.entity.force.print("Required " .. energyRequired .. " available " .. source.fake_energy.energy)
+            abort = true
           end
-          -- One has been moved!
-          teleported = teleported + 1
+          -- TODO: Trigger not enough power warning on map?
         end
       end
     end
