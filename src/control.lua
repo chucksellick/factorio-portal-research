@@ -13,7 +13,10 @@
   * Space-based solar power
     - Degradation over time due to micrometeors, solar flares, general weathering
     - Send up repair drones
-
+  * Orbital research lab
+    - Initially deploys with 1000(?) of each science pack (a separate science pack bundle recipe)
+    - Must receive power (microwave)
+     - Degrades over time. Needs deliveries of additional science bundles + repairs
 --]]
 
 require("mod-gui")
@@ -149,7 +152,7 @@ function newSiteDataForSurface(surface, force)
     surface_generated = true,
     surface = surface,
     distance = 0,
-    portals = {},
+    portals = {}, 
     is_offworld = false
   }
   global.sites[surface.name] = site
@@ -181,7 +184,10 @@ end
 
 -- TODO: This is more of a entire "initializeEntity" now it also ends up creating power entities
 function createEntityData(entity)
-  if entity.name == "medium-portal" or entity.name == "portal-chest" then
+  if entity.name == "medium-portal"
+    or entity.name == "portal-chest"
+    or entity.name == "portal-belt" then
+
     local data = {
       id = entity.unit_number,
       teleport_target = nil,
@@ -195,6 +201,12 @@ function createEntityData(entity)
     data.site.portals[data.id] = data
     ensureEnergyInterface(data)
     updatePortalEnergyProperties(data)
+    -- Update other end of connected underground belt
+    -- TODO: When insert a new belt between two other belts, this is fine for the new neighbour,
+    -- however the other now-orphaned end will still be buffering power...
+    if entity.name == "portal-belt" and entity.neighbours ~= nil then    
+      updatePortalEnergyProperties(getEntityData(entity.neighbours))
+    end
     return data
   end
   return nil
@@ -210,7 +222,7 @@ function ensureEnergyInterface(entityData)
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
-      position={entityData.entity.position.x-0.5, entityData.entity.position.y-0.5},
+      position=entityData.entity.position, --.x-0.5, entityData.entity.position.y-0.5},
       force=entityData.entity.force
     }
     entityData.fake_energy = consumer
@@ -232,7 +244,7 @@ function deleteEntityData(entityData)
     if entityData.teleport_target ~= nil then
       entityData.teleport_target.teleport_target = nil
       -- Buffer will empty on the other side
-      -- TODO: Is it really necessary? Could hold the power until another target is selected
+      -- TODO: Is it really necessary? Could store the power until another target is selected
       updatePortalEnergyProperties(entityData.teleport_target)
     end
   end
@@ -657,6 +669,7 @@ end
 script.on_event(defines.events.on_tick, function(event) 
   playersEnterPortals()
   chestsMoveStacks(event)
+  beltsMoveItems(event)
 end)
 
 function playersEnterPortals()
@@ -764,12 +777,16 @@ function energyRequiredForPlayerTeleport(portal, player)
   return maxEnergyRequiredForPlayerTeleport(portal)
 end
 
+function distanceBetween(a, b)
+    return math.sqrt((a.position.x - b.position.x) ^ 2
+      + (a.position.y - b.position.y)^2)
+end
+
 function groundDistanceOfTeleport(portal)
   if portal.site ~= portal.teleport_target.site then
     return 0
   else
-    return math.sqrt((portal.teleport_target.entity.position.x - portal.entity.position.x) ^ 2
-      + (portal.teleport_target.entity.position.y - portal.entity.position.y)^2)
+    return distanceBetween(portal.teleport_target.entity, portal.entity)
   end
 end
 function spaceDistanceOfTeleport(portal)
@@ -785,6 +802,15 @@ local PLAYER_COST = 25000000
 local GROUND_DISTANCE_MODIFIER = 0.1
 local DISTANCE_MODIFIER = 100
 local STACK_COST = 50000
+-- TODO: Artifically bumped up since it's only a single item from a stack and
+-- gets divided by 100 later. Need to revisit the formula, have a smaller overall
+-- base_cost for belts and account for stack proportions.
+local BELT_STACK_COST = 50000 * 10
+
+-- TODO: Thinking realistically about how portals should work(!), need to change everything a bit.
+-- Opening a portal should incur the big base cost, keeping it open has an ongoing cost, moving matter
+-- has an additional cost. So as long as a portal stays open things will be cheaper, but portals
+-- should automatically close while idle?
 
 function maxEnergyRequiredForPlayerTeleport(portal)
 
@@ -824,6 +850,18 @@ function maxEnergyRequiredForStackTeleport(portal)
                                   + GROUND_DISTANCE_MODIFIER * groundDistanceOfTeleport(portal))
 end
 
+function maxEnergyRequiredForBeltTeleport(belt)
+
+  return BASE_COST
+    + BELT_STACK_COST * (GROUND_DISTANCE_MODIFIER * distanceBetween(belt.entity, belt.entity.neighbours))
+
+end
+
+function energyRequiredForBeltTeleport(belt, count)
+  -- TODO: Would be fairer to check against stack sizes and charge 1/stack_max per item
+  return maxEnergyRequiredForBeltTeleport(belt) * count / 200
+end
+
 function updatePortalEnergyProperties(portal)
 
   local entity = portal.entity
@@ -833,6 +871,9 @@ function updatePortalEnergyProperties(portal)
   end
   if entity.name == "portal-chest" and portal.teleport_target then
     requiredEnergy = maxEnergyRequiredForStackTeleport(portal)
+  end
+  if entity.name == "portal-belt" and portal.entity.neighbours then
+    requiredEnergy = maxEnergyRequiredForBeltTeleport(portal) * 4 / 100
   end
 
   -- Buffer can store enough for 2 teleports only!
@@ -929,7 +970,54 @@ function teleportChestStacks(source, num)
 
   -- Remember stack for next tick
   source.next_stack = nextStack
+end
 
+function beltsMoveItems(event)
+  -- TODO: If items move at MAX_BELT_SPEED units/tick then moving an entire unit takes 1/MAX_BELT_SPEED (?) ticks = 10.6r
+  -- Since we can't check at fractional ticks we err on the side of caution, check every 10 ticks, we'll slightly
+  -- over-charge for some items sometimes but this is fine in terms of balance. However we *could* be undercharging
+  -- since things can move so fast onto other end of belt
+  -- TODO: Optimisation. Move into a list we can traverse quickly.
+  local MAX_BELT_SPEED = 0.09375
+  local checkFrequency = math.floor(1/MAX_BELT_SPEED)
+  local tick = event.tick % checkFrequency
+  local n = 0
+  for i,portal in pairs(global.entities) do
+    if portal.entity.name == "portal-belt" then
+      n = n + 1
+      -- Only proc if actually connnected and only if it's the input side (since power consumption will
+      -- be same on both sides)
+      if n % checkFrequency == tick and portal.entity.belt_to_ground_type == "input"
+        and portal.entity.neighbours ~= nil then
+        consumeBeltPower(portal)
+      end
+    end
+  end
+end
+
+function consumeBeltPower(inputBelt)
+  -- TODO: Quick hack following, charging power for any items currently on the line. This is probably
+  -- drastically overcharging (need some tests to actually find out) but right now there's no way to know
+  -- whether items are actually moving.
+  local line1 = inputBelt.entity.get_transport_line(1)
+  local line2 = inputBelt.entity.get_transport_line(2)
+  local line1out = inputBelt.entity.neighbours.get_transport_line(1)
+  local line2out = inputBelt.entity.neighbours.get_transport_line(2)
+
+  local totalItems = #line1 + #line2 + #line1out + #line2out
+  local requiredEnergy = energyRequiredForBeltTeleport(inputBelt, totalItems)
+
+  local neighbourFakeEnergy = getEntityData(inputBelt.entity.neighbours).fake_energy
+  if (inputBelt.fake_energy.energy < requiredEnergy
+    or neighbourFakeEnergy.energy < requiredEnergy) then
+    inputBelt.entity.active = false
+    inputBelt.entity.neighbours.active = false
+  else
+    inputBelt.entity.active = true
+    inputBelt.entity.neighbours.active = true
+    inputBelt.fake_energy.energy = inputBelt.fake_energy.energy - requiredEnergy
+    neighbourFakeEnergy.energy = neighbourFakeEnergy.energy - requiredEnergy
+  end
 end
 
 -- Handle objects launched in rockets
