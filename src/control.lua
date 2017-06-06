@@ -17,6 +17,15 @@
     - Initially deploys with 1000(?) of each science pack (a separate science pack bundle recipe)
     - Must receive power (microwave)
      - Degrades over time. Needs deliveries of additional science bundles + repairs
+  * Some research to reduce damage from micrometeors etc. (defense system)
+  * 
+  * Space platform / space elevator
+    - Shuttle system to move goods between offworld sites
+    - Elevator to move goods between ground and space
+  * More detailed simulation of offworld activity
+    - Time taken for e.g. landers to reach asteroids (scaling with time)
+    - Orbital map, danger of orbit collisions (reduced with research), control heights/speeds of orbit
+    
 --]]
 
 require("mod-gui")
@@ -222,7 +231,7 @@ function ensureEnergyInterface(entityData)
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
-      position=entityData.entity.position, --.x-0.5, entityData.entity.position.y-0.5},
+      position={entityData.entity.position.x,entityData.entity.position.y+0.1},
       force=entityData.entity.force
     }
     entityData.fake_energy = consumer

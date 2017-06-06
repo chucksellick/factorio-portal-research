@@ -2,7 +2,8 @@ enable_productivity_recipes = {
   "factorium-processing",
   "portal-control-unit",
   "plexiglass-lens",
-  "portal-science-pack"
+  "portal-science-pack",
+  "telescope" -- TODO: *Could* be a player-usable item ... for ... what though?
 }
 
 for k, v in pairs(data.raw.module) do

@@ -117,7 +117,7 @@ data:extend(
     --selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
     -- Can't be selected because it's masked by the chest (for unknown reasons but still), however
     -- the selection_box is used to draw the power connection blue square so it's good to have one.
-    selection_box = {{-0.4, -0.4}, {0.4, 0.4}},
+    selection_box = {{-0.4, -0.4}, {0.6, 0.6}},
     collision_mask = {},
     enable_gui = false,
     allow_copy_paste = false,
@@ -140,7 +140,7 @@ data:extend(
       height = 103,
       shift = {0.6875, -0.203125},
       tint = {r=1, g=0.8, b=1, a=1}
-    },]]--
+    },]]
     --vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
     working_sound =
     {

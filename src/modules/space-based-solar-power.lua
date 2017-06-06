@@ -1,0 +1,4 @@
+
+local transmitters = global.transmitters
+
+

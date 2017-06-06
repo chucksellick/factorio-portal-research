@@ -3,8 +3,36 @@ data:extend(
 {
   {
     type = "technology",
+    name = "advanced-optics",
+    icon = "__base__/graphics/technology/optics.png",
+    --icon = ICON_BASE .. "advanced-optics.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "plexiglass-lens"
+      }
+      -- TODO: Unlock an advanced laser or laser gun or something to make this immediately useful
+    },
+    prerequisites = {"laser"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 2},
+      },
+      time = 30,
+      count = 200
+    }
+  },
+  {
+    type = "technology",
     name = "portal-research",
-    icon = "__base__/graphics/technology/nuclear-power.png",
+    icon = ICON_BASE .. "portal-research.png",
     icon_size = 128,
     effects =
     {
@@ -67,34 +95,6 @@ data:extend(
       count = 500
     },
     order = "e-p-b-c"
-  },
-  {
-    type = "technology",
-    name = "advanced-optics",
-    icon = "__base__/graphics/technology/optics.png",
-    --icon = ICON_BASE .. "advanced-optics.png",
-    icon_size = 128,
-    effects =
-    {
-      {
-        type = "unlock-recipe",
-        recipe = "plexiglass-lens"
-      }
-      -- TODO: Unlock an advanced laser or laser gun or something to make this immediately useful
-    },
-    prerequisites = {"laser"},
-    unit =
-    {
-      ingredients =
-      {
-        {"science-pack-1", 1},
-        {"science-pack-2", 1},
-        {"science-pack-3", 1},
-        {"production-science-pack", 2},
-      },
-      time = 30,
-      count = 200
-    }
   },
   {
     type = "technology",
@@ -169,7 +169,7 @@ data:extend(
         recipe = "portal-lander"
       }
     },
-    prerequisites = {"large-mass-teleportation"},
+    prerequisites = {"large-mass-teleportation", "astronomy"},
     unit =
     {
       ingredients =
@@ -178,53 +178,58 @@ data:extend(
         {"science-pack-2", 2},
         {"science-pack-3", 2},
         {"high-tech-science-pack", 2},
-        {"portal-science-pack", 1}
+        {"portal-science-pack", 1},
+        {"space-science-pack", 1}
       },
       time = 30,
       count = 500
     },
     order = "e-p-b-c"
-  }--[[,
+  },
   {
     type = "technology",
-    name = "astronomy", -- Advanced optics? And unlock space telescope on astronomy instead
-                        -- Unlock an advanced laser or laser gun or something to make this actually useful
-    prerequisites = {"optics"},
+    name = "astronomy",
+    icon = ICON_BASE .. "astronomy.png",
     effects =
     {
       {
         type = "unlock-recipe",
-        recipe = "lens"
+        recipe = "telescope"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "observatory"
       }
+    },
+    prerequisites = {"advanced-optics"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        -- TODO: Slightly on the fence about this, but it might be nice to start looking
+        -- for some juicy asteroids well before sending an actual lander up there.
+        --{"space-science-pack", 1}, 
+      },
+      time = 30,
+      count = 250
     }
-  },
+  }--[[,
   {
     type = "technology",
     name = "long-range-optics",
-    prerequisites = {"astronomy", "rocket-silo"},
+    icon = ICON_BASE .. "long-range-optics.png",
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "space-telescope"
       }
-    }
-  },
-  {
-    type = "technology",
-    name = "orbital-mining",
-    prerequisites = {"long-range-optics"},
-    effects =
-    {
-      {
-        type = "unlock-recipe",
-        recipe = "orbital-mining-laser"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "orbital-mining-target"
-      }
-    }
+      -- TODO: 
+    },
+    prerequisites = {"astronomy", "rocket-silo"},
   },
   {
     type = "technology",
@@ -244,13 +249,43 @@ data:extend(
   },
   {
     type = "technology",
+    name = "personal-microwave-antenna",
+    -- miltary
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "personal-microwave-antenna-equipment"
+      }
+    },
+    prerequisites = {"modular-armour", "microwave-power-transmission"},
+  },
+  {
+    type = "technology",
     name = "space-based-solar-power",
-    prerequisites = {"long-range-optics", "microwave-power-transmission"},
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "solar-array"
+      }
+    },
+    prerequisites = {"long-range-optics", "microwave-power-transmission"},
+  },
+--[[,
+  {
+    type = "technology",
+    name = "orbital-mining",
+    prerequisites = {"long-range-optics"},
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-mining-laser"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-mining-target"
       }
     }
   },
@@ -269,7 +304,7 @@ data:extend(
       },
       {
         type = "unlock-recipe",
-        recipe = "cargo-loader"
+        recipe = "cargo-loader" -- ideally doubles as an unloader...
       },
       {
         type = "unlock-recipe",
@@ -278,6 +313,10 @@ data:extend(
       { 
         type = "unlock-recipe",
         recipe = "cargo-drop-site"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-logistics-combinator"
       }
     }
   },
@@ -290,11 +329,12 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "portal-construction-robot"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "portal-logistics-robot"
       }
+      --,
+      --{
+--        type = "unlock-recipe",
+    --    recipe = "portal-logistics-robot"
+  --    }
     }
   },
   {
@@ -308,6 +348,7 @@ data:extend(
         recipe = "orbital-repair-station"
       }
     }
-  }
-  -- TODO: teletrains!]]--
+  }]]--
+  -- TODO: teletrains! personal teleport. phase ammo.
+  -- Portal destruction planner. portal bulk move, orbital factory deployment...
 })

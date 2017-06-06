@@ -27,25 +27,7 @@ data:extend(
         probability = 0.9,
         amount = 1
       }
-    },
-    --[[results =
-    {
-      {
-        name = "large-factorium-crystal",
-        probability = 0.01,
-        amount = 1
-      },
-      {
-        name = "medium-factorium-crystal",
-        probability = 0.09,
-        amount = 2
-      },
-      {
-        name = "small-factorium-crystal",
-        probability = 0.9,
-        amount = 5
-      }
-    }]]--
+    }
   },
   {
     -- TODO: If anything else is going to use plexiglass (e.g. space shuttles) should make it a
@@ -77,6 +59,41 @@ data:extend(
       tertiary = {r=0.6, g=0.65, b=0.85, a=1.00},
     }
     --TODO: Expensive version?
+  },
+  {
+    type = "recipe",
+    name = "telescope",
+    category = "crafting",
+    subgroup = "intermediate-product",
+    enabled = false,
+    energy_required = 2,
+    ingredients =
+    { 
+      -- TODO: Review amounts
+      {type="item", name="plexiglass-lens", amount=10},
+      {type="item", name="copper-plate", amount=20},
+      --{type="item", name="gear", amount=40},
+      {type="item", name="iron-stick", amount=10}
+    },
+    result = "telescope"
+  },
+  {
+    type = "recipe",
+    name = "observatory",
+    category = "crafting",
+    subgroup = "intermediate-product",
+    enabled = false,
+    energy_required = 20,
+    ingredients =
+    { 
+      -- TODO: Review amounts
+      {type="item", name="telescope", amount=1},
+      {type="item", name="steel", amount=20},
+      {type="item", name="concrete", amount=50}, -- stone-brick instead/aswell?
+      {type="item", name="advanced-circuit", amount=20},
+      {type="item", name="gear", amount=50}
+    },
+    result = "observatory"
   },
   {
     type = "recipe",
