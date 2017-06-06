@@ -20,11 +20,11 @@ data:extend(
       type = "electric",
       buffer_capacity = "1GJ",
       usage_priority = "terciary",
-      input_flow_limit = "1MW",
+      input_flow_limit = "800MW",
       output_flow_limit = "0kW"
     },
     energy_production = "0kW",
-    energy_usage = "100kW",
+    energy_usage = "500kW",
     -- also 'pictures' for 4-way sprite is available, or 'animation' resp. 'animations'
     picture =
     {
@@ -54,7 +54,8 @@ data:extend(
   {
     type = "container",
     name = "portal-chest",
-    icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
+    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    --icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-neutral", "player-creation"},
     minable = {mining_time = 1, result = "portal-chest"},
     max_health = 500,
@@ -106,14 +107,15 @@ data:extend(
   {
     type = "electric-energy-interface",
     name = "portal-chest-power",
-    icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
+    icon = "__base__/graphics/icons/logistic-chest-requester.png",
+    --icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-off-grid"},
     --flags = {"player-creation"},
     --minable = {hardness = 0.2, mining_time = 0.5, result = "fake-power-consumer"},
     --max_health = 150,
     --corpse = "medium-remnants",
     collision_box = {{0, 0}, {0, 0}},
-    selection_box = {{0, 0}, {0, 0}},
+    selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
     collision_mask = {"not-colliding-with-itself"},
     enable_gui = false,
     allow_copy_paste = false,
@@ -122,7 +124,7 @@ data:extend(
       type = "electric",
       buffer_capacity = "5MJ",
       usage_priority = "terciary",
-      input_flow_limit = "500MW",
+      input_flow_limit = "250MW",
       output_flow_limit = "0GW"
     },
     energy_production = "0GW",
@@ -145,20 +147,16 @@ data:extend(
       sound =
       {
         filename = "__base__/sound/accumulator-working.ogg",
-        volume = 1
+        volume = 0.5
       },
-      idle_sound =
-      {
-        filename = "__base__/sound/accumulator-idle.ogg",
-        volume = 0.4
-      },
-      max_sounds_per_type = 5
+      max_sounds_per_type = 3
     }
   },
   {
     type = "underground-belt",
     name = "portal-belt",
     icon = "__base__/graphics/icons/express-underground-belt.png",
+    --icon = {icon="__base__/graphics/icons/express-underground-belt.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-neutral", "player-creation"},
     minable = {hardness = 0.2, mining_time = 0.5, result = "portal-belt"},
     max_health = 200,
@@ -250,6 +248,36 @@ data:extend(
       }
     },
     ending_patch = ending_patch_prototype
+  },
+ {
+    type = "electric-energy-interface",
+    name = "portal-belt-power",
+    icon = "__base__/graphics/icons/express-underground-belt.png",
+    --icon = {icon="__base__/graphics/icons/express-underground-belt.png",tint = {r=1, g=0.8, b=1, a=1}},
+    flags = {"placeable-off-grid"},
+    collision_box = {{0, 0}, {0, 0}},
+    selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
+    collision_mask = {"not-colliding-with-itself"},
+    enable_gui = false,
+    allow_copy_paste = false,
+    energy_source =
+    {
+      type = "electric",
+      buffer_capacity = "5MJ",
+      usage_priority = "terciary",
+      input_flow_limit = "250MW",
+      output_flow_limit = "0GW"
+    },
+    energy_production = "0GW",
+    energy_usage = "50kW",
+    working_sound =
+    {
+      sound =
+      {
+        filename = "__base__/sound/accumulator-working.ogg",
+        volume = 0.5
+      },
+      max_sounds_per_type = 3
+    }
   }
-
 })

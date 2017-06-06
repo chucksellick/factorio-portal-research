@@ -105,6 +105,7 @@ function On_Init()
     if entity.fake_power_consumer then
       entity.fake_energy = entity.fake_power_consumer
     end
+    updatePortalEnergyProperties(entity)
     entity.site = global.sites[entity.entity.surface.name]
   end
 
@@ -193,6 +194,7 @@ function createEntityData(entity)
 
     data.site.portals[data.id] = data
     ensureEnergyInterface(data)
+    updatePortalEnergyProperties(data)
     return data
   end
   return nil
@@ -203,13 +205,12 @@ function ensureEnergyInterface(entityData)
     return entityData.fake_energy
   end
 
-  if --(entityData.entity.name == "portal-belt" or
-    entityData.entity.name == "portal-chest" --)
-    then
+  if entityData.entity.name == "portal-belt" or
+    entityData.entity.name == "portal-chest" then
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
-      position=entityData.entity.position,
+      position={entityData.entity.position.x-0.5, entityData.entity.position.y-0.5},
       force=entityData.entity.force
     }
     entityData.fake_energy = consumer
@@ -219,6 +220,7 @@ end
 
 function deleteEntityData(entityData)
   global.entities[entityData.id] = nil
+    -- Clean up power
   if entityData.fake_energy then
     entityData.fake_energy.destroy()
     entityData.fake_energy = nil
@@ -229,8 +231,10 @@ function deleteEntityData(entityData)
     -- Clean up any references to the entity from elsewhere
     if entityData.teleport_target ~= nil then
       entityData.teleport_target.teleport_target = nil
+      -- Buffer will empty on the other side
+      -- TODO: Is it really necessary? Could hold the power until another target is selected
+      updatePortalEnergyProperties(entityData.teleport_target)
     end
-    -- Clean up power
   end
 end
 
@@ -559,6 +563,10 @@ function onGuiClick(event)
       chosen.portal.teleport_target.is_sender = true      
     end
 
+    -- Buffer size will need to change
+    updatePortalEnergyProperties(chosen.portal)
+    updatePortalEnergyProperties(chosen.portal.teleport_target)
+
     closePortalTargetSelectGUI(player)
     return
   end
@@ -635,7 +643,7 @@ function generateSiteSurface(site)
 
   -- TODO: force.chart to reveal map properly?
   if site.force then
-    site.force.chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
+    game.forces[site.force].chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
   end
 
   -- Updates the sites_by_surface table
@@ -712,8 +720,8 @@ function enterPortal(player, portal, direction)
     openPortalTargetSelectGUI(player, portal)
     return
   end
-  -- TODO: Adjust energy buffer based on required energy for distance
-  local energyRequired = requiredEnergyForTeleport(player, portal)
+  -- Check enough energy is available
+  local energyRequired = energyRequiredForPlayerTeleport(portal)
   local energyAvailable = portal.entity.energy + portal.teleport_target.entity.energy
 
   if energyAvailable < energyRequired then
@@ -751,26 +759,55 @@ function enterPortal(player, portal, direction)
   portal.teleport_target.entity.energy = portal.teleport_target.entity.energy - missingEnergy
 end
 
--- TODO: Rename
-function requiredEnergyForTeleport(player, portal)
+function energyRequiredForPlayerTeleport(portal, player)
+  -- TODO: Adjust on player inventory size
+  return maxEnergyRequiredForPlayerTeleport(portal)
+end
+
+function groundDistanceOfTeleport(portal)
+  if portal.site ~= portal.teleport_target.site then
+    return 0
+  else
+    return math.sqrt((portal.teleport_target.entity.position.x - portal.entity.position.x) ^ 2
+      + (portal.teleport_target.entity.position.y - portal.entity.position.y)^2)
+  end
+end
+function spaceDistanceOfTeleport(portal)
+  if portal.site == portal.teleport_target.site then
+    return 0
+  else
+    return math.abs(portal.teleport_target.site.distance - portal.site.distance)
+  end
+end
+-- TODO: Bring cost down on research levels for force
+local BASE_COST = 1000000 -- 1MJ
+local PLAYER_COST = 25000000
+local GROUND_DISTANCE_MODIFIER = 0.1
+local DISTANCE_MODIFIER = 100
+local STACK_COST = 50000
+
+function maxEnergyRequiredForPlayerTeleport(portal)
 
   -- Algorithm as follows:
   --   Base cost to initate a teleport
   --   Plus cost for player (adjust depending on inventory size? Items carried? In vehicle?)
   --   Multiplied by distance cost
 
-  -- TODO: Bring cost down on research levels for force
-
-  local BASE_COST = 1000000 -- 1MJ
-  local PLAYER_COST = 50000 -- 2MJ
-  local DISTANCE_MODIFIER = 100
-
-  return BASE_COST + PLAYER_COST * DISTANCE_MODIFIER
-    * math.abs(portal.teleport_target.site.distance - portal.site.distance)
+  if not portal.teleport_target then
+    return 0
+  end
+  return BASE_COST + PLAYER_COST * (
+    DISTANCE_MODIFIER * spaceDistanceOfTeleport(portal)
+    + GROUND_DISTANCE_MODIFIER * groundDistanceOfTeleport(portal))
 
 end
 
-function energyRequiredForStackTeleport(stack, portal)
+function energyRequiredForStackTeleport(portal, stack)
+   -- TODO: Adjust on stack size
+   return maxEnergyRequiredForStackTeleport(portal)
+end
+
+function maxEnergyRequiredForStackTeleport(portal)
 
   -- Algorithm as follows:
   --   Base cost to initate a teleport
@@ -780,12 +817,32 @@ function energyRequiredForStackTeleport(stack, portal)
   -- TODO: Bring cost down on research levels for force
   -- TODO: Reduce cost for partial stacks
 
-  local BASE_COST = 100000 -- 1MJ
-  local STACK_COST = 10000
-  local DISTANCE_MODIFIER = 100
+  if not portal.teleport_target then
+    return 0
+  end
+  return BASE_COST + STACK_COST * (DISTANCE_MODIFIER * spaceDistanceOfTeleport(portal)
+                                  + GROUND_DISTANCE_MODIFIER * groundDistanceOfTeleport(portal))
+end
 
-  return BASE_COST + STACK_COST * DISTANCE_MODIFIER
-    * math.abs(portal.teleport_target.site.distance - portal.site.distance)
+function updatePortalEnergyProperties(portal)
+
+  local entity = portal.entity
+  local requiredEnergy = 0
+  if entity.name == "medium-portal" and portal.teleport_target then
+    requiredEnergy = maxEnergyRequiredForPlayerTeleport(portal)
+  end
+  if entity.name == "portal-chest" and portal.teleport_target then
+    requiredEnergy = maxEnergyRequiredForStackTeleport(portal)
+  end
+
+  -- Buffer can store enough for 2 teleports only!
+  local interface = ensureEnergyInterface(portal)
+  interface.electric_buffer_size = 2 * requiredEnergy
+  interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
+  interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
+  interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
+  --TODO: This caused a super strange error but I don't know if drain is the same energy_usage value from the actual prototype...
+  --interface.power_usage = interface.prototype.energy_usage
 
 end
 
@@ -838,9 +895,10 @@ function teleportChestStacks(source, num)
           -- TODO: For chests/belts, use energy on *both* sides of the portal.
           -- In fact do this for players too normally but allow power to balance from the other side.
           -- Purely for gameplay convenience, not realism!
-          local energyRequired = energyRequiredForStackTeleport(stack, source)
-          if (source.fake_energy and source.fake_energy.energy >= energyRequired) then
-            source.fake_energy.energy = source.fake_energy.energy - energyRequired
+          local energyRequired = energyRequiredForStackTeleport(source, stack)
+          local interface = ensureEnergyInterface(source)
+          if (interface and interface.energy >= energyRequired) then
+            interface.energy = interface.energy - energyRequired
             local moved = targetInventory.insert(stack)
             if moved == stack.count then
               stack.clear()
@@ -851,9 +909,9 @@ function teleportChestStacks(source, num)
             teleported = teleported + 1
           else
             -- TODO: Locale
-            game.print(inspect(source.site))
-            source.entity.force.print("Not enough power in chest on " .. source.site.surface_name)
-            source.entity.force.print("Required " .. energyRequired .. " available " .. source.fake_energy.energy)
+            -- game.print(inspect(source.site))
+            --source.entity.force.print("Not enough power in chest on " .. source.site.surface_name)
+            --source.entity.force.print("Required " .. energyRequired .. " available " .. source.fake_energy.energy)
             abort = true
           end
           -- TODO: Trigger not enough power warning on map?
