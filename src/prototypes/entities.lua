@@ -108,15 +108,17 @@ data:extend(
     type = "electric-energy-interface",
     name = "portal-chest-power",
     icon = "__base__/graphics/icons/logistic-chest-requester.png",
-    --icon = {icon="__base__/graphics/icons/logistic-chest-requester.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-off-grid"},
     --flags = {"player-creation"},
     --minable = {hardness = 0.2, mining_time = 0.5, result = "fake-power-consumer"},
     --max_health = 150,
     --corpse = "medium-remnants",
     collision_box = {{0, 0}, {0, 0}},
-    selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
-    collision_mask = {"not-colliding-with-itself"},
+    --selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
+    -- Can't be selected because it's masked by the chest (for unknown reasons but still), however
+    -- the selection_box is used to draw the power connection blue square so it's good to have one.
+    selection_box = {{-0.4, -0.4}, {0.4, 0.4}},
+    collision_mask = {},
     enable_gui = false,
     allow_copy_paste = false,
     energy_source =
@@ -130,8 +132,7 @@ data:extend(
     energy_production = "0GW",
     energy_usage = "200kW",
     -- also 'pictures' for 4-way sprite is available, or 'animation' resp. 'animations'
-    --[[
-    picture =
+    --[[picture =
     {
       filename = "__base__/graphics/entity/accumulator/accumulator.png",
       priority = "extra-high",
@@ -139,8 +140,7 @@ data:extend(
       height = 103,
       shift = {0.6875, -0.203125},
       tint = {r=1, g=0.8, b=1, a=1}
-    },
-    ]]--
+    },]]--
     --vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
     working_sound =
     {
@@ -256,7 +256,7 @@ data:extend(
     --icon = {icon="__base__/graphics/icons/express-underground-belt.png",tint = {r=1, g=0.8, b=1, a=1}},
     flags = {"placeable-off-grid"},
     collision_box = {{0, 0}, {0, 0}},
-    selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
+    selection_box = {{-0.4, -0.4}, {0.4, 0.4}},
     collision_mask = {"not-colliding-with-itself"},
     enable_gui = false,
     allow_copy_paste = false,
