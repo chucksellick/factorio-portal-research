@@ -1,9 +1,10 @@
+local ICON_BASE = "__portal-research__/graphics/icons/"
 data:extend(
 {
   {
     type = "item",
     name = "factorium-ore",
-    icon = "__portal-research__/graphics/icons/factorium-ore.png",
+    icon = ICON_BASE .. "factorium-ore.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "raw-resource",
     order = "g[factorium-ore]",
@@ -12,7 +13,7 @@ data:extend(
   {
     type = "item",
     name = "large-factorium-crystal",
-    icon = "__portal-research__/graphics/icons/factorium-crystal-large.png",
+    icon = ICON_BASE .. "factorium-crystal-large.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "raw-material",
     order = "h[factorium-crystal]-c[large]",
@@ -21,7 +22,7 @@ data:extend(
   {
     type = "item",
     name = "medium-factorium-crystal",
-    icon = "__portal-research__/graphics/icons/factorium-crystal-medium.png",
+    icon = ICON_BASE .. "factorium-crystal-medium.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "raw-material",
     order = "h[factorium-crystal]-b[medium]",
@@ -30,7 +31,7 @@ data:extend(
   {
     type = "item",
     name = "small-factorium-crystal",
-    icon = "__portal-research__/graphics/icons/factorium-crystal-small.png",
+    icon = ICON_BASE .. "factorium-crystal-small.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "raw-material",
     order = "h[factorium-crystal]-a[small]",
@@ -39,16 +40,53 @@ data:extend(
   {
     type = "item",
     name = "plexiglass-lens",
-    icon = "__portal-research__/graphics/icons/factorium-crystal-small.png",
+    icon = ICON_BASE .. "factorium-crystal-small.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[plexiglass-lens]",
     stack_size = 100
   },
   {
+    type = "item",
+    name = "telescope",
+    icon = ICON_BASE .. "telescope.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "g[telescope]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "observatory",
+    icon = ICON_BASE .. "observatory.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "production-machine",
+    order = "g[observatory]",
+    place_result = "observatory",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "observatory-scan",
+    icon = ICON_BASE .. "telescope.png",
+    flags = {"goes-to-main-inventory", "hidden"},
+    subgroup = "intermediate-product",
+    order = "p[rocket-part]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "observatory-scan-result",
+    icon = ICON_BASE .. "telescope.png",
+    flags = {"goes-to-main-inventory", "hidden"},
+    subgroup = "intermediate-product",
+    order = "p[rocket-part]",
+    stack_size = 10
+  },
+  {
     type = "tool",
     name = "portal-science-pack",
-    icons = { {icon = "__base__/graphics/icons/space-science-pack.png", tint = {r=0.8, g=0.12, b=0.85}} },
+    icons = { {icon = "__base__/graphics/icons/science-pack-1.png", tint = {r=0.8, g=0.12, b=0.85}} },
     flags = {"goes-to-main-inventory"},
     subgroup = "science-pack",
     order = "h[portal-science-pack]",
@@ -78,8 +116,7 @@ data:extend(
   {
     type = "item",
     name = "portal-chest-power",
-    icon = "__base__/graphics/icons/logistic-chest-requester.png",
-    icons = { {icon = "__base__/graphics/icons/accumulator.png", tint = {r=1, g=0.8, b=1, a=1}} },
+    icons = { {icon = "__base__/graphics/icons/logistic-chest-requester.png", tint = {r=1, g=0.8, b=1, a=1}} },
     flags = {"goes-to-quickbar", "hidden"},
     subgroup = "energy",
     order = "e[electric-energy-interface]-b[portal-chest-power]",
@@ -117,7 +154,7 @@ data:extend(
   {
     type = "item",
     name = "medium-portal",
-    icon = "__portal-research__/graphics/icons/factorium-crystal-large.png",
+    icon = ICON_BASE .. "factorium-crystal-large.png",
     flags = {"goes-to-main-inventory"},
     place_result="medium-portal",
     subgroup = "transport",

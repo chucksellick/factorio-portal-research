@@ -63,37 +63,58 @@ data:extend(
   {
     type = "recipe",
     name = "telescope",
-    category = "crafting",
+    category = "crafting-with-fluid",
     subgroup = "intermediate-product",
     enabled = false,
     energy_required = 2,
     ingredients =
     { 
       -- TODO: Review amounts
-      {type="item", name="plexiglass-lens", amount=10},
+      {type="item", name="plexiglass-lens", amount=5},
       {type="item", name="copper-plate", amount=20},
-      --{type="item", name="gear", amount=40},
-      {type="item", name="iron-stick", amount=10}
+      {type="item", name="iron-gear-wheel", amount=10},
+      {type="item", name="iron-stick", amount=10},
+      {type="fluid", name="lubricant", amount=50}
     },
     result = "telescope"
+  },
+  {
+    type = "recipe-category",
+    name = "astronomy"
   },
   {
     type = "recipe",
     name = "observatory",
     category = "crafting",
-    subgroup = "intermediate-product",
     enabled = false,
     energy_required = 20,
     ingredients =
     { 
       -- TODO: Review amounts
       {type="item", name="telescope", amount=1},
-      {type="item", name="steel", amount=20},
-      {type="item", name="concrete", amount=50}, -- stone-brick instead/aswell?
+      {type="item", name="steel-plate", amount=20},
+      {type="item", name="landfill", amount=12},
+      {type="item", name="concrete", amount=10}, -- stone-brick instead/aswell?
       {type="item", name="advanced-circuit", amount=20},
-      {type="item", name="gear", amount=50}
+      {type="item", name="iron-gear-wheel", amount=50}
     },
     result = "observatory"
+  },
+  {
+    -- Recipe used behind the scenes
+    type = "recipe",
+    name = "observatory-scan-for-sites",
+    category = "astronomy",
+    enabled = false,
+    energy_required = 100,
+    hidden = true,
+    icon = "__portal-research__/graphics/icons/telescope.png",
+    ingredients =
+    { 
+      --{type="item", name="observatory-scan", amount=1}
+    },
+    -- TODO: Randomise the result for % chance of finding nada
+    result = "observatory-scan-result"
   },
   {
     type = "recipe",

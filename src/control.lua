@@ -38,24 +38,34 @@ script.on_init(On_Init)
 
 local site_sizes = {
   {
-    name = "small",
+    name = "very-small",
     min_size = 20,
-    max_size = 50
+    max_size = 40
+  },
+  {
+    name = "small",
+    min_size = 35,
+    max_size = 80
   },
   {
     name = "medium",
-    min_size = 45,
-    max_size = 125
+    min_size = 70,
+    max_size = 120
   },
   {
     name = "large",
-    min_size = 120,
+    min_size = 100,
+    max_size = 160
+  },
+  {
+    name = "very-large",
+    min_size = 150,
     max_size = 250
   }
 }
 
 function On_Init()
-  --generateEvents()
+  -- TODO: Most of this is dev migration stuff which can be removed after first release
 
   if not global.entities then
     global.entities = {}
@@ -63,8 +73,10 @@ function On_Init()
     global.players = {}
     global.sites = {}
   end
+  if not global.scanners then
+    global.scanners = {}
+  end
 
-  -- TODO: Most of this is dev migration stuff which can be removed after first release
 
   if global.forces_portal_data then
     for forceName, forceData in pairs(global.forces_portal_data) do
@@ -218,6 +230,16 @@ function createEntityData(entity)
     end
     return data
   end
+  if entity.name == "observatory" then
+    local data = {
+      id = entity.unit_number,
+      entity = entity,
+      site = getSiteForEntity(entity),
+      scan_strength = 1
+    }
+    global.scanners[data.id] = data
+    return data
+  end
   return nil
 end
 
@@ -256,6 +278,9 @@ function deleteEntityData(entityData)
       -- TODO: Is it really necessary? Could store the power until another target is selected
       updatePortalEnergyProperties(entityData.teleport_target)
     end
+  end
+  if global.scanners[entityData.id] ~= nil then
+    global.scanners[entityData.id] = nil
   end
 end
 
@@ -317,7 +342,8 @@ function randomOffworldSite(force)
     -- Solar panels still give 100% at 0.25 but start losing power at 0.3 and have lost most at 0.4.
     daytime = math.random(),
     portals = {},
-    is_offworld = true
+    is_offworld = true,
+    has_portal = false
   }
 
   -- Simple random asteroid name generator "ABC-1234"
@@ -679,7 +705,34 @@ script.on_event(defines.events.on_tick, function(event)
   playersEnterPortals()
   chestsMoveStacks(event)
   beltsMoveItems(event)
+  scannersScan(event)
 end)
+
+-- TODO: Fix UPS
+function scannersScan(event)
+  local SCAN_CHANCE = 0.1 -- TODO: Can improve with research etc
+  for i,scanner in pairs(global.scanners) do
+    local result = scanner.entity.get_inventory(defines.inventory.assembling_machine_output)
+    if result[1].valid_for_read and result[1].count > 0 then
+      for n = 1, result[1].count do
+        if math.random() < SCAN_CHANCE then
+          -- TODO: Set parameters of site
+          local newSite = randomOffworldSite(scanner.entity.force)
+          scanner.entity.force.print({"site-discovered", newSite.name})
+        else
+          scanner.entity.force.print({"scan-found-nothing"})
+        end
+      end
+      result[1].clear()
+    end
+  end
+  -- TODO: Could additionally require inserting the "scan result" into some kind of navigational computer ("Space Command Mainframe?"). Might seem like busywork. Space telescopes
+  -- would download their results to some kind of printer? Requires some medium to store the result? (circuits) ... not sure about this. But could
+  -- be cool to require *some* sort of ground-based structures that actually coordinate and track all the orbital activity and even portals, and requiring more computers the
+  -- more stuff you have in the air. Mainframes should have a neighbour bonus like nuke plants due to parallel processing, and require use of heat pipes and coolant to keep within
+  -- operational temperature. Going too hot e.g. 200C causes a shutdown and a long reboot process only once temperature comes back under 100C.
+  -- Mainframes could also interact with observatories to track things better, and/or make orbitals generally work quicker, avoid damage, etc etc.
+end
 
 function playersEnterPortals()
   local tick = game.tick
@@ -1008,6 +1061,20 @@ function consumeBeltPower(inputBelt)
   -- TODO: Quick hack following, charging power for any items currently on the line. This is probably
   -- drastically overcharging (need some tests to actually find out) but right now there's no way to know
   -- whether items are actually moving.
+
+  -- TODO: Use proper indicies to get the correct line we're after
+  --[[
+  defines.transport_line.left_line 
+  defines.transport_line.right_line 
+  defines.transport_line.left_underground_line  
+  defines.transport_line.right_underground_line 
+  defines.transport_line.secondary_left_line  
+  defines.transport_line.secondary_right_line 
+  defines.transport_line.left_split_line  
+  defines.transport_line.right_split_line 
+  defines.transport_line.secondary_left_split_line  
+  defines.transport_line.secondary_right_split_line
+  --]]
   local line1 = inputBelt.entity.get_transport_line(1)
   local line2 = inputBelt.entity.get_transport_line(2)
   local line1out = inputBelt.entity.neighbours.get_transport_line(1)
@@ -1033,9 +1100,10 @@ end
 function onRocketLaunched(event)
   if event.rocket.get_item_count("portal-lander") == 0 then return end
   local force = event.rocket.force
-  -- TODO: Optionally generate more than one
+  -- TODO: Open dialog to direct the lander
   local newSite = randomOffworldSite(force)
   force.print({"site-discovered", newSite.name})
+  newSite.has_portal = true
 
   -- TODO: Move this dialog to the sidebar, open on button click (optionally?)
   for i, player in pairs(force.connected_players) do

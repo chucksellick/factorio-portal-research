@@ -98,38 +98,6 @@ data:extend(
   },
   {
     type = "technology",
-    name = "short-range-teleportation",
-    icon = ICON_BASE .. "short-range-teleportation.png",
-    icon_size = 128,
-    effects =
-    {
-      {
-        type = "unlock-recipe",
-        recipe = "portal-belt"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "portal-chest"
-      }
-    },
-    prerequisites = {"portal-research", "logistics-3", "logistic-system"},
-    unit =
-    {
-      ingredients =
-      {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
-        {"high-tech-science-pack", 2},
-        {"portal-science-pack", 1}
-      },
-      time = 30,
-      count = 500
-    },
-    order = "e-p-b-c"
-  },
-  {
-    type = "technology",
     name = "large-mass-teleportation",
     icon = ICON_BASE .. "large-mass-teleportation.png",
     icon_size = 128,
@@ -190,6 +158,7 @@ data:extend(
     type = "technology",
     name = "astronomy",
     icon = ICON_BASE .. "astronomy.png",
+    icon_size = 128,
     effects =
     {
       {
@@ -199,6 +168,10 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "observatory"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "observatory-scan-for-sites"
       }
     },
     prerequisites = {"advanced-optics"},
