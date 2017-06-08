@@ -360,12 +360,25 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 script.on_event({defines.events.on_player_mined_item, defines.events.on_robot_mined}, onMinedItem)
 script.on_event(defines.events.on_entity_died, onEntityDied)
 
---script.on_event({defines.events.on_})
-
 --script.on_event(defines.events.on_preplayer_mined_item, onMinedItem)
 -- TODO: Check for the following to avoid teleporting witha deconstructed portal? Also remember to handle orbital payload contents
 --script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 --script.on_event(defines.events.on_canceled_deconstruction, function(event)
+
+function onPlacedEquipment(event)
+  if event.equipment.name == "personal-microwave-antenna-equipment" then
+    -- TODO: Register receiver.
+    local data = {
+
+    }
+  end
+end
+
+function onRemovedEquipment(event)
+end
+
+script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
+script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
 
 -- Orbitals, not real entities
 function newOrbitalUnit(type)
@@ -1179,6 +1192,8 @@ function distributeMicrowavePower(event)
   -- launched far cheaper. An obvious middle-stage is reusable rockets. A space platform launcher can be effectively
   -- zero-gee and is nearly as cheap as cargo catapult.
 
+  -- TODO: Damn! None of this is taking Force into account :(
+
   local interval = 120
 
   if event.tick % interval ~= 0 then return end
@@ -1222,30 +1237,43 @@ function distributeMicrowavePower(event)
 
     elseif transmitter.current_target ~= nil then
       -- TODO: The above is a cheap way to have a 2s delay between targets. Should implement this in a better way.
+
       if transmitter.is_orbital then
-        -- It's a solar harvester, always sends full amount; reset to original prototype value. Was trying to
-        -- use power_production but it doesn't seem to be available on the prototype so used output_flow_limit
-        -- instead. Since it doesn't get manipulated ever it's fine. TODO: What happens if we leave power_productionn
-        -- constant and manipulate output_flow_limit instead?
-        transmitter.current_target.entity.active = true
-        transmitter.current_target.entity.power_production = 
-          transmitter.current_target.entity.prototype.electric_energy_source_prototype.output_flow_limit
+        if transmitter.current_target.is_equipment then
+          -- Top equipment battery up to full
+          transmitter.current_target.equipment.energy = transmitter.current_target.equipment.max_energy
+        else
+          -- It's a solar harvester, always sends full amount; reset to original prototype value. Was trying to
+          -- use power_production but it doesn't seem to be available on the prototype so used output_flow_limit
+          -- instead. Since it doesn't get manipulated ever it's fine. TODO: What happens if we leave power_productionn
+          -- constant and manipulate output_flow_limit instead?
+          transmitter.current_target.entity.active = true
+          transmitter.current_target.entity.power_production = 
+            transmitter.current_target.entity.prototype.electric_energy_source_prototype.output_flow_limit
+        end
       else
         -- Must be microwave transmitter. See how much energy has been raised in the last n ticks,
         -- then we can produce that much power at the other end over next n ticks
         local energyToSend = transmitter.entity.energy
         transmitter.entity.energy = 0
-        local maxSendRate = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
-        local desiredSendRate = energyToSend / interval
+        if transmitter.current_target.is_equipment then
+          -- For the equipment grid, do a straight energy transfer
+          -- TODO: Not quite sure whether this is fair, there is literally no internal battery. Definitely need to
+          -- change the recipe to reflect this...
+          transmitter.current_target.equipment.energy = energyToSend -- + transmitter.current_target.equipment.energy
+        else
+          local maxSendRate = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
+          local desiredSendRate = energyToSend / interval
 
-        transmitter.current_target.entity.active = true
-        transmitter.current_target.entity.power_production = math.min(maxSendRate, desiredSendRate)
+          transmitter.current_target.entity.active = true
+          transmitter.current_target.entity.power_production = math.min(maxSendRate, desiredSendRate)
 
-        -- Fix input flow which may have been deactivated when a new target was picked
-        transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
-        --game.print("Sending " .. energyToSend .. " @ " .. transmitter.current_target.entity.power_production)
-        -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
-        -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
+          -- Fix input flow which may have been deactivated when a new target was picked
+          transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
+          --game.print("Sending " .. energyToSend .. " @ " .. transmitter.current_target.entity.power_production)
+          -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
+          -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
+        end
       end
     end
   end

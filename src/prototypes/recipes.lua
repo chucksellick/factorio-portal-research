@@ -223,6 +223,7 @@ data:extend(
       {"plexiglass-lens", 50},
       {"radar", 10},
       {"substation", 10},
+      -- TODO: Having 100 accumulators implies the battery should be able to store 500MJ energy...
       {"accumulator", 100},
       {"processing-unit", 50}, -- TODO: A bit expensive? ... Where we're doing things like asking for tons of accumulators everywhere, maybe make
                                -- some shared intermediate.

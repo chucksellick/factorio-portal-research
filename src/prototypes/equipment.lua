@@ -22,9 +22,12 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      usage_priority = "primary-output"
+      usage_priority = "primary-output",
+      buffer_capacity = "20MJ",
+      input_flow_limit = "0MW",
+      output_flow_limit = "10MW" -- Suitably stronger than fusion reactor @ 0.75MW
     },
-    power = "10MW", -- Suitably stronger than fusion reactor @ 0.75MW
+    power = "0MW",
     categories = {"armor"}
   },
   -- TODO: Realistically two ways to implement this. Either perform some item-sleight-of-hand to swap with a "dead" version, or manipulate the internal
