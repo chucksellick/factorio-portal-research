@@ -270,7 +270,6 @@ function createEntityData(entity)
   if entity.name == "microwave-antenna" then
     -- Deactivate to stop generating power until it finds a transmitter
     entity.active = false
-    game.print("deactivate antenna")
     data.source_transmitters = {}
     global.receivers[data.id] = data
     updateMicrowaveTargets()
@@ -318,10 +317,17 @@ function deleteEntityData(entityData)
     global.scanners[entityData.id] = nil
   end
   if global.transmitters[entityData.id] ~= nil then
+    -- Note: Update targets *before* moving the transmitter, otherwise it's not there
+    -- to detect it's been deleted!
+    updateMicrowaveTargets()
     global.transmitters[entityData.id] = nil
   end
   if global.receivers[entityData.id] ~= nil then
     global.receivers[entityData.id] = nil
+    -- Receivers update *after* removing so they don't get populated into target_antennas
+    updateMicrowaveTargets()
+
+    -- TODO: As commented in updateMicrowaveTargets, this is all screwy and quite fragile, needs some improvement
   end
 end
 
@@ -1185,13 +1191,14 @@ function distributeMicrowavePower(event)
       end
 
       -- Pick a new target.
-      if transmitter.current_target_index == nil then transmitter.current_target_index = 0 end
+      if transmitter.current_target_index == nil then transmitter.current_target_index = #transmitter.target_antennas end
 
       if #transmitter.target_antennas > 0 then
         abort = false
         local index = transmitter.current_target_index
+        index = (index % #transmitter.target_antennas) + 1
+        local start_index = index
         while transmitter.current_target == nil and not abort do
-          index = (index % #transmitter.target_antennas) + 1
           if not transmitter.target_antennas[index].current_source then
             transmitter.current_target = transmitter.target_antennas[index]
             transmitter.current_target.current_source = transmitter
@@ -1201,6 +1208,10 @@ function distributeMicrowavePower(event)
             if not transmitter.is_orbital then
               transmitter.entity.electric_input_flow_limit = 0
             end
+          end
+          index = (index % #transmitter.target_antennas) + 1
+          if index == start_index then
+            abort = true
           end
         end
       end
@@ -1213,8 +1224,8 @@ function distributeMicrowavePower(event)
         transmitter.current_target.entity.power_production = 
           transmitter.current_target.entity.prototype.electric_energy_source_prototype.power_production
       else
-        -- Must be microwave transmitter. See how much energy has been raised in the last n ticks, we can produce that much power at the other end
-        -- in n ticks
+        -- Must be microwave transmitter. See how much energy has been raised in the last n ticks,
+        -- then we can produce that much power at the other end over next n ticks
         local energyToSend = transmitter.entity.energy
         transmitter.entity.energy = 0
         local maxSendRate = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
@@ -1226,7 +1237,6 @@ function distributeMicrowavePower(event)
         -- Fix input flow which may have been deactivated when a new target was picked
         transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
         --game.print("Sending " .. energyToSend .. " @ " .. transmitter.current_target.entity.power_production)
-        -- TODO: Implement power loss due to inefficiency
         -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
         -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
       end
@@ -1235,8 +1245,23 @@ function distributeMicrowavePower(event)
 end
 
 function updateMicrowaveTargets()
+  -- TODO: This could become horrible with a lot of units. It doesn't happen very often but still this
+  -- data could be maintained more efficiently on create/destroy
   for i, data in pairs(global.transmitters) do
     data.target_antennas = {}
+    if data.current_target then
+      -- Has transmitter been deleted?
+      if not data.entity.valid then
+        data.current_target.entity.active = false
+        data.current_target.current_source = nil
+      end
+      -- Has receiver been deleted?
+      if not data.current_target.entity.valid then
+        data.current_target = nil
+        -- Check same index again next time rather than end up skipping a target
+        data.current_target_index = data.current_target_index - 1
+      end
+    end
     for i, antenna in pairs(global.receivers) do
       -- Orbitals can transmit anywhere, ground-based transmitters only within current surface
       if data.is_orbital or antenna.site == data.site then
@@ -1244,6 +1269,7 @@ function updateMicrowaveTargets()
       end
     end
   end
+  -- TODO: Could fix energy source settings from prototype whilst we're at it in case anything changed (but should only be done oninit really)
 end
 
 -- Handle objects launched in rockets

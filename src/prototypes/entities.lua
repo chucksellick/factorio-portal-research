@@ -437,13 +437,13 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "200kJ",
+      buffer_capacity = "20MJ",
       usage_priority = "secondary-input", -- TODO: Should be tertiary like accums. BUT this has nasty side-effect of showing on power screen as accumulators.
-      input_flow_limit = "10MW", -- 10MW per transmitter = 100MW for solar harvester
-      output_flow_limit = "0MW"
+      input_flow_limit = "10.5MW", -- 10MW per transmitter = 100MW for solar harvester
+      output_flow_limit = "0MW",
     },
     energy_production = "0MW",
-    energy_usage = "0.5MW", -- Energy lost due to system inefficiency. TODO: Should scale with input flow. Are usage and drain the same? Should it be drain?
+    energy_usage = "0.5MW", -- Energy lost due to system inefficiency. TODO: Should scale with input flow. Are usage and drain the same? Should it be drain? Should it be 1/10th?
     animation =
     {
       filename = "__base__/graphics/entity/radar/radar.png",
@@ -455,7 +455,7 @@ data:extend(
       frame_count = 64,
       shift = util.by_pixel(27.5,-12.5),
       tint={r=1,g=0,b=0},
-      animation_speed = 1.5 -- TODO: Fix animation + effects
+      animation_speed = 1.5 -- TODO: Fix animation + effect
     },
     -- TODO: Energy beam towards receiver
     vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
