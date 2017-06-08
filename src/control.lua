@@ -153,7 +153,9 @@ function On_Init()
 
   -- XXX: Up to here
 
+  -- Let the silo track all our custom orbitals
   remote.call("silo_script", "add_tracked_item", "portal-lander")
+  remote.call("silo_script", "add_tracked_item", "solar-harvester")
   remote.call("silo_script", "update_gui")
 end
 
@@ -358,6 +360,8 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 script.on_event({defines.events.on_player_mined_item, defines.events.on_robot_mined}, onMinedItem)
 script.on_event(defines.events.on_entity_died, onEntityDied)
 
+--script.on_event({defines.events.on_})
+
 --script.on_event(defines.events.on_preplayer_mined_item, onMinedItem)
 -- TODO: Check for the following to avoid teleporting witha deconstructed portal? Also remember to handle orbital payload contents
 --script.on_event(defines.events.on_marked_for_deconstruction, function(event)
@@ -366,7 +370,7 @@ script.on_event(defines.events.on_entity_died, onEntityDied)
 -- Orbitals, not real entities
 function newOrbitalUnit(type)
   local orbital = {
-    id = type + "-" + global.next_orbital_id,
+    id = type .. "-" .. global.next_orbital_id,
     type = type,
     health = 100,
     created_at = game.tick,
@@ -1219,10 +1223,13 @@ function distributeMicrowavePower(event)
     elseif transmitter.current_target ~= nil then
       -- TODO: The above is a cheap way to have a 2s delay between targets. Should implement this in a better way.
       if transmitter.is_orbital then
-        -- It's a solar harvester, always sends full amount; reset to original prototype value
+        -- It's a solar harvester, always sends full amount; reset to original prototype value. Was trying to
+        -- use power_production but it doesn't seem to be available on the prototype so used output_flow_limit
+        -- instead. Since it doesn't get manipulated ever it's fine. TODO: What happens if we leave power_productionn
+        -- constant and manipulate output_flow_limit instead?
         transmitter.current_target.entity.active = true
         transmitter.current_target.entity.power_production = 
-          transmitter.current_target.entity.prototype.electric_energy_source_prototype.power_production
+          transmitter.current_target.entity.prototype.electric_energy_source_prototype.output_flow_limit
       else
         -- Must be microwave transmitter. See how much energy has been raised in the last n ticks,
         -- then we can produce that much power at the other end over next n ticks
@@ -1251,7 +1258,8 @@ function updateMicrowaveTargets()
     data.target_antennas = {}
     if data.current_target then
       -- Has transmitter been deleted?
-      if not data.entity.valid then
+      -- TODO: Orbitals dying will be handled differently
+      if not data.is_orbital and not data.entity.valid then
         data.current_target.entity.active = false
         data.current_target.current_source = nil
       end
@@ -1296,6 +1304,7 @@ function onRocketLaunched(event)
     local harvester = newOrbitalUnit("solar-harvester")
     global.harvesters[harvester.id] = harvester
     global.transmitters[harvester.id] = harvester
+    updateMicrowaveTargets()
   end
   -- TODO: Populate some silo output science packs?
 end

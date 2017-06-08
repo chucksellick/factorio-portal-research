@@ -77,7 +77,7 @@ data:extend(
       type = "electric",
       buffer_capacity = "1GJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "50MW",
+      input_flow_limit = "200MW",
       output_flow_limit = "0kW"
     },
     energy_production = "0kW",
@@ -181,9 +181,9 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "5MJ",
+      buffer_capacity = "40MJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "10MW",
+      input_flow_limit = "20MW",
       output_flow_limit = "0GW"
     },
     energy_production = "0GW",
@@ -320,9 +320,9 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "5MJ",
+      buffer_capacity = "40MJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "10MW",
+      input_flow_limit = "20MW",
       output_flow_limit = "0GW"
     },
     energy_production = "0GW",
