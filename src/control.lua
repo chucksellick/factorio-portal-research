@@ -79,6 +79,16 @@ function On_Init()
   if not global.transmitters then
     global.transmitters = {}
   end
+  if not global.receivers then
+    global.receivers = {}
+  end
+  if not global.harvesters then
+    global.harvesters = {}
+  end
+  if not global.orbitals then
+    global.orbitals = {}
+    global.next_orbital_id =  1
+  end
 
   if global.forces_portal_data then
     for forceName, forceData in pairs(global.forces_portal_data) do
@@ -138,6 +148,8 @@ function On_Init()
       entity.site = global.sites[entity.entity.surface.name]
     end
   end
+
+  updateMicrowaveTargets()
 
   -- XXX: Up to here
 
@@ -211,20 +223,26 @@ end
 
 -- TODO: This is more of a entire "initializeEntity" now it also ends up creating power entities
 function createEntityData(entity)
+  if not(entity.name == "medium-portal"
+    or entity.name == "portal-chest"
+    or entity.name == "portal-belt"
+    or entity.name == "microwave-transmitter"
+    or entity.name == "microwave-antenna") then return end
+
+  local data = {
+    id = entity.unit_number,
+    entity = entity,
+    site = getSiteForEntity(entity),
+    created_at = game.tick
+  }
+  if data.site == nil then
+    data.site = newSiteDataForSurface(entity.surface)
+  end
   if entity.name == "medium-portal"
     or entity.name == "portal-chest"
     or entity.name == "portal-belt" then
 
-    local data = {
-      id = entity.unit_number,
-      teleport_target = nil,
-      entity = entity,
-      site = getSiteForEntity(entity)
-    }
-    if data.site == nil then
-      data.site = newSiteDataForSurface(entity.surface)
-    end
-
+    data.teleport_target = nil
     data.site.portals[data.id] = data
     ensureEnergyInterface(data)
     updatePortalEnergyProperties(data)
@@ -234,7 +252,6 @@ function createEntityData(entity)
     if entity.name == "portal-belt" and entity.neighbours ~= nil then    
       updatePortalEnergyProperties(getEntityData(entity.neighbours))
     end
-    return data
   end
   if entity.name == "observatory" then
     local data = {
@@ -244,9 +261,21 @@ function createEntityData(entity)
       scan_strength = 1
     }
     global.scanners[data.id] = data
-    return data
   end
-  return nil
+  if entity.name == "microwave-transmitter" then
+    data.target_antennas = {}
+    global.transmitters[data.id] = data
+    updateMicrowaveTargets()
+  end
+  if entity.name == "microwave-antenna" then
+    -- Deactivate to stop generating power until it finds a transmitter
+    entity.active = false
+    game.print("deactivate antenna")
+    data.source_transmitters = {}
+    global.receivers[data.id] = data
+    updateMicrowaveTargets()
+  end
+  return data
 end
 
 function ensureEnergyInterface(entityData)
@@ -281,12 +310,18 @@ function deleteEntityData(entityData)
     if entityData.teleport_target ~= nil then
       entityData.teleport_target.teleport_target = nil
       -- Buffer will empty on the other side
-      -- TODO: Is it really necessary? Could store the power until another target is selected
+      -- TODO: Is that really necessary? Could store the power until another target is selected
       updatePortalEnergyProperties(entityData.teleport_target)
     end
   end
   if global.scanners[entityData.id] ~= nil then
     global.scanners[entityData.id] = nil
+  end
+  if global.transmitters[entityData.id] ~= nil then
+    global.transmitters[entityData.id] = nil
+  end
+  if global.receivers[entityData.id] ~= nil then
+    global.receivers[entityData.id] = nil
   end
 end
 
@@ -321,6 +356,22 @@ script.on_event(defines.events.on_entity_died, onEntityDied)
 -- TODO: Check for the following to avoid teleporting witha deconstructed portal? Also remember to handle orbital payload contents
 --script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 --script.on_event(defines.events.on_canceled_deconstruction, function(event)
+
+-- Orbitals, not real entities
+function newOrbitalUnit(type)
+  local orbital = {
+    id = type + "-" + global.next_orbital_id,
+    type = type,
+    health = 100,
+    created_at = game.tick,
+    is_orbital = true
+    -- TODO: Might end up having sites, hidden for placing fake worker entities
+  }
+  -- Storer and increment id count
+  global.orbitals[orbital.id] = id
+  global.next_orbital_id = global.next_orbital_id + 1
+  return orbital
+end
 
 function findPortalInArea(surface, area)
   local candidates = surface.find_entities_filtered{area=area, name="medium-portal"}
@@ -712,6 +763,7 @@ script.on_event(defines.events.on_tick, function(event)
   chestsMoveStacks(event)
   beltsMoveItems(event)
   scannersScan(event)
+  distributeMicrowavePower(event)
 end)
 
 -- TODO: Fix UPS
@@ -830,6 +882,7 @@ function enterPortal(player, portal, direction)
     x = portal.teleport_target.entity.position.x + player.position.x - portal.entity.position.x,
     y = portal.teleport_target.entity.position.y - player.position.y + portal.entity.position.y
   }
+  -- TODO: Also teleport logistic/construction/follower bots!
   player.teleport(targetPos, portal.teleport_target.site.surface)
 
   -- TODO: emergency teleport, entity could be invalid, will be a completely different path
@@ -949,12 +1002,12 @@ function updatePortalEnergyProperties(portal)
   local BUFFER_NUM = 1
   local interface = ensureEnergyInterface(portal)
   interface.electric_buffer_size = BUFFER_NUM * requiredEnergy
+  -- TODO: Set an input flow limit sensibly relative to the buffer size.
   interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
   interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
   interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
   --TODO: This caused a super strange error but I don't know if drain is the same energy_usage value from the actual prototype...
   --interface.power_usage = interface.prototype.energy_usage
-
 end
 
 function chestsMoveStacks(event)
@@ -1104,7 +1157,7 @@ function consumeBeltPower(inputBelt)
   end
 end
 
-function distributeMicrowavePower()
+function distributeMicrowavePower(event)
   -- TODO: Important quote here from Wiki. Project aim is to accurately reflect this :)
   -- "A modest Gigawatt-range microwave system, comparable to a large commercial power plant, would require launching
   -- some 80,000 tons of material to orbit, making the cost of energy from such a system vastly more expensive than even
@@ -1113,31 +1166,112 @@ function distributeMicrowavePower()
   -- or if radical new space launch technologies other than rocketry should become available in the future.
 
   -- TODO: (Based on above). What this means is we should implement some kind of Offworld Rocket Silo. Allowing things to be
-  -- launched far cheaper. An obvious middle-stage is reusable rockets.
+  -- launched far cheaper. An obvious middle-stage is reusable rockets. A space platform launcher can be effectively
+  -- zero-gee and is nearly as cheap as cargo catapult.
+
+  local interval = 120
+
+  if event.tick % interval ~= 0 then return end
+
+  local transmit_duration = 600 -- TODO: Allow configuration per sender via some GUI
 
   for i,transmitter in pairs(global.transmitters) do
+    if transmitter.current_target == nil or (transmitter.transmit_started_at + transmit_duration) < event.tick then
+      -- Deactivate old target so it no longer receives
+      if transmitter.current_target then
+        transmitter.current_target.entity.active = false
+        transmitter.current_target.current_source = nil
+        transmitter.current_target = nil
+      end
 
+      -- Pick a new target.
+      if transmitter.current_target_index == nil then transmitter.current_target_index = 0 end
+
+      if #transmitter.target_antennas > 0 then
+        abort = false
+        local index = transmitter.current_target_index
+        while transmitter.current_target == nil and not abort do
+          index = (index % #transmitter.target_antennas) + 1
+          if not transmitter.target_antennas[index].current_source then
+            transmitter.current_target = transmitter.target_antennas[index]
+            transmitter.current_target.current_source = transmitter
+            transmitter.transmit_started_at = event.tick + interval -- Adding on interval since nothing is transmitted for 120 ticks
+            -- Don't buffer while not sending
+            -- TODO: The logic here is all kind of screwy, fix this when fixing the delays between targets.
+            if not transmitter.is_orbital then
+              transmitter.entity.electric_input_flow_limit = 0
+            end
+          end
+        end
+      end
+
+    elseif transmitter.current_target ~= nil then
+      -- TODO: The above is a cheap way to have a 2s delay between targets. Should implement this in a better way.
+      if transmitter.is_orbital then
+        -- It's a solar harvester, always sends full amount; reset to original prototype value
+        transmitter.current_target.entity.active = true
+        transmitter.current_target.entity.power_production = 
+          transmitter.current_target.entity.prototype.electric_energy_source_prototype.power_production
+      else
+        -- Must be microwave transmitter. See how much energy has been raised in the last n ticks, we can produce that much power at the other end
+        -- in n ticks
+        local energyToSend = transmitter.entity.energy
+        transmitter.entity.energy = 0
+        local maxSendRate = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
+        local desiredSendRate = energyToSend / interval
+
+        transmitter.current_target.entity.active = true
+        transmitter.current_target.entity.power_production = math.min(maxSendRate, desiredSendRate)
+
+        -- Fix input flow which may have been deactivated when a new target was picked
+        transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
+        --game.print("Sending " .. energyToSend .. " @ " .. transmitter.current_target.entity.power_production)
+        -- TODO: Implement power loss due to inefficiency
+        -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
+        -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
+      end
+    end
+  end
+end
+
+function updateMicrowaveTargets()
+  for i, data in pairs(global.transmitters) do
+    data.target_antennas = {}
+    for i, antenna in pairs(global.receivers) do
+      -- Orbitals can transmit anywhere, ground-based transmitters only within current surface
+      if data.is_orbital or antenna.site == data.site then
+        table.insert(data.target_antennas, antenna)
+      end
+    end
   end
 end
 
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
-  if event.rocket.get_item_count("portal-lander") == 0 then return end
   local force = event.rocket.force
-  -- TODO: Open dialog to direct the lander
-  local newSite = randomOffworldSite(force)
-  force.print({"site-discovered", newSite.name})
-  newSite.has_portal = true
+  if event.rocket.get_item_count("portal-lander") > 0 then
+    -- TODO: Open dialog to direct the lander
+    local newSite = randomOffworldSite(force)
+    force.print({"site-discovered", newSite.name})
+    newSite.has_portal = true
 
-  -- TODO: Move this dialog to the sidebar, open on button click (optionally?)
-  for i, player in pairs(force.connected_players) do
-    initGUI(player)
-    showSiteDetailsGUI(player, newSite)
+    -- TODO: Move this dialog to the sidebar, open on button click (optionally?)
+    for i, player in pairs(force.connected_players) do
+      initGUI(player)
+      showSiteDetailsGUI(player, newSite)
+    end
+    -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
+    -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
+
   end
 
+  if event.rocket.get_item_count("solar-harvester") > 0 then
+    -- Add a transmitter
+    local harvester = newOrbitalUnit("solar-harvester")
+    global.harvesters[harvester.id] = harvester
+    global.transmitters[harvester.id] = harvester
+  end
   -- TODO: Populate some silo output science packs?
-  -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
-  -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
 end
 
 script.on_event(defines.events.on_rocket_launched, onRocketLaunched)

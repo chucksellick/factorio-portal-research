@@ -70,14 +70,14 @@ data:extend(
     collision_box = {{-1.2, -0.6}, {1.2, 0.6}},
     --collision_box = {{-1.2, -0.1}, {1.2, 0.1}},
     selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
-    enable_gui = false,
+    enable_gui = true,
     allow_copy_paste = false,
     energy_source =
     {
       type = "electric",
       buffer_capacity = "1GJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "800MW",
+      input_flow_limit = "50MW",
       output_flow_limit = "0kW"
     },
     energy_production = "0kW",
@@ -183,7 +183,7 @@ data:extend(
       type = "electric",
       buffer_capacity = "5MJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "250MW",
+      input_flow_limit = "10MW",
       output_flow_limit = "0GW"
     },
     energy_production = "0GW",
@@ -322,7 +322,7 @@ data:extend(
       type = "electric",
       buffer_capacity = "5MJ",
       usage_priority = "secondary-input",
-      input_flow_limit = "250MW",
+      input_flow_limit = "10MW",
       output_flow_limit = "0GW"
     },
     energy_production = "0GW",
@@ -366,12 +366,14 @@ data:extend(
     -- maybe we have GUI to set power transmission amount, but still need to know how *much* power was extracted from the network,
     -- a buffer can manage this but we have to check ticks frequently to make sure antenna's output matches transmitter's input...
 
-    -- TODO: Check if some of these are really needed. Should definitely be a primary source.
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "1GJ",
-      usage_priority = "primary-input",
+      -- Note: Really hard to understand how these numbers all work. Setting buffer_capacity too low results in brownout,
+      -- even if this is purely producing. Anyway the following combination seems to achieve what I required.
+      -- TODO: Getting a red flashing icon when not enough power is available. Seems weird but in a way it's useful. Still inconsistent with other power sources :(
+      buffer_capacity = "2MJ", 
+      usage_priority = "secondary-output",
       input_flow_limit = "0MW",
       output_flow_limit = "100MW"
     },
@@ -435,9 +437,10 @@ data:extend(
     energy_source =
     {
       type = "electric",
-      buffer_capacity = "1GJ",
-      usage_priority = "terciary", -- TODO: Should be tertiary like accums. BUT this has nasty side-effect of showing on power screen as accumulators.
-      input_flow_limit = "10MW" -- 10MW per transmitter = 100MW for solar harvester
+      buffer_capacity = "200kJ",
+      usage_priority = "secondary-input", -- TODO: Should be tertiary like accums. BUT this has nasty side-effect of showing on power screen as accumulators.
+      input_flow_limit = "10MW", -- 10MW per transmitter = 100MW for solar harvester
+      output_flow_limit = "0MW"
     },
     energy_production = "0MW",
     energy_usage = "0.5MW", -- Energy lost due to system inefficiency. TODO: Should scale with input flow. Are usage and drain the same? Should it be drain?
@@ -451,7 +454,8 @@ data:extend(
       line_length = 8,
       frame_count = 64,
       shift = util.by_pixel(27.5,-12.5),
-      tint={r=1,g=0,b=0}
+      tint={r=1,g=0,b=0},
+      animation_speed = 1.5 -- TODO: Fix animation + effects
     },
     -- TODO: Energy beam towards receiver
     vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
