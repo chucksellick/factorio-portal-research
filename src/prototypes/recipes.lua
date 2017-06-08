@@ -105,7 +105,7 @@ data:extend(
     type = "recipe",
     name = "observatory-scan-for-sites",
     category = "astronomy",
-    enabled = false,
+    enabled = true,
     energy_required = 100,
     hidden = true,
     icon = "__portal-research__/graphics/icons/telescope.png",
@@ -214,21 +214,156 @@ data:extend(
   },
   {
     type = "recipe",
-    name = "portal-lander",
-    energy_required = 5,
+    name = "microwave-antenna",
+    energy_required = 20,
     enabled = false,
     category = "crafting",
     ingredients =
     {
+      {"plexiglass-lens", 50},
+      {"radar", 10},
+      {"substation", 10},
+      {"accumulator", 100},
+      {"processing-unit", 50}, -- TODO: A bit expensive? ... Where we're doing things like asking for tons of accumulators everywhere, maybe make
+                               -- some shared intermediate.
+    },
+    result = "microwave-antenna"
+  },
+  {
+    type = "recipe",
+    name = "microwave-transmitter",
+    energy_required = 20,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"plexiglass-lens", 50},
+      {"laser-turret", 10},
+      {"substation", 10},
+      {"accumulator", 100},
+      {"processing-unit", 50}, -- TODO: A bit expensive? 
+    },
+    result = "microwave-transmitter"
+  },
+  {
+    type = "recipe",
+    name = "personal-microwave-antenna-equipment",
+    energy_required = 30,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"plexiglass-lens", 10},
+      {"radar", 1},
+      {"processing-unit", 20},
+      {"copper-cable", 100},
+      {"energy-shield-mk2-equipment", 10},
+      {"battery-mk2-equipment", 10}, -- TODO: Batteries or no? Really depends on the internall buffering question...
+      -- TODO: Copper cable is for grounding but we need electrical insulation. Energy shield is kind of a nod towards this but maybe some insulation component would be interesting.
+    },
+    result = "personal-microwave-antenna-equipment"
+  },
+  {
+    type = "recipe",
+    name = "solar-array",
+    energy_required = 60,
+    enabled = false,
+    category = "crafting",
+    ingredients = {
+      {"solar-panel", 100},
+      {"accumulator", 84}, -- Crappy in-joke ;)
+    },
+    result = "solar-array",
+    stack_size = 20
+  },
+  {
+    type = "recipe",
+    name = "navigation-computer",
+    energy_required = 60,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"radar", 10},
+      {"microwave-transmitter", 1}, -- TODO: Butchered for radio transmissions. Could use a dedicated radio transmitter? No, communications-array
+      {"advanced-circuit", 200},
+      {"processing-unit", 50},
+      {"rocket-fuel", 100} -- TODO: Or, a space-friendly fuel
+    },
+    result = "navigation-computer"
+  },
+  {
+    type = "recipe",
+    name = "solar-harvester",
+    energy_required = 60,
+    enabled = false,
+    category = "crafting",
+    ingredients = {
+      {"satellite", 1},
+      {"microwave-transmitter", 10}, -- Telescope? Lens?
+      {"navigation-computer", 1},
+      {"solar-array", 10} -- TODO: maybe 12? satellite normally needs 1 just to power itself, this can transmit about 10x worth of arrays, and power from 1x is lost in transit
+    },
+    result = "solar-harvester",
+    stack_size = 1
+  },
+  -- TODO: Maybe update base satellite recipe to all separate components.
+  -- Might look like:
+  --[[
+    energy_required = 10,
+    ingredients =
+    {
+      {"satellite-housing", 1}, --  = low density structures ( + iron sticks?)
+      {"navigation-computer", 1}, -- remove radars...?
+      {"solar-harvester", 1}, --  = 100 solar panels + 100 accum ( + stuff to make it unfold)
+      {"communications-system", 1}, -- = 5 radar + 100 proc units
+      {"rocket-fuel", 50}
+  ]]
+  {
+    type = "recipe",
+    name = "portal-lander",
+    energy_required = 20,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"medium-portal", 1},
+      {"satellite", 1},
+      {"navigation-computer", 1},
+      --{"re-entry-boosters",1}, (...or foil parachute)
+      {"rocket-fuel", 200}
+      -- Plus, inserters or robots to unpack the portal on landing?
+      -- How about batteries for the initial power, or some other kind of power method? (Could be a good 4th big component)
+      --[[
       {"low-density-structure", 100},
       {"rocket-control-unit", 100},
       {"radar", 10}, -- 5 on satellite
       {"processing-unit", 100},
       {"medium-portal", 1},
-      {"rocket-fuel", 200} -- 50 on satellite
+      {"rocket-fuel", 200} -- 50 on satellite ]]--
       -- TODO: Perhaps require a different type of fuel for space operation?
       -- https://forums.factorio.com/viewtopic.php?f=6&t=3802
     },
     result = "portal-lander"
   }
+  --[[
+  ,
+  {
+    type = "recipe",
+    name = "space-telescope",
+    energy_required = 20,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"telescope", 10},
+      {"satellite", 1},
+      {"navigation-computer", 1},
+      {"iron-gear-wheel", 100},
+      --{"radio-transmitter", 1},
+      --{"radio-receiver", 1},
+    },
+    result = "space-telescope"
+  }
+  ]]
 })

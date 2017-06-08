@@ -76,7 +76,9 @@ function On_Init()
   if not global.scanners then
     global.scanners = {}
   end
-
+  if not global.transmitters then
+    global.transmitters = {}
+  end
 
   if global.forces_portal_data then
     for forceName, forceData in pairs(global.forces_portal_data) do
@@ -129,8 +131,12 @@ function On_Init()
     if entity.fake_power_consumer then
       entity.fake_energy = entity.fake_power_consumer
     end
-    updatePortalEnergyProperties(entity)
-    entity.site = global.sites[entity.entity.surface.name]
+    if entity.entity.name == "portal-chest" or 
+      entity.entity.name == "portal-belt" or
+      entity.entity.name == "medium-portal" then
+      updatePortalEnergyProperties(entity)
+      entity.site = global.sites[entity.entity.surface.name]
+    end
   end
 
   -- XXX: Up to here
@@ -732,6 +738,7 @@ function scannersScan(event)
   -- more stuff you have in the air. Mainframes should have a neighbour bonus like nuke plants due to parallel processing, and require use of heat pipes and coolant to keep within
   -- operational temperature. Going too hot e.g. 200C causes a shutdown and a long reboot process only once temperature comes back under 100C.
   -- Mainframes could also interact with observatories to track things better, and/or make orbitals generally work quicker, avoid damage, etc etc.
+  -- (Note: mainframe buildable without space science, need them around from the start ... even before the first satellite ... should also make satellites do things! (Map reveal?))
 end
 
 function playersEnterPortals()
@@ -860,10 +867,10 @@ function spaceDistanceOfTeleport(portal)
 end
 -- TODO: Bring cost down on research levels for force
 local BASE_COST = 1000000 -- 1MJ
-local PLAYER_COST = 25000000
+local PLAYER_COST = 25000000 / 2
 local GROUND_DISTANCE_MODIFIER = 0.1
 local DISTANCE_MODIFIER = 100
-local STACK_COST = 50000
+local STACK_COST = 50000 / 2
 -- TODO: Artifically bumped up since it's only a single item from a stack and
 -- gets divided by 100 later. Need to revisit the formula, have a smaller overall
 -- base_cost for belts and account for stack proportions.
@@ -938,9 +945,10 @@ function updatePortalEnergyProperties(portal)
     requiredEnergy = maxEnergyRequiredForBeltTeleport(portal) * 4 / 100
   end
 
-  -- Buffer can store enough for 2 teleports only!
+  -- Buffer stores enough for 1 teleport only!
+  local BUFFER_NUM = 1
   local interface = ensureEnergyInterface(portal)
-  interface.electric_buffer_size = 2 * requiredEnergy
+  interface.electric_buffer_size = BUFFER_NUM * requiredEnergy
   interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
   interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
   interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
@@ -950,10 +958,10 @@ function updatePortalEnergyProperties(portal)
 end
 
 function chestsMoveStacks(event)
-  -- Chests teleport every second (for now)
-  -- TODO: Tweak this value and maybe add some research to make it quicker.
-  local checkFrequency = 60
-  -- TODO: Optimisation. Move into a list we can traverse quickly.
+  -- Chests teleport every 2s (for now)
+  -- TODO: Probably allow this to be set in GUI
+  local checkFrequency = 120
+  -- TODO: Optimisation. Move into a linked list we can traverse quickly.
   local tick = event.tick % checkFrequency
   local n = 0
   for i,portal in pairs(global.portals) do
@@ -1096,6 +1104,22 @@ function consumeBeltPower(inputBelt)
   end
 end
 
+function distributeMicrowavePower()
+  -- TODO: Important quote here from Wiki. Project aim is to accurately reflect this :)
+  -- "A modest Gigawatt-range microwave system, comparable to a large commercial power plant, would require launching
+  -- some 80,000 tons of material to orbit, making the cost of energy from such a system vastly more expensive than even
+  -- present day nuclear plants. Some technologists speculate that this may change in the distant future if an off-world
+  -- industrial base were to be developed that could manufacture solar power satellites out of asteroids or lunar material,
+  -- or if radical new space launch technologies other than rocketry should become available in the future.
+
+  -- TODO: (Based on above). What this means is we should implement some kind of Offworld Rocket Silo. Allowing things to be
+  -- launched far cheaper. An obvious middle-stage is reusable rockets.
+
+  for i,transmitter in pairs(global.transmitters) do
+
+  end
+end
+
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
   if event.rocket.get_item_count("portal-lander") == 0 then return end
@@ -1112,6 +1136,8 @@ function onRocketLaunched(event)
   end
 
   -- TODO: Populate some silo output science packs?
+  -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
+  -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
 end
 
 script.on_event(defines.events.on_rocket_launched, onRocketLaunched)

@@ -336,5 +336,138 @@ data:extend(
       },
       max_sounds_per_type = 3
     }
-  }
+  },
+  {
+    type = "electric-energy-interface",
+    name = "microwave-antenna",
+    icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=0,g=1,b=0}}},
+    flags = {"placeable-neutral", "player-creation"},
+    minable = {hardness = 0.2, mining_time = 1, result = "microwave-antenna"},
+    max_health = 300,
+    corpse = "big-remnants",
+    resistances =
+    {
+      {
+        type = "fire",
+        percent = 70
+      },
+      {
+        type = "impact",
+        percent = 30
+      }
+    },
+    -- TODO: Check resistances on all entities
+    collision_box = {{-1.4, -1.4}, {1.4, 1.4}},
+    selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
+    enable_gui = true, -- TODO: Remove
+    allow_copy_paste = false, -- TODO: Named, or autotarget?
+    -- TODO: Simple version is to switch on or off when beam is sending. Excess is simply wasted and there's no real way
+    -- to respond to power demand / usage. This is problematic for operation between base sites but great for orbitals. On base sites
+    -- maybe we have GUI to set power transmission amount, but still need to know how *much* power was extracted from the network,
+    -- a buffer can manage this but we have to check ticks frequently to make sure antenna's output matches transmitter's input...
+
+    -- TODO: Check if some of these are really needed. Should definitely be a primary source.
+    energy_source =
+    {
+      type = "electric",
+      buffer_capacity = "1GJ",
+      usage_priority = "primary-input",
+      input_flow_limit = "0MW",
+      output_flow_limit = "100MW"
+    },
+    -- 1000 solar panels = 60MW on planet surface during daytime, but they are much more efficient in space, there is some loss in the microwave beam of course
+    -- 100MW is more than enough to run a single outpost. (Maybe too much! But the player should be encouraged to share between outposts, use accumulators, )
+    energy_production = "100MW",
+    energy_usage = "0kW",
+    animation =
+    {
+      filename = "__base__/graphics/entity/radar/radar.png",
+      priority = "low",
+      width = 153,
+      height = 131,
+      apply_projection = false,
+      line_length = 8,
+      frame_count = 64,
+      shift = util.by_pixel(27.5,-12.5),
+      tint={r=0,g=1,b=0}
+    },
+    -- TODO: Big energy beam from the sky!
+    vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+    working_sound =
+    {
+      sound =
+      {
+        filename = "__base__/sound/accumulator-working.ogg",
+        volume = 1
+      },
+      idle_sound =
+      {
+        filename = "__base__/sound/radar.ogg",
+        volume = 0.4
+      },
+      max_sounds_per_type = 5
+    }
+  },
+  {
+    type = "electric-energy-interface",
+    name = "microwave-transmitter",
+    icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=1,g=0,b=0}}},
+    flags = {"placeable-neutral", "player-creation"},
+    minable = {hardness = 0.2, mining_time = 1, result = "microwave-transmitter"},
+    max_health = 300,
+    corpse = "big-remnants",
+    resistances =
+    {
+      {
+        type = "fire",
+        percent = 70
+      },
+      {
+        type = "impact",
+        percent = 30
+      }
+    },
+    -- TODO: Check resistances on all entities
+    collision_box = {{-1.4, -1.4}, {1.4, 1.4}},
+    selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
+    enable_gui = true, -- TODO: Remove
+    allow_copy_paste = false, -- TODO: Named, or autotarget?
+    energy_source =
+    {
+      type = "electric",
+      buffer_capacity = "1GJ",
+      usage_priority = "terciary", -- TODO: Should be tertiary like accums. BUT this has nasty side-effect of showing on power screen as accumulators.
+      input_flow_limit = "10MW" -- 10MW per transmitter = 100MW for solar harvester
+    },
+    energy_production = "0MW",
+    energy_usage = "0.5MW", -- Energy lost due to system inefficiency. TODO: Should scale with input flow. Are usage and drain the same? Should it be drain?
+    animation =
+    {
+      filename = "__base__/graphics/entity/radar/radar.png",
+      priority = "low",
+      width = 153,
+      height = 131,
+      apply_projection = false,
+      line_length = 8,
+      frame_count = 64,
+      shift = util.by_pixel(27.5,-12.5),
+      tint={r=1,g=0,b=0}
+    },
+    -- TODO: Energy beam towards receiver
+    vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+    working_sound =
+    {
+      sound =
+      {
+        filename = "__base__/sound/accumulator-working.ogg",
+        volume = 1
+      },
+      idle_sound =
+      {
+        filename = "__base__/sound/radar.ogg",
+        volume = 0.4
+      },
+      max_sounds_per_type = 5
+    }
+  },
 })

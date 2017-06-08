@@ -67,15 +67,6 @@ data:extend(
   },
   {
     type = "item",
-    name = "observatory-scan",
-    icon = ICON_BASE .. "telescope.png",
-    flags = {"goes-to-main-inventory", "hidden"},
-    subgroup = "intermediate-product",
-    order = "p[rocket-part]",
-    stack_size = 10
-  },
-  {
-    type = "item",
     name = "observatory-scan-result",
     icon = ICON_BASE .. "telescope.png",
     flags = {"goes-to-main-inventory", "hidden"},
@@ -135,6 +126,67 @@ data:extend(
   },
   {
     type = "item",
+    name = "medium-portal",
+    icon = ICON_BASE .. "factorium-crystal-large.png",
+    flags = {"goes-to-main-inventory"},
+    place_result="medium-portal",
+    subgroup = "transport",
+    order = "a[portal-system]-c[medium-portal]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "microwave-antenna", -- real name "rectenna"
+    icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=0,g=1,b=0}}},
+    --icon = ICON_BASE .. "microwave-antenna.png",
+    flags = {"goes-to-main-inventory"},
+    place_result = "microwave-antenna",
+    subgroup = "energy",
+    order = "d[solar-panel]-c[microwave-antenna]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "microwave-transmitter",
+    icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=1,g=0,b=0}}},
+    --icon = ICON_BASE .. "microwave-transmitter.png",
+    flags = {"goes-to-main-inventory"},
+    place_result="microwave-transmitter",
+    subgroup = "energy",
+    order = "d[solar-panel]-c[microwave-transmitter]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "personal-microwave-antenna-equipment", -- real name "rectenna"
+    icons = {{icon = "__base__/graphics/icons/fusion-reactor-equipment.png", tint={r=0,g=0,b=1}}},
+    --icon = ICON_BASE .. "personal-microwave-antenna-equipment.png",
+    placed_as_equipment_result = "personal-microwave-antenna-equipment",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "equipment",
+    order = "a[energy-source]-b[personal-microwave-antenna]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "navigation-computer",
+    icons = { {icon = "__base__/graphics/icons/processing-unit.png", tint = {r=1, g=0.4, b=0.5}} },
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "q[navigation-computer]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "solar-array",
+    icons = { {icon = "__base__/graphics/icons/solar-panel.png", tint = {r=0.8, g=0.12, b=0.85}} },
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "p[solar-array]",
+    stack_size = 10
+  },
+  {
+    type = "item",
     name = "portal-lander",
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
@@ -147,37 +199,18 @@ data:extend(
     name = "space-telescope",
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product", -- Subgroup??
-    order = "r[portal-system]-b[space-telescope]",
+    subgroup = "production-machine",
+    order = "g[space-telescope]", -- TODO: It's next to the observatory here, but maybe all satellites should be grouped together instead (entirely new tab?)
     stack_size = 1
   },
   {
     type = "item",
-    name = "medium-portal",
-    icon = ICON_BASE .. "factorium-crystal-large.png",
-    flags = {"goes-to-main-inventory"},
-    place_result="medium-portal",
-    subgroup = "transport",
-    order = "a[portal-system]-c[medium-portal]",
-    stack_size = 10
-  },
-  {
-    type = "item",
-    name = "solar-array",
+    name = "solar-harvester",
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "energy",
-    order = "d[solar-panel]-b[solar-array]",
+    order = "d[solar-panel]-b[solar-harvester]",
     stack_size = 1
-  },
-  {
-    type = "item",
-    name = "microwave-antenna", -- real name "rectenna"
-    icon = "__base__/graphics/icons/radar.png",
-    flags = {"goes-to-main-inventory"},
-    subgroup = "energy",
-    order = "d[solar-panel]-c[microwave-antenna]",
-    stack_size = 50
   },
   {
     type = "item",

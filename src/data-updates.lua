@@ -1,9 +1,13 @@
-enable_productivity_recipes = {
+local enable_productivity_recipes = {
   "factorium-processing",
   "portal-control-unit",
   "plexiglass-lens",
   "portal-science-pack",
-  "telescope" -- TODO: *Could* be a player-usable item ... for ... what though?
+  "telescope", -- TODO: *Could* be a player-usable item ... for ... what though?,
+  "solar-array",
+  "navigation-computer",
+  "satellite-housing",
+  "communications-system"
 }
 
 for k, v in pairs(data.raw.module) do
@@ -14,6 +18,18 @@ for k, v in pairs(data.raw.module) do
       end
     end
   end
+end
+
+-- Some additional components need to be available to build satellites
+local unlock_silo_recipes = {
+  -- "communications-system" or "communication-systems" ??
+  -- "satellite-housing"
+  "navigation-computer",
+  "solar-array"
+}
+
+for i, recipe in pairs(unlock_silo_recipes) do
+  table.insert(data.raw["technology"]["rocket-silo"].effects, {type="unlock-recipe", recipe=recipe})
 end
 
 -- TODO: Could require a specialised Portal research lab.
