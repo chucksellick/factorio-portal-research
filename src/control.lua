@@ -89,6 +89,10 @@ function On_Init()
     global.orbitals = {}
     global.next_orbital_id =  1
   end
+  if not global.equipment then
+    global.equipment = {}
+    global.next_equipment_id = 1
+  end
 
   if global.forces_portal_data then
     for forceName, forceData in pairs(global.forces_portal_data) do
@@ -367,14 +371,30 @@ script.on_event(defines.events.on_entity_died, onEntityDied)
 
 function onPlacedEquipment(event)
   if event.equipment.name == "personal-microwave-antenna-equipment" then
-    -- TODO: Register receiver.
     local data = {
-
+      id = "personal-microwave-antenna-equipment-" .. global.next_equipment_id,
+      is_equipment = true,
+      equipment = event.equipment,
+      player = game.players[event.player_index]
     }
+    data.force = data.player.force
+    data.site = getSiteForEntity(data.player)
+    global.equipment[data.id] = data
+    global.receivers[data.id] = data
+    global.next_equipment_id = global.next_equipment_id + 1
   end
 end
 
 function onRemovedEquipment(event)
+  game.print("equipment removed " .. event.equipment)
+  if event.equipment == "personal-microwave-antenna-equipment" then
+    for i,equip in pairs(global.equipment) do
+      if not equip.equipment.valid then
+        global.equipment[i] = nil
+        global.receivers[i] = nil
+      end
+    end
+  end
 end
 
 script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
@@ -653,6 +673,14 @@ function onGuiClick(event)
   if name == "portal-research-emergency-home-button" then
     local portal = playerData.emergency_home_portal
     player.teleport(playerData.emergency_home_position, portal.entity.surface)
+
+    -- Player may need to use a different transmitter
+    for i,equip in pairs(global.equipment) do
+      if equip.player == player then
+        equip.site = getSiteForEntity(player)
+      end
+    end
+
     -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
     --       Could also use die() ... but that wouldn't attribute the kill to anyone!
     portal.entity.damage(portal.entity.health, player.force)
@@ -661,6 +689,7 @@ function onGuiClick(event)
     playerData.emergency_home_portal = nil
     playerData.emergency_home_position = nil
     hideEmergencyHomeButton(player)
+    updateMicrowaveTargets()
   end
   if name == "close-site-details-button" then
     player.gui.center["portal-site-details"].destroy()
@@ -907,6 +936,13 @@ function enterPortal(player, portal, direction)
   }
   -- TODO: Also teleport logistic/construction/follower bots!
   player.teleport(targetPos, portal.teleport_target.site.surface)
+  -- Player may need to use a different transmitter
+  for i,equip in pairs(global.equipment) do
+    if equip.player == player then
+      equip.site = portal.teleport_target.site
+    end
+  end
+  updateMicrowaveTargets()
 
   -- TODO: emergency teleport, entity could be invalid, will be a completely different path
   -- tho as no energy check, destroy entities, etc.
@@ -1201,10 +1237,13 @@ function distributeMicrowavePower(event)
   local transmit_duration = 600 -- TODO: Allow configuration per sender via some GUI
 
   for i,transmitter in pairs(global.transmitters) do
-    if transmitter.current_target == nil or (transmitter.transmit_started_at + transmit_duration) < event.tick then
+    if transmitter.current_target == nil
+      or (transmitter.transmit_started_at + transmit_duration) < event.tick then
       -- Deactivate old target so it no longer receives
       if transmitter.current_target then
-        transmitter.current_target.entity.active = false
+        if transmitter.current_target.entity then
+          transmitter.current_target.entity.active = false
+        end
         transmitter.current_target.current_source = nil
         transmitter.current_target = nil
       end
@@ -1256,6 +1295,12 @@ function distributeMicrowavePower(event)
         -- then we can produce that much power at the other end over next n ticks
         local energyToSend = transmitter.entity.energy
         transmitter.entity.energy = 0
+
+        -- Fix input flow which may have been deactivated when a new target was picked
+        transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
+        -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
+        -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
+
         if transmitter.current_target.is_equipment then
           -- For the equipment grid, do a straight energy transfer
           -- TODO: Not quite sure whether this is fair, there is literally no internal battery. Definitely need to
@@ -1267,21 +1312,18 @@ function distributeMicrowavePower(event)
 
           transmitter.current_target.entity.active = true
           transmitter.current_target.entity.power_production = math.min(maxSendRate, desiredSendRate)
-
-          -- Fix input flow which may have been deactivated when a new target was picked
-          transmitter.entity.electric_input_flow_limit = transmitter.entity.prototype.electric_energy_source_prototype.input_flow_limit
-          --game.print("Sending " .. energyToSend .. " @ " .. transmitter.current_target.entity.power_production)
-          -- TODO: Also it could be interesting to implement the delay in receiving power due to microwaves moving at lightspeed.
-          -- BUT this would be inconsistent since for the most part I'm assuming that relativity doesn't exist and lightspeed is infinite ;)
         end
       end
     end
   end
+  -- TODO: Need a bunch of visual improvements. Radars should point in the right directions and have beams.
 end
 
 function updateMicrowaveTargets()
   -- TODO: This could become horrible with a lot of units. It doesn't happen very often but still this
   -- data could be maintained more efficiently on create/destroy
+  -- TODO: Also there's a bug when the player changes surface, they might carry on receiving
+  -- power for a few cycles even tho the transmitter is no longer valid for them...
   for i, data in pairs(global.transmitters) do
     data.target_antennas = {}
     if data.current_target then
@@ -1292,7 +1334,9 @@ function updateMicrowaveTargets()
         data.current_target.current_source = nil
       end
       -- Has receiver been deleted?
-      if not data.current_target.entity.valid then
+      if (data.current_target.entity and not data.current_target.entity.valid)
+        or (data.current_target.is_equipment and not data.current_target.equipment.valid)
+        then
         data.current_target = nil
         -- Check same index again next time rather than end up skipping a target
         data.current_target_index = data.current_target_index - 1
@@ -1300,7 +1344,9 @@ function updateMicrowaveTargets()
     end
     for i, antenna in pairs(global.receivers) do
       -- Orbitals can transmit anywhere, ground-based transmitters only within current surface
-      if data.is_orbital or antenna.site == data.site then
+      if data.is_orbital
+        or (antenna.is_equipment and antenna.player.surface == data.site.surface)
+        or antenna.site == data.site then
         table.insert(data.target_antennas, antenna)
       end
     end
