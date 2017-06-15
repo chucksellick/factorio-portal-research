@@ -18,7 +18,7 @@
     - Must receive power (microwave)
      - Degrades over time. Needs deliveries of additional science bundles + repairs
   * Some research to reduce damage from micrometeors etc. (defense system)
-  * 
+    - Mainframes to help with this, also observatories/telescopes
   * Space platform / space elevator
     - Shuttle system to move goods between offworld sites
     - Elevator to move goods between ground and space
@@ -30,39 +30,17 @@
 
 require("mod-gui")
 require("silo-script")
-require("lib/util")
-require("lib/table")
-local inspect = require("lib/inspect")
+require("lib.util")
+require("lib.table")
+local inspect = require("lib.inspect")
 
-script.on_init(On_Init)
-
-local site_sizes = {
-  {
-    name = "very-small",
-    min_size = 20,
-    max_size = 40
-  },
-  {
-    name = "small",
-    min_size = 35,
-    max_size = 80
-  },
-  {
-    name = "medium",
-    min_size = 70,
-    max_size = 120
-  },
-  {
-    name = "large",
-    min_size = 100,
-    max_size = 160
-  },
-  {
-    name = "very-large",
-    min_size = 150,
-    max_size = 250
-  }
-}
+-- TODO: Intentionally global now to avoid cross-references between modules causing
+-- recursion. Could try the package.loaded[...] solution from:
+-- https://stackoverflow.com/questions/8248698/recommended-way-to-have-2-modules-recursively-refer-to-each-other-in-lua-5-2
+Gui = require("modules.gui")
+Player = require("modules.player")
+Portals = require("modules.portals")
+Sites = require("modules.sites")
 
 function On_Init()
   -- TODO: Most of this is dev migration stuff which can be removed after first release
@@ -72,6 +50,17 @@ function On_Init()
     global.portals = {}
     global.players = {}
     global.sites = {}
+  end
+  if not global.forces then
+    global.forces = {}
+  end
+  if not global.orbitals then
+    global.orbitals = {}
+    global.next_orbital_id =  1
+  end
+  if not global.equipment then
+    global.equipment = {}
+    global.next_equipment_id = 1
   end
   if not global.scanners then
     global.scanners = {}
@@ -85,13 +74,8 @@ function On_Init()
   if not global.harvesters then
     global.harvesters = {}
   end
-  if not global.orbitals then
-    global.orbitals = {}
-    global.next_orbital_id =  1
-  end
-  if not global.equipment then
-    global.equipment = {}
-    global.next_equipment_id = 1
+  if not global.landers then
+    global.landers = {}
   end
 
   if global.forces_portal_data then
@@ -124,21 +108,6 @@ function On_Init()
   -- Fix site data
   for i,site in pairs(global.sites) do
     verifySiteData(site, i)
-    if not site.surface_name then
-      if site.surface.name ~= site.name then
-        site.is_offworld = true
-        site.surface_name = site.surface.name
-        global.sites[site.surface_name] = site
-        global.sites[site.name] = nil
-        game.print(site.name .. " " .. site.surface_name)
-      elseif site.name == "nauvis" or site.name == "Nauvis" then
-        site.surface_name = site.name
-        game.print(site.name)
-      else
-        game.print(site.name)
-        global.sites[i] = nil
-      end
-    end
   end
 
   for i,entity in pairs(global.entities) do
@@ -153,15 +122,32 @@ function On_Init()
     end
   end
 
+  for i,orbital in pairs(global.orbitals) do
+    if orbital.force == nil then
+      orbital.force = game.players[1].force
+    end
+  end
+
+  for i,player in pairs(global.players) do
+    if player.player == nil then
+      player.player = game.players[1]
+    end
+  end
+  -- XXX: Up to here
+
   updateMicrowaveTargets()
 
-  -- XXX: Up to here
+  for i,player in pairs(game.players) do
+    Gui.initForPlayer(player)
+  end
 
   -- Let the silo track all our custom orbitals
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "add_tracked_item", "solar-harvester")
   remote.call("silo_script", "update_gui")
 end
+
+script.on_init(On_Init)
 
 script.on_event(defines.events.on_force_created, function(event)
   On_Init()
@@ -173,9 +159,26 @@ script.on_configuration_changed(On_Init)
 function getPlayerData(player)
   if not global.players[player.name] then
     global.players[player.name] = {
+      player = player
     }
   end
   return global.players[player.name]
+end
+
+function getForceData(force)
+  if not global.forces[force.name] then
+    global.forces[force.name] = {
+      force = force,
+      site_distance_multiplier = 1
+    }
+    updateForceData(force)
+  end
+  return global.forces[force.name]
+end
+
+function updateForceData(force)
+  local data = getForceData(force)
+  -- TODO: Various technology research will increase distance multiplier
 end
 
 function verifySiteData(site)
@@ -184,6 +187,44 @@ function verifySiteData(site)
     for i,portal in pairs(global.portals) do
       if portal.site == site then
         site.portals[portal.id] = portal
+      end
+    end
+  end
+
+  if site.force == nil then
+    site.force = game.players[1].force
+  end
+
+  if site.is_offworld and not site.force then
+    site.force = game.players[1].force
+  end
+
+  if not site.surface_name then
+    if site.surface.name ~= site.name then
+      site.is_offworld = true
+      site.surface_name = site.surface.name
+      global.sites[site.surface_name] = site
+      global.sites[site.name] = nil
+      game.print(site.name .. " " .. site.surface_name)
+    elseif site.name == "nauvis" or site.name == "Nauvis" then
+      site.surface_name = site.name
+      game.print(site.name)
+    else
+      game.print(site.name)
+      global.sites[i] = nil
+    end
+  end
+
+  if not site.resources then
+    site.resources = {}
+    if site.resource_estimate then
+      site.resources = site.resource_estimate
+      site.resource_estimate = nil
+      if site.surface and site.is_offworld then
+        -- TODO: Real values (normally can get during surface gen)
+        site.resources_estimated = false
+      else
+        site.resources_estimated = true
       end
     end
   end
@@ -197,7 +238,8 @@ function newSiteDataForSurface(surface, force)
     surface_generated = true,
     surface = surface,
     distance = 0,
-    portals = {}, 
+    portals = {},
+    resources = {},
     is_offworld = false
   }
   global.sites[surface.name] = site
@@ -365,7 +407,8 @@ script.on_event({defines.events.on_player_mined_item, defines.events.on_robot_mi
 script.on_event(defines.events.on_entity_died, onEntityDied)
 
 --script.on_event(defines.events.on_preplayer_mined_item, onMinedItem)
--- TODO: Check for the following to avoid teleporting witha deconstructed portal? Also remember to handle orbital payload contents
+-- TODO: Check for the following, stop portals/chests/etc working while marked
+-- Also remember to handle orbital payload contents
 --script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 --script.on_event(defines.events.on_canceled_deconstruction, function(event)
 
@@ -386,7 +429,6 @@ function onPlacedEquipment(event)
 end
 
 function onRemovedEquipment(event)
-  game.print("equipment removed " .. event.equipment)
   if event.equipment == "personal-microwave-antenna-equipment" then
     for i,equip in pairs(global.equipment) do
       if not equip.equipment.valid then
@@ -401,16 +443,17 @@ script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
 script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
 
 -- Orbitals, not real entities
-function newOrbitalUnit(type)
+function newOrbitalUnit(type, force)
   local orbital = {
     id = type .. "-" .. global.next_orbital_id,
     type = type,
     health = 100,
     created_at = game.tick,
-    is_orbital = true
-    -- TODO: Might end up having sites, hidden for placing fake worker entities
+    is_orbital = true,
+    force = force
+    -- TODO: Might end up having a hidden surface for placing fake worker entities
   }
-  -- Storer and increment id count
+  -- Store and increment id count
   global.orbitals[orbital.id] = id
   global.next_orbital_id = global.next_orbital_id + 1
   return orbital
@@ -429,387 +472,6 @@ function getSiteForEntity(entity)
   return site
 end
 
-function randomOffworldSite(force)
-  local site = {
-    size = math.random(3),
-    name = "",
-    resource_estimate = {},
-    force = force.name,
-    surface_generated = false,
-    -- TODO: Logarithmic scale, increases with research, more resources found farther afield
-    distance = 1 + math.random(),
-    -- TODO: This directly translates to a light level but the exact curve is not clear. 0 is full daylight, 0.5 is midnight ... in between there is a curve.
-    -- Solar panels still give 100% at 0.25 but start losing power at 0.3 and have lost most at 0.4.
-    daytime = math.random(),
-    portals = {},
-    is_offworld = true,
-    has_portal = false
-  }
-
-  -- Simple random asteroid name generator "ABC-1234"
-  -- TODO: Check no duplicate names
-  for i = 1, 3 do
-    site.name = site.name .. Util.charset[26 + math.random(24)]
-  end
-  site.name = site.name .. "-"
-  for i = 1, 4 do
-    site.name = site.name .. Util.charset[52 + math.random(10)]
-  end
-  site.surface_name = "Asteroid " .. site.name
-
-  -- Store in global table
-  global.sites[site.surface_name] = site
-  -- TODO: Currently surfaces can never be destroyed but if they ever can, need to handle deletion of sites
-  -- Also if all portals are removed due to catastrophe then we could remove the site
-
-  -- Resource estimation
-  -- First, copy and shuffle the raw resource table
-  local resources = {}
-  -- TODO: Slow, precache this list at startup, shuffle the same table each time
-  for _, entity in pairs(game.entity_prototypes) do
-    if entity.type == "resource" then
-      table.insert(resources, entity)
-    end
-  end
-  Table.shuffle(resources)
-
-  -- Give each resource in turn a chance to be spawned
-  local chance = 0.95 -- 1/20 chance of barren asteroid, 42.5% chance of secondary resource
-  -- TODO: Actually restrict the resources to iron, copper, stone, uranium (v rare). Player still
-  -- needs trains to get coal, stone, factorium, oil, poss uranium, and any other modded ores.
-  -- Should provided a script interface allowing mods to make their ores available.
-  -- (Well. Would be nice to have liquid logistics. Consider allowing oil, or a whole new type
-  -- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
-  -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
-  -- or something else...)
-  for _, resource in pairs(resources) do
-
-    if (math.random() > chance) then break end
-
-    table.insert(site.resource_estimate, {
-      resource = resource,
-      -- TODO: More control over resource sizes
-      -- TODO: Also vary chance of different resources based on scarcity
-      amount = math.random()
-    })
-    -- Halve the chance next time
-    chance = chance / 2
-  end
-
-  return site
-end
-
-function initGUI(player)
-  --TODO: Check player actually has any data to display.
-  --if #global.forces_portal_data[player.force.name].known_offworld_sites == 0 then return end
-
-  local button_flow = mod_gui.get_button_flow(player)
-  if button_flow["portal-research-gui-button"] then
-    button_flow["portal-research-gui-button"].destroy()
-  end
-  local button = button_flow.add {
-    --type = "sprite-button",
-    type="button",
-    name = "portal-research-gui-button",
-    --sprite = "item/rocket-silo",
-    style = mod_gui.button_style,
-    caption = {"gui-portal-research.portals-button-caption"},
-    tooltip = {"gui-portal-research.portals-button-tooltip"}
-  }
-  createEmergencyHomeButton(player)
-end
-
-function createEmergencyHomeButton(player)
-  local button_flow = mod_gui.get_button_flow(player)
-  if button_flow["portal-research-emergency-home-button"] then
-    button_flow["portal-research-emergency-home-button"].destroy()
-  end
-  local button = button_flow.add {
-    --type = "sprite-button",
-    type="button",
-    name = "portal-research-emergency-home-button",
-    --sprite = "item/rocket-silo",
-    style = mod_gui.button_style,
-    caption = {"gui-portal-research.emergency-home-button-caption"},
-    tooltip = {"gui-portal-research.emergency-home-button-tooltip"}
-  }
-  button.style.visible = false
-end
-
-function showEmergencyHomeButton(player)
-  local button_flow = mod_gui.get_button_flow(player)
-  if button_flow["portal-research-emergency-home-button"] == nil then
-    createEmergencyHomeButton(player)
-  end
-  button_flow["portal-research-emergency-home-button"].style.visible = true
-end
-
-function hideEmergencyHomeButton(player)
-  local button_flow = mod_gui.get_button_flow(player)
-  if button_flow["portal-research-emergency-home-button"] then
-    button_flow["portal-research-emergency-home-button"].style.visible = false
-  end
-end
-
-function showSiteDetailsGUI(player, site)
-
-  local detailsFrame = player.gui.center.add{type="frame", name="portal-site-details", caption={"site-details-caption", site.name}}
-  local detailsFlow = detailsFrame.add{type="flow", direction="vertical"}
-  local detailsTable = detailsFlow.add{type="table", colspan="2"}
-  local function addDetailRow(label, value)
-    --local detailRow = detailsTable.add{type="flow", direction="horizontal"}
-    detailsTable.add{type="label", caption={"site-details-label-"..label}}
-    detailsTable.add{type="label", caption=value}
-  end
-
-  addDetailRow("name", site.name)
-  addDetailRow("size", {"site-size-" .. site_sizes[site.size].name})
-  addDetailRow("distance", site.distance)
-
-  detailsFlow.add{type="label", caption={"estimated-resources-label"}}
-
-  if #site.resource_estimate == 0 then
-    detailsFlow.add{type="label", caption={"estimated-resources-none"}}
-  else
-    local resourceTable = detailsFlow.add{type="table", colspan="2"}
-
-    for i,estimate in pairs(site.resource_estimate) do
-      resourceTable.add{type="label", caption={"entity-name."..estimate.resource.name}}
-      resourceTable.add{type="label", caption=estimate.amount}
-    end
-  end
-
-  detailsFlow.add{type="button", name="close-site-details-button", caption={"close-dialog-caption"}}
-end
-
-function openPortalTargetSelectGUI(player, portal)
-
-  local guiContainer = (portal.entity.name == "portal-chest" and mod_gui.get_frame_flow(player) or player.gui.center)
-
-  -- TODO: Prevent this being called when already open. Close GUI when running away from portal.
-  -- Open GUI for a different portal.
-  -- Note: intentionally not the other guiContainer, until portal UIs are fixed
-  if player.gui.center["portal-target-select"] then
-    return
-  end
-
-  local playerData = getPlayerData(player)
-
-  -- Player opened a different chest quickly
-  if playerData.guiPortalCurrent then
-    closePortalTargetSelectGUI(player)
-  end
-
-  playerData.guiPortalTargetButtons = {}
-  playerData.guiPortalCurrent = portal
-
-  local dialogFrame = guiContainer.add{
-    type="frame",
-    name="portal-target-select",
-    caption={"gui-portal-research.portal-target-select-caption." .. portal.entity.name}
-  }
-  local targetsFlow = dialogFrame.add{type="flow", direction="vertical"}
-  -- TODO: List resources on both types of button
-  -- List sites that don't yet have a portal
-  local allowLongRange = player.force.technologies["interplanetary-teleportation"]
-    and player.force.technologies["interplanetary-teleportation"].researched
-
-  -- TODO: It shouldn't be possible to have sites before long-range research ... maybe
-  -- don't need this conditional ;)
-  -- TODO: However, for box portals do check they're close enough on the surface until interplanetary is unlocked
-  -- TODO: Maybe shorter distances initially, go to 50 on long-range, go to infinite on interplanetary
-  if portal.entity.name == "medium-portal" and allowLongRange then  
-    for i,site in pairs(global.sites) do
-      if not site.surface_generated and site.force == player.force.name then
-        local newButton = targetsFlow.add{
-          type="button",
-          name="portal-target-select-" .. site.name,
-          caption={"site-name", site.name}
-        }
-        playerData.guiPortalTargetButtons[newButton.name] = {site=site}
-      end
-    end
-  end
-  -- List portals (of the same type) that don't have a target
-  for i,target in pairs(global.portals) do
-    if portal.entity.name == target.entity.name and target.entity.force == player.force and portal ~= target and target.teleport_target == nil
-      -- Note: It seems like long range shouldn't happen before lander is created,
-      -- however we're also checking for different surfaces e.g. those created by Factorissimo
-      and (allowLongRange or target.entity.surface == portal.entity.surface) then
-      local buttonId = "portal-target-select-" .. target.entity.unit_number
-      local newButton = targetsFlow.add{
-        type="button",
-        name=buttonId,
-        caption=target.site.name -- And an additional identifier :(
-      }
-      playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
-    end
-  end
-  targetsFlow.add{type="button", name="cancel-portal-target-select", caption={"cancel-dialog-caption"}}
-end
-
-function closePortalTargetSelectGUI(player)
-  local playerData = getPlayerData(player)
-
-  playerData.guiPortalTargetButtons = nil
-  playerData.guiPortalCurrent = nil
-
-  local frameFlow = mod_gui.get_frame_flow(player)
-  if frameFlow["portal-target-select"] then
-    frameFlow["portal-target-select"].destroy()
-  end
-  if player.gui.center["portal-target-select"] then
-    player.gui.center["portal-target-select"].destroy()
-  end
-end
-
-function onGuiClick(event)
-  local player = game.players[event.element.player_index]
-  local playerData = getPlayerData(player)
-  local name = event.element.name
-  if name == "portal-research-gui-button" then
-    -- TODO: Show us your GUI
-  end
-  if name == "portal-research-emergency-home-button" then
-    local portal = playerData.emergency_home_portal
-    player.teleport(playerData.emergency_home_position, portal.entity.surface)
-
-    -- Player may need to use a different transmitter
-    for i,equip in pairs(global.equipment) do
-      if equip.player == player then
-        equip.site = getSiteForEntity(player)
-      end
-    end
-
-    -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
-    --       Could also use die() ... but that wouldn't attribute the kill to anyone!
-    portal.entity.damage(portal.entity.health, player.force)
-    -- TODO: Stage this a bit so we see it blow up before the player teleports in
-    -- TODO: And display warning and require confirmationn
-    playerData.emergency_home_portal = nil
-    playerData.emergency_home_position = nil
-    hideEmergencyHomeButton(player)
-    updateMicrowaveTargets()
-  end
-  if name == "close-site-details-button" then
-    player.gui.center["portal-site-details"].destroy()
-    return
-  end
-  if name == "cancel-portal-target-select" then
-    closePortalTargetSelectGUI(player)
-    return
-  end
-
-  if string.find(name, "portal-target-select-", 1, true) then
-    -- TODO: If another player had GUI open for the same portal, should probably close it.
-    local chosen = playerData.guiPortalTargetButtons[name]
-    if chosen.site ~= nil then
-      -- Generate the site now to establish a link to the portal entity
-      chosen.portal = generateSiteSurface(chosen.site)
-    end
-
-    playerData.guiPortalCurrent.teleport_target = chosen.portal
-    chosen.portal.teleport_target = playerData.guiPortalCurrent
-
-    -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
-    -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
-    -- TODO: (Much later) GUI can show connections diagrammatically
-    if chosen.portal.entity.name == "portal-chest" then
-      chosen.portal.is_sender = false
-      chosen.portal.teleport_target.is_sender = true      
-    end
-
-    -- Buffer size will need to change
-    updatePortalEnergyProperties(chosen.portal)
-    updatePortalEnergyProperties(chosen.portal.teleport_target)
-
-    closePortalTargetSelectGUI(player)
-    return
-  end
-end
-script.on_event(defines.events.on_gui_click, onGuiClick)
-
--- Creates the actual game surface
-function generateSiteSurface(site)
-
-  local sizeSpec = site_sizes[site.size]
-  site.width = math.random(sizeSpec.max_size - sizeSpec.min_size) + sizeSpec.min_size
-  site.height = math.random(sizeSpec.max_size - sizeSpec.min_size) + sizeSpec.min_size
-
-  -- TODO: Use a similar thing from Factorissimo where surfaces are reused with asteroids very far apart.
-  -- However this would preclude the possibility of space platform building :(
-
-  local surface = game.create_surface(site.surface_name, {width=2,height=2})--mapgen)
-  surface.daytime = site.daytime or 0
-  surface.freeze_daytime = true -- TODO: For now, implement variable day/night later
-  --surface.request_to_generate_chunks({0, 0}, 3) -- More?
-
-  local tiles = {}
-  local halfWidth = math.ceil(site.width / 2)
-  local halfHeight = math.ceil(site.height / 2)
-  local estimate = site.resource_estimate[1]
-  for x = -halfWidth, halfWidth do
-    for y = -halfHeight, halfHeight do
-      -- TODO: Distort shape with perlin
-      local dist = math.sqrt(math.pow(x/halfWidth,2) + math.pow(y/halfHeight,2))
-      if dist<=1 then
-        -- TODO: Vary the ground tiles used, add some custom ones
-        table.insert(tiles, {name="red-desert-dark", position={x=x,y=y}})
-        surface.create_entity({
-          name=estimate.resource.name,
-          -- TODO: Improve this formula a lot, e.g. distance scaling (both site distance and position distance from center of patch), better estimate of total resource amount depending on # of tiles, different resources, oil, blah blah blah
-          amount = math.max(1, 5000 * (estimate.amount + (math.random() - 0.5 / 2))),
-          position={x=x,y=y}
-        })
-      end
-    end
-  end
-  surface.set_tiles(tiles)
-
-  -- TODO: Randomise landing position
-  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0}, force = game.forces[site.force]}
-  -- Ensure the entity has data, onCreated event (probably) doesn't fire when placing entities like this
-  -- TODO: Check the above!
-  local newPortal = getEntityData(gate)
-
-  -- TODO: Create some crater marks and a little fire on the ground
-
-  site.arrival_position = {x = 0, y = 0} -- TODO: Position relative to Gate
-
-  -- Set up some power
-  -- TODO: If this is desired, set up specialist entities. Lander could also come be created pre-charged.
-
-  --local panel = surface.create_entity{name="solar-panel", position={x=-3,y=0},force = game.forces[site.force]}
-  --local pole = surface.create_entity{name="medium-electric-pole", position={x=0,y=-2},force = game.forces[site.force]}
-  --pole.connect_neighbour(gate)
-  --pole.connect_neighbour(panel)
-
-  -- TODO: Make it all indestructible, unmineable etc?
-
-  -- TODO: Update site data with real resource count
-
-  site.surface = surface
-  site.surface_generated = true
-  -- To make void chunks show up on the map, you need to tell them they've finished generating.
-  for cx = -2,1 do
-    for cy = -2,1 do
-      surface.set_chunk_generated_status({cx, cy}, defines.chunk_generated_status.entities)
-    end
-  end
-
-  -- TODO: force.chart to reveal map properly?
-  if site.force then
-    game.forces[site.force].chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
-  end
-
-  -- Updates the sites_by_surface table
-  -- TODO: Not really happy with this, if these kind of calls are getting silly then need some
-  -- system for central entity/force/player/data management.
-  verifySiteData(site)
-
-  return newPortal
-end
-
 script.on_event(defines.events.on_tick, function(event) 
   playersEnterPortals()
   chestsMoveStacks(event)
@@ -826,10 +488,15 @@ function scannersScan(event)
     if result[1].valid_for_read and result[1].count > 0 then
       for n = 1, result[1].count do
         if math.random() < SCAN_CHANCE then
-          -- TODO: Set parameters of site
-          local newSite = randomOffworldSite(scanner.entity.force)
+          -- TODO: Set more parameters of site
+          local newSite = Sites.generateRandom(scanner.entity.force, scanner)
           scanner.entity.force.print({"site-discovered", newSite.name})
+          --for i,player in pairs(scanner.entity.force.connected_players) do
+          --  Gui.showSiteDetails(player, newSite)
+          --end
         else
+          -- TODO: Some chance for other finds eventually. e.g. incoming solar storms / meteorites,
+          -- mysterious objects from ancient civilisations, space debris, pods (send probes to intercept)
           scanner.entity.force.print({"scan-found-nothing"})
         end
       end
@@ -903,29 +570,27 @@ end
 
 function enterPortal(player, portal, direction)
   if portal.teleport_target == nil then
-    openPortalTargetSelectGUI(player, portal)
+    Portals.openPortalGui(player, portal)
     return
   end
   -- Check enough energy is available
   local energyRequired = energyRequiredForPlayerTeleport(portal)
   local energyAvailable = portal.entity.energy + portal.teleport_target.entity.energy
 
+  -- TODO: Use the portal visual to show that energy isn't available
   if energyAvailable < energyRequired then
     player.print("Not enough energy, required " .. energyRequired / 1000000 .. "MJ, had " .. energyAvailable / 1000000 .. "MJ")
-    -- TODO: Display a big charging bar (and animate the portal attempting to open / charging?)
     return
   end
   player.print("Teleporting using " .. energyRequired / 1000000 .. "MJ")
 
-  -- When travelling offworld, setup the emergency teleport back to where we left
+  -- When travelling offworld, set the emergency teleport back to where we left
+  -- Note: "home" is always nauvis for now.
   local currentSite = getSiteForEntity(player)
-  if currentSite == nil or not currentSite.is_offworld then
+  if currentSite ~= portal.site and (currentSite == nil or currentSite.surface.name == "nauvis") then
     local playerData = getPlayerData(player)
     playerData.emergency_home_portal = portal
     playerData.emergency_home_position = portal.entity.position
-    showEmergencyHomeButton(player)
-  else
-    hideEmergencyHomeButton(player)
   end
 
   -- TODO: Freeze player and show teleport anim/sound for a second
@@ -934,23 +599,15 @@ function enterPortal(player, portal, direction)
     x = portal.teleport_target.entity.position.x + player.position.x - portal.entity.position.x,
     y = portal.teleport_target.entity.position.y - player.position.y + portal.entity.position.y
   }
-  -- TODO: Also teleport logistic/construction/follower bots!
-  player.teleport(targetPos, portal.teleport_target.site.surface)
-  -- Player may need to use a different transmitter
-  for i,equip in pairs(global.equipment) do
-    if equip.player == player then
-      equip.site = portal.teleport_target.site
-    end
-  end
-  updateMicrowaveTargets()
-
-  -- TODO: emergency teleport, entity could be invalid, will be a completely different path
-  -- tho as no energy check, destroy entities, etc.
 
   -- Sap energy from both ends of the portal, local end first
   local missingEnergy = math.max(0, energyRequired - portal.entity.energy)
   portal.entity.energy = portal.entity.energy - energyRequired
   portal.teleport_target.entity.energy = portal.teleport_target.entity.energy - missingEnergy
+
+  player.teleport(targetPos, portal.teleport_target.site.surface)
+
+  Player.surfaceChanged(player)
 end
 
 function energyRequiredForPlayerTeleport(portal, player)
@@ -1045,6 +702,10 @@ end
 
 function updatePortalEnergyProperties(portal)
 
+  -- TODO: Seems like a) portals should charge quicker, and b) chests and/or portals should
+  -- have a larger buffer e.g. 4 teleports; loads of mwave energy being wasted on an asteroid
+  -- 
+
   local entity = portal.entity
   local requiredEnergy = 0
   if entity.name == "medium-portal" and portal.teleport_target then
@@ -1065,6 +726,12 @@ function updatePortalEnergyProperties(portal)
   interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
   interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
   interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
+
+  -- Landed portals come pre-charged, but we didn't know *how* much they needed until now.
+  if portal.is_fully_charged then
+    portal.is_fully_charged = false
+    interface.energy = interface.electric_buffer_size
+   end
   --TODO: This caused a super strange error but I don't know if drain is the same energy_usage value from the actual prototype...
   --interface.power_usage = interface.prototype.energy_usage
 end
@@ -1358,28 +1025,29 @@ end
 function onRocketLaunched(event)
   local force = event.rocket.force
   if event.rocket.get_item_count("portal-lander") > 0 then
-    -- TODO: Open dialog to direct the lander
-    local newSite = randomOffworldSite(force)
-    force.print({"site-discovered", newSite.name})
-    newSite.has_portal = true
-
-    -- TODO: Move this dialog to the sidebar, open on button click (optionally?)
+    local lander = newOrbitalUnit("portal-lander", force)
+    global.landers[lander.id] = lander
     for i, player in pairs(force.connected_players) do
-      initGUI(player)
-      showSiteDetailsGUI(player, newSite)
+      Gui.updateForPlayer(player)
+      Gui.showOrbitalDetails(player, lander)
     end
     -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
     -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
-
   end
 
   if event.rocket.get_item_count("solar-harvester") > 0 then
     -- Add a transmitter
-    local harvester = newOrbitalUnit("solar-harvester")
+    local harvester = newOrbitalUnit("solar-harvester", force)
     global.harvesters[harvester.id] = harvester
     global.transmitters[harvester.id] = harvester
     updateMicrowaveTargets()
+
+    for i, player in pairs(force.connected_players) do
+      Gui.updateForPlayer(player)
+      Gui.showOrbitalDetails(player, harvester)
+    end
   end
+
   -- TODO: Populate some silo output science packs?
 end
 

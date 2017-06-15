@@ -1,4 +1,5 @@
-local ICON_BASE = "__portal-research__/graphics/icons/"
+local GRAPHICS_BASE = "__portal-research__/graphics/"
+local ICON_BASE = GRAPHICS_BASE .. "icons/"
 data:extend(
 {
   {
@@ -60,17 +61,14 @@ data:extend(
   {
     type = "electric-energy-interface",
     name = "medium-portal",
-    icon = "__base__/graphics/icons/accumulator.png",
+    icon = ICON_BASE .. "medium-portal.png",
     flags = {"placeable-neutral", "player-creation"},
     minable = {hardness = 0.2, mining_time = 1, result = "medium-portal"},
     max_health = 300,
     corpse = "big-remnants",
-    -- TODO: Would be nice to have a thinner collision box (in y-axis) but this makes placement and deconstruction weird.
-    -- Is there a way to modify player collision separately? Or remove from player-layer collision mask and perform some manual collision?
-    collision_box = {{-1.2, -0.6}, {1.2, 0.6}},
-    --collision_box = {{-1.2, -0.1}, {1.2, 0.1}},
+    collision_box = {{-1.4, -1.4}, {1.4, 1.4}},
     selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
-    enable_gui = true,
+    enable_gui = false,
     allow_copy_paste = false,
     energy_source =
     {
@@ -85,13 +83,12 @@ data:extend(
     -- also 'pictures' for 4-way sprite is available, or 'animation' resp. 'animations'
     picture =
     {
-      filename = "__base__/graphics/entity/accumulator/accumulator.png",
+      filename = GRAPHICS_BASE .. "portals/medium-portal-base-ns.png", -- TODO: east-west variant
       priority = "extra-high",
-      width = 124,
-      height = 103,
-      shift = {0.6875, -0.203125},
-      tint = {r=1, g=0.8, b=1, a=1}
-    },
+      width = 113,
+      height = 120,
+      shift = {0.1, -0.5}
+    },  
     vehicle_impact_sound =  { filename = "__base__/sound/car-stone-impact.ogg", volume = 0.8},
     working_sound =
     {
@@ -106,7 +103,9 @@ data:extend(
         volume = 0.4
       },
       max_sounds_per_type = 5
-    }
+    },
+    -- TODO: Can't be destroyed (with bullets at least)
+    collision_mask = { "item-layer", "object-layer", "water-tile"} -- removed player_layer
   },
   {
     type = "container",
@@ -474,4 +473,4 @@ data:extend(
       max_sounds_per_type = 5
     }
   },
-})
+}) 

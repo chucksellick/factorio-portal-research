@@ -303,7 +303,7 @@ data:extend(
       {"satellite", 1},
       {"microwave-transmitter", 10}, -- Telescope? Lens?
       {"navigation-computer", 1},
-      {"solar-array", 10} -- TODO: maybe 12? satellite normally needs 1 just to power itself, this can transmit about 10x worth of arrays, and power from 1x is lost in transit
+      {"solar-array", 12} -- TODO: maybe 12? satellite normally needs 1 just to power itself, this can transmit about 10x worth of arrays, and power from 1x is lost in transit
     },
     result = "solar-harvester",
     stack_size = 1
@@ -315,9 +315,10 @@ data:extend(
     ingredients =
     {
       {"satellite-housing", 1}, --  = low density structures ( + iron sticks?)
-      {"navigation-computer", 1}, -- remove radars...?
-      {"solar-harvester", 1}, --  = 100 solar panels + 100 accum ( + stuff to make it unfold)
-      {"communications-system", 1}, -- = 5 radar + 100 proc units
+      {"navigation-computer", 1}, -- remove radars...? - they go to comms system
+      {"solar-array", 2}, --  = 200 solar panels + 200 accum ( + stuff to make it unfold)
+      {"communication-systems", 1}, -- = 5 radar + 100 proc units
+      {"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
       {"rocket-fuel", 50}
   ]]
   {

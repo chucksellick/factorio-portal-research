@@ -127,7 +127,7 @@ data:extend(
   {
     type = "item",
     name = "medium-portal",
-    icon = ICON_BASE .. "factorium-crystal-large.png",
+    icon = ICON_BASE .. "medium-portal.png",
     flags = {"goes-to-main-inventory"},
     place_result="medium-portal",
     subgroup = "transport",
@@ -138,7 +138,7 @@ data:extend(
     type = "item",
     name = "microwave-antenna", -- real name "rectenna"
     icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=0,g=1,b=0}}},
-    --icon = ICON_BASE .. "microwave-antenna.png",
+    --TODO: icon = ICON_BASE .. "microwave-antenna.png",
     flags = {"goes-to-main-inventory"},
     place_result = "microwave-antenna",
     subgroup = "energy",
@@ -149,7 +149,7 @@ data:extend(
     type = "item",
     name = "microwave-transmitter",
     icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=1,g=0,b=0}}},
-    --icon = ICON_BASE .. "microwave-transmitter.png",
+    --TODO: icon = ICON_BASE .. "microwave-transmitter.png",
     flags = {"goes-to-main-inventory"},
     place_result="microwave-transmitter",
     subgroup = "energy",
@@ -160,7 +160,7 @@ data:extend(
     type = "item",
     name = "personal-microwave-antenna-equipment", -- real name "rectenna"
     icons = {{icon = "__base__/graphics/icons/fusion-reactor-equipment.png", tint={r=0,g=0,b=1}}},
-    --icon = ICON_BASE .. "personal-microwave-antenna-equipment.png",
+    --TODO: icon = ICON_BASE .. "personal-microwave-antenna-equipment.png",
     placed_as_equipment_result = "personal-microwave-antenna-equipment",
     flags = {"goes-to-main-inventory"},
     subgroup = "equipment",
