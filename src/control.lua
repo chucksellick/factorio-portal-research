@@ -117,7 +117,7 @@ function On_Init()
     if entity.entity.name == "portal-chest" or 
       entity.entity.name == "portal-belt" or
       entity.entity.name == "medium-portal" then
-      updatePortalEnergyProperties(entity)
+      Portals.updateEnergyProperties(entity)
       entity.site = global.sites[entity.entity.surface.name]
     end
   end
@@ -293,12 +293,12 @@ function createEntityData(entity)
     data.teleport_target = nil
     data.site.portals[data.id] = data
     ensureEnergyInterface(data)
-    updatePortalEnergyProperties(data)
+    Portals.updateEnergyProperties(data)
     -- Update other end of connected underground belt
     -- TODO: When insert a new belt between two other belts, this is fine for the new neighbour,
     -- however the other now-orphaned end will still be buffering power...
     if entity.name == "portal-belt" and entity.neighbours ~= nil then    
-      updatePortalEnergyProperties(getEntityData(entity.neighbours))
+      Portals.updateEnergyProperties(getEntityData(entity.neighbours))
     end
   end
   if entity.name == "observatory" then
@@ -358,7 +358,7 @@ function deleteEntityData(entityData)
       entityData.teleport_target.teleport_target = nil
       -- Buffer will empty on the other side
       -- TODO: Is that really necessary? Could store the power until another target is selected
-      updatePortalEnergyProperties(entityData.teleport_target)
+      Portals.updateEnergyProperties(entityData.teleport_target)
     end
   end
   if global.scanners[entityData.id] ~= nil then
@@ -473,7 +473,7 @@ function getSiteForEntity(entity)
 end
 
 script.on_event(defines.events.on_tick, function(event) 
-  playersEnterPortals()
+  Portals.checkPlayersForTeleports()
   chestsMoveStacks(event)
   beltsMoveItems(event)
   scannersScan(event)
@@ -512,158 +512,20 @@ function scannersScan(event)
   -- (Note: mainframe buildable without space science, need them around from the start ... even before the first satellite ... should also make satellites do things! (Map reveal?))
 end
 
-function playersEnterPortals()
-  local tick = game.tick
-  for player_index, player in pairs(game.players) do
-    -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for trains...)
-    -- TODO: Balance ticks...
-    -- Open chest GUI when player has chest open
-    local playerData = getPlayerData(player)
-    -- TODO: Chest stuff really in the right function here...
-    if not player.opened and playerData.guiPortalCurrent and playerData.guiPortalCurrent.entity.name == "portal-chest" then
-      closePortalTargetSelectGUI(player, chestData)
-    end
-    if player.opened and player.opened.name == "portal-chest" then
-      local chestData = getEntityData(player.opened)
-      if chestData.teleport_target == nil and playerData.guiPortalCurrent ~= chestData then
-        -- TODO: However, periodically refresh the list in case chests are being built elsewherre
-        openPortalTargetSelectGUI(player, chestData)
-      end
-    end
-    if player.connected and not player.driving then
-    -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
-      local walking_state = player.walking_state
-      if walking_state.walking
-        and walking_state.direction ~= defines.direction.east
-        and walking_state.direction ~= defines.direction.west then
-
-          -- Look for a portal nearby
-          local portal = findPortalInArea(player.surface, {
-            {player.position.x-0.3, player.position.y-0.3},
-            {player.position.x+0.3, player.position.y+0.3}
-          })
-
-          -- Check we are in the center bit of the portal and walking in the appropriate direction
-          -- TODO: Allow portal rotation and support east/west portal entry
-          if portal ~= nil then
-            local direction = defines.direction.north
-            if walking_state.direction == defines.direction.southwest
-            or walking_state.direction == defines.direction.south
-            or walking_state.direction == defines.direction.southeast then
-              direction = defines.direction.south
-            end
-
-            if (direction == defines.direction.north
-              and player.position.y > portal.entity.position.y
-              and player.position.y < portal.entity.position.y + 1)
-              or (walking_state.direction == defines.direction.south
-              and player.position.y < portal.entity.position.y
-              and player.position.y > portal.entity.position.y - 1) then
-              -- Teleport
-              enterPortal(player, portal, direction)
-            end
-          end
-      end
-    end
-  end
-end
-
-function enterPortal(player, portal, direction)
-  if portal.teleport_target == nil then
-    Portals.openPortalGui(player, portal)
-    return
-  end
-  -- Check enough energy is available
-  local energyRequired = energyRequiredForPlayerTeleport(portal)
-  local energyAvailable = portal.entity.energy + portal.teleport_target.entity.energy
-
-  -- TODO: Use the portal visual to show that energy isn't available
-  if energyAvailable < energyRequired then
-    player.print("Not enough energy, required " .. energyRequired / 1000000 .. "MJ, had " .. energyAvailable / 1000000 .. "MJ")
-    return
-  end
-  player.print("Teleporting using " .. energyRequired / 1000000 .. "MJ")
-
-  -- When travelling offworld, set the emergency teleport back to where we left
-  -- Note: "home" is always nauvis for now.
-  local currentSite = getSiteForEntity(player)
-  if currentSite ~= portal.site and (currentSite == nil or currentSite.surface.name == "nauvis") then
-    local playerData = getPlayerData(player)
-    playerData.emergency_home_portal = portal
-    playerData.emergency_home_position = portal.entity.position
-  end
-
-  -- TODO: Freeze player and show teleport anim/sound for a second
-  local targetPos = {
-    -- x is the same relative to both portals, y is inverted
-    x = portal.teleport_target.entity.position.x + player.position.x - portal.entity.position.x,
-    y = portal.teleport_target.entity.position.y - player.position.y + portal.entity.position.y
-  }
-
-  -- Sap energy from both ends of the portal, local end first
-  local missingEnergy = math.max(0, energyRequired - portal.entity.energy)
-  portal.entity.energy = portal.entity.energy - energyRequired
-  portal.teleport_target.entity.energy = portal.teleport_target.entity.energy - missingEnergy
-
-  player.teleport(targetPos, portal.teleport_target.site.surface)
-
-  Player.surfaceChanged(player)
-end
-
-function energyRequiredForPlayerTeleport(portal, player)
-  -- TODO: Adjust on player inventory size
-  return maxEnergyRequiredForPlayerTeleport(portal)
-end
-
-function distanceBetween(a, b)
-    return math.sqrt((a.position.x - b.position.x) ^ 2
-      + (a.position.y - b.position.y)^2)
-end
-
-function groundDistanceOfTeleport(portal)
-  if portal.site ~= portal.teleport_target.site then
-    return 0
-  else
-    return distanceBetween(portal.teleport_target.entity, portal.entity)
-  end
-end
-function spaceDistanceOfTeleport(portal)
-  if portal.site == portal.teleport_target.site then
-    return 0
-  else
-    return math.abs(portal.teleport_target.site.distance - portal.site.distance)
-  end
-end
--- TODO: Bring cost down on research levels for force
 local BASE_COST = 1000000 -- 1MJ
-local PLAYER_COST = 25000000 / 2
 local GROUND_DISTANCE_MODIFIER = 0.1
 local DISTANCE_MODIFIER = 100
-local STACK_COST = 50000 / 2
+
 -- TODO: Artifically bumped up since it's only a single item from a stack and
 -- gets divided by 100 later. Need to revisit the formula, have a smaller overall
 -- base_cost for belts and account for stack proportions.
+local STACK_COST = 50000 / 2
 local BELT_STACK_COST = 50000 * 10
 
--- TODO: Thinking realistically about how portals should work(!), need to change everything a bit.
--- Opening a portal should incur the big base cost, keeping it open has an ongoing cost, moving matter
--- has an additional cost. So as long as a portal stays open things will be cheaper, but portals
--- should automatically close while idle?
-
-function maxEnergyRequiredForPlayerTeleport(portal)
-
-  -- Algorithm as follows:
-  --   Base cost to initate a teleport
-  --   Plus cost for player (adjust depending on inventory size? Items carried? In vehicle?)
-  --   Multiplied by distance cost
-
-  if not portal.teleport_target then
-    return 0
-  end
-  return BASE_COST + PLAYER_COST * (
-    DISTANCE_MODIFIER * spaceDistanceOfTeleport(portal)
-    + GROUND_DISTANCE_MODIFIER * groundDistanceOfTeleport(portal))
-
+-- TODO: Moves into entity utils library
+function distanceBetween(a, b)
+    return math.sqrt((a.position.x - b.position.x) ^ 2
+      + (a.position.y - b.position.y)^2)
 end
 
 function energyRequiredForStackTeleport(portal, stack)
@@ -684,8 +546,8 @@ function maxEnergyRequiredForStackTeleport(portal)
   if not portal.teleport_target then
     return 0
   end
-  return BASE_COST + STACK_COST * (DISTANCE_MODIFIER * spaceDistanceOfTeleport(portal)
-                                  + GROUND_DISTANCE_MODIFIER * groundDistanceOfTeleport(portal))
+  return BASE_COST + STACK_COST * (DISTANCE_MODIFIER * Portals.spaceDistanceOfTeleport(portal)
+                                  + GROUND_DISTANCE_MODIFIER * Portals.groundDistanceOfTeleport(portal))
 end
 
 function maxEnergyRequiredForBeltTeleport(belt)
@@ -700,43 +562,25 @@ function energyRequiredForBeltTeleport(belt, count)
   return maxEnergyRequiredForBeltTeleport(belt) * count / 200
 end
 
-function updatePortalEnergyProperties(portal)
-
-  -- TODO: Seems like a) portals should charge quicker, and b) chests and/or portals should
-  -- have a larger buffer e.g. 4 teleports; loads of mwave energy being wasted on an asteroid
-  -- 
-
-  local entity = portal.entity
-  local requiredEnergy = 0
-  if entity.name == "medium-portal" and portal.teleport_target then
-    requiredEnergy = maxEnergyRequiredForPlayerTeleport(portal)
-  end
-  if entity.name == "portal-chest" and portal.teleport_target then
-    requiredEnergy = maxEnergyRequiredForStackTeleport(portal)
-  end
-  if entity.name == "portal-belt" and portal.entity.neighbours then
-    requiredEnergy = maxEnergyRequiredForBeltTeleport(portal) * 4 / 100
-  end
-
-  -- Buffer stores enough for 1 teleport only!
-  local BUFFER_NUM = 1
-  local interface = ensureEnergyInterface(portal)
-  interface.electric_buffer_size = BUFFER_NUM * requiredEnergy
-  -- TODO: Set an input flow limit sensibly relative to the buffer size.
-  interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
-  interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
-  interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
-
-  -- Landed portals come pre-charged, but we didn't know *how* much they needed until now.
-  if portal.is_fully_charged then
-    portal.is_fully_charged = false
-    interface.energy = interface.electric_buffer_size
-   end
-  --TODO: This caused a super strange error but I don't know if drain is the same energy_usage value from the actual prototype...
-  --interface.power_usage = interface.prototype.energy_usage
-end
-
 function chestsMoveStacks(event)
+
+  for player_index, player in pairs(game.players) do
+    -- Open chest GUI when player has chest open
+    local playerData = getPlayerData(player)
+
+    -- TODO: Move this to a generic checkOpenEntities() function in Gui.tick()
+    if not player.opened and playerData.guiPortalCurrent and playerData.guiPortalCurrent.entity.name == "portal-chest" then
+      closePortalTargetSelectGUI(player, chestData)
+    end
+    if player.opened and player.opened.name == "portal-chest" then
+      local chestData = getEntityData(player.opened)
+      if playerData.guiPortalCurrent ~= chestData then
+        -- TODO: However, periodically refresh the list in case chests are being built elsewhere
+        Portals.openPortalGui(player, chestData)
+      end
+    end
+  end
+
   -- Chests teleport every 2s (for now)
   -- TODO: Probably allow this to be set in GUI
   local checkFrequency = 120
@@ -754,7 +598,6 @@ function chestsMoveStacks(event)
 end
 
 function teleportChestStacks(source, num)
-
   -- TODO: Check if energy is available (and use it)
   local target = source.teleport_target
   
@@ -1061,3 +904,9 @@ function onResearchFinished(event)
 end
 
 script.on_event(defines.events.on_research_finished, onResearchFinished)
+
+function onPlayerChangedSurface(event)
+  Player.surfaceChanged(game.players[event.player_index])
+end
+
+script.on_event(defines.events.on_player_changed_surface, onPlayerChangedSurface)

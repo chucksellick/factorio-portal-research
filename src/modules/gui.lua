@@ -26,6 +26,7 @@ function Gui.initForPlayer(player)
 
   local playerData = getPlayerData(player)
   playerData.buttons = playerData.buttons or {}
+  playerData.window_buttons = playerData.window_buttons or {}
 
   local flow = button_flow["portal-research-buttons"] or button_flow.add {
     type="flow",
@@ -71,7 +72,7 @@ function Gui.initForPlayer(player)
   end
 
   playerData.windows = {}
-  local windows = { "primary-tab", "object-detail", "hover-detail" }
+  local windows = { "primary-tab", "object-detail", "secondary-pane", "hover-detail" }
   for i,windowName in pairs(windows) do
     local window = {
       frame = playerData.gui.add{name=windowName, type="frame", direction="vertical"}
@@ -125,9 +126,36 @@ local function closeWindow(player, options)
   local playerData = getPlayerData(player)
   local frame = playerData.gui[options.window]
   frame.style.visible = false
-
-  -- TODO: Actually delete gui, cancel ticks, clean button data
+  cleanUpButtons(player)
+  -- TODO: Actually delete gui, cancel ticks
   -- TODO: Also nilify playerData.current_tab if window was primary-tab
+end
+
+local function createButton(player, gui_parent, options)
+  local playerData = getPlayerData(player)
+  local element = gui_parent.add{
+    type = (options.sprite and "sprite-button" or "button"),
+    name = options.name, -- TODO: Concatenate window name as well?
+    caption = (not options.sprite and options.caption or nil)
+  }
+
+  -- TODO: Should display a warning if conflicting with an existing button id?
+  playerData.window_buttons[options.name] = options
+  options.element = element
+end
+
+local function cleanUpButtons(player)
+  local playerData = getPlayerData(player)
+  for i,button in pairs(playerData.window_buttons) do
+    if not button.element.valid then
+      playerData.window_buttons[i] = nil
+    end
+  end
+  -- TODO: Cleanup could be specific to the window that's been closed/changed,
+  -- however unless I see severe performance problems this is simple enough right now
+end
+
+local function buildNameEditor(player, gui, object, window_options)
 end
 
 local function siteMiniDetails(player, site, parent)
@@ -197,37 +225,14 @@ function Gui.showSiteDetails(player, site)
   detailsFlow.add{type="button", name="close-site-details-button", caption={"close-dialog-caption"}}
 end
 
--- TODO: Decide how much of this is in portals.lua and how much here?
--- TODO: Much better general window management
--- TODO: Close GUI when running away from portal.
-function Gui.showPortalDetails(player, portal)
-
-  -- Open GUI for a different portal.
-  local guiContainer = mod_gui.get_frame_flow(player)
-  if guiContainer["portal-target-select"] then
-    guiContainer["portal-target-select"].destroy()
-  end
-
-  local playerData = getPlayerData(player)
-
-  -- Player opened a different chest quickly
-  if playerData.guiPortalCurrent then
-    closePortalTargetSelectGUI(player)
-  end
-
-  playerData.guiPortalTargetButtons = {}
-  playerData.guiPortalCurrent = portal
-
-  local dialogFrame = guiContainer.add{
-    type="frame",
-    name="portal-target-select",
-    caption={"gui-portal-research.portal-target-select-caption." .. portal.entity.name}
+local function pickPortalTargets(player, portal)
+  local window_options = {
+    window="secondary-pane",
+    caption={"gui-portal-research.portal-target-select-caption." .. portal.entity.name},
+    object=portal
   }
-
-  local targetsFlow = dialogFrame.add{type="scroll-pane", direction="vertical"}
-  targetsFlow.horizontal_scroll_policy = "never"
-  targetsFlow.vertical_scroll_policy = "auto"
-  targetsFlow.style.maximal_height = 450
+  local gui = openWindow(player, window_options)
+  local playerData = getPlayerData(player)
 
   -- TODO: List resources on both types of button
 
@@ -238,18 +243,33 @@ function Gui.showPortalDetails(player, portal)
   -- TODO: However, for box portals do check they're close enough on the surface until interplanetary is unlocked
   -- TODO: Maybe shorter distances initially, go to 50 on long-range, go to infinite on interplanetary
   if portal.entity.name == "medium-portal" and allowLongRange then  
-    for i,site in pairs(global.sites) do
-      if not site.surface_generated and site.force == player.force.name then
-        local newButton = targetsFlow.add{
-          type="button",
-          name="portal-target-select-" .. site.name,
-          caption={"site-name", site.name}
+    for site in Sites.list(player.force) do
+      if not site.surface_generated and site.has_portal then
+        local row = gui.add{
+          type="flow",
+          direction="horizontal"
         }
-        playerData.guiPortalTargetButtons[newButton.name] = {site=site}
+
+        --local name_base = "-" .. site.name .. "-button"
+        siteMiniDetails(player, site, row)
+        -- TODO: sprite buttons instead of captions
+        createButton(player, row, {
+          name="view-site-details-" .. site.name,
+          caption={"gui-portal-research.site-details-button-caption"},
+          action={name="site-details",site=site},
+          window="secondary-pane"
+        })
+        createButton(player, row, {
+          name="portal-" .. portal.id .. "-pick-target-" .. site.name,
+          caption={"gui-portal-research.pick-portal-button-caption"},
+          action={name="pick-portal-target",portal=portal,target_site=site},
+          window="secondary-pane"
+        })
       end
     end
   end
-  -- List portals (of the same type and within range) that don't have a target
+  --[[
+  -- List actual portals (of the same type and within range) that don't have a target
   for i,target in pairs(global.portals) do
     if portal.entity.name == target.entity.name and target.entity.force == player.force and portal ~= target and target.teleport_target == nil
       -- Note: It seems like long range shouldn't happen before lander is created,
@@ -264,21 +284,55 @@ function Gui.showPortalDetails(player, portal)
       playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
     end
   end
-  targetsFlow.add{type="button", name="cancel-portal-target-select", caption={"cancel-dialog-caption"}}
+  ]]
+  -- TODO: X close buttons
+  --targetsFlow.add{type="button", name="cancel-portal-target-select", caption={"cancel-dialog-caption"}}
 end
 
-function closePortalTargetSelectGUI(player)
+-- TODO: Too much of this is in Gui rather than Portals
+-- TODO: Close GUI when running away from portal.
+function Gui.showPortalDetails(player, portal)
   local playerData = getPlayerData(player)
+  -- TODO: Check this doesn't get executed too much when walking through a portal
+  local window_options = {
+    window="object-detail",
+    caption={"gui-portal-research.portal-details-caption"},
+    object=portal
+  }
+  local gui = openWindow(player, window_options)
 
-  playerData.guiPortalTargetButtons = nil
-  playerData.guiPortalCurrent = nil
+  local playerData = getPlayerData(player)
+  -- TODO: Handle this in the openWindow stuff?
+  playerData.current_detail_object = portal
 
-  local frameFlow = mod_gui.get_frame_flow(player)
-  if frameFlow["portal-target-select"] then
-    frameFlow["portal-target-select"].destroy()
-  end
-  if player.gui.center["portal-target-select"] then
-    player.gui.center["portal-target-select"].destroy()
+  buildNameEditor(player, gui, window_options)
+
+  local preview_size = 200
+  -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
+  local camera = gui.add{
+    type="camera",
+    position=portal.entity.position,
+    surface_index = portal.entity.surface.index,
+    zoom = 1
+  }
+  camera.style.minimal_width = preview_size
+  camera.style.minimal_height = preview_size
+
+  gui.add{type="label", caption={"portal-research.portal-target-heading"}}
+  if portal.teleport_target then
+    local site = getSiteForEntity(portal.teleport_target)
+    gui.add{type="label", caption=site.name}
+    local target_camera = gui.add{
+      type="camera",
+      position=portal.teleport_target.entity.position,
+      surface_index = portal.teleport_target.entity.surface.index,
+      zoom = 1
+    }
+    target_camera.style.minimal_width = preview_size
+    target_camera.style.minimal_height = preview_size
+  else
+    gui.add{type="label", caption={"portal-research.no-target-portal"}}
+    pickPortalTargets(player, portal)
   end
 end
 
@@ -287,7 +341,7 @@ local function onGuiClick(event)
   local playerData = getPlayerData(player)
   local name = event.element.name
   if name == "portal-research-button" then
-    playerData.gui.tabs.style.visible = not playerData.gui.tabs.style.visible
+    playerData.gui.style.visible = not playerData.gui.style.visible
     return
   end
   if name == "emergency-home-button" then
@@ -314,40 +368,47 @@ local function onGuiClick(event)
     return
   end
 
-  if name == "close-site-details-button" then
-    player.gui.center["portal-site-details"].destroy()
-    return
-  end
-  if name == "cancel-portal-target-select" then
-    closePortalTargetSelectGUI(player)
-    return
-  end
+  if playerData.window_buttons[name] then
+    local button = playerData.window_buttons[name]
+    -- TODO: Action handlers definitely need moving out of this
+    -- function before it gets out of control
+    if button.action.name == "site-details" then
 
-  if string.find(name, "portal-target-select-", 1, true) then
-    -- TODO: If another player had GUI open for the same portal, should probably close it.
-    local chosen = playerData.guiPortalTargetButtons[name]
-    if chosen.site ~= nil then
-      -- Generate the site now to establish a link to the portal entity
-      chosen.portal = Sites.generateSurface(chosen.site)
+    elseif button.action.name == "pick-portal-target" then
+        -- action={name="pick-portal-target",portal=portal,target_site=site},
+
+      local chosen = button.action.target_portal
+      if button.action.target_site ~= nil then
+        -- Generate the site now to establish a link to the portal entity
+        chosen = Sites.generateSurface(chosen.site)
+      end
+
+      button.action.portal.teleport_target = chosen
+      chosen.teleport_target = button.action.portal
+
+      -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
+      -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
+      -- TODO: (Much later) GUI can show connections diagrammatically
+      if chosen.portal.entity.name == "portal-chest" then
+        chosen.portal.is_sender = false
+        chosen.portal.teleport_target.is_sender = true
+      end
+
+      -- Buffer size will need to change
+      Portals.updateEnergyProperties(chosen)
+      Portals.updateEnergyProperties(chosen.teleport_target)
+      -- TODO: Window should be closed automagically by the below call to showPortalDetails
+      -- but this doesn't work yet
+      closeWindow(player, button.window)
+      -- Refresh portal details
+      Gui.showPortalDetails(player, button.action.portal)
+      -- TODO: If other players had GUI open for the same portal, should update all their views
+      -- Need better tracking of what models are shown in the windows and what their original render
+      -- path was
+    elseif button.action.name == "pick-orbital-target" then
+      -- Send orbital to selected site
+      -- TODO: Instant right now, need to introduce travel times
     end
-
-    playerData.guiPortalCurrent.teleport_target = chosen.portal
-    chosen.portal.teleport_target = playerData.guiPortalCurrent
-
-    -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
-    -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
-    -- TODO: (Much later) GUI can show connections diagrammatically
-    if chosen.portal.entity.name == "portal-chest" then
-      chosen.portal.is_sender = false
-      chosen.portal.teleport_target.is_sender = true
-    end
-
-    -- Buffer size will need to change
-    updatePortalEnergyProperties(chosen.portal)
-    updatePortalEnergyProperties(chosen.portal.teleport_target)
-
-    closePortalTargetSelectGUI(player)
-    return
   end
 end
 script.on_event(defines.events.on_gui_click, onGuiClick)

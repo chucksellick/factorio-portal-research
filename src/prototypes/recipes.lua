@@ -349,7 +349,45 @@ data:extend(
     result = "portal-lander"
   }
   --[[
-  ,
+  {
+    type = "recipe",
+    name = "radio-transmitter",
+    enabled = false,
+    ingredients =
+    {
+      {"copper-cable", 5},
+      {"electronic-circuit", 5},
+      {"vacuum-tube", 1},
+      {"iron-plate", 4},
+    },
+    result = "radio-transmitter"
+  },
+  {
+    type = "recipe",
+    name = "radio-antenna",
+    enabled = false,
+    ingredients =
+    {
+      {"copper-cable", 5},
+      {"electronic-circuit", 5},
+      {"vacuum-tube", 1},
+      {"iron-plate", 4},
+    },
+    result = "radio-antenna"
+  },
+  {
+    type = "recipe",
+    name = "orbital-logistics-combinator",
+    enabled = false,
+    ingredients =
+    {
+      {"copper-cable", 5},
+      {"electronic-circuit", 5},
+      {"vacuum-tube", 1},
+      {"iron-plate", 4},
+    },
+    result = "orbital-logistics-combinator"
+  },
   {
     type = "recipe",
     name = "space-telescope",
