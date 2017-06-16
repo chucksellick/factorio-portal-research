@@ -262,13 +262,13 @@ local function pickPortalTargets(player, portal)
         -- TODO: sprite buttons instead of captions
         createButton(player, row, {
           name="view-site-details-" .. site.name,
-          caption={"gui-portal-research.site-details-button-caption"},
+          caption={"portal-research.site-details-button-caption"},
           action={name="site-details",site=site,window="tertiary-pane"},
           window="secondary-pane"
         })
         createButton(player, row, {
           name="portal-" .. portal.id .. "-pick-target-site-" .. site.name,
-          caption={"gui-portal-research.pick-portal-button-caption"},
+          caption={"portal-research.pick-portal-button-caption"},
           action={name="pick-portal-target",portal=portal,target_site=site},
           window="secondary-pane"
         })
@@ -292,13 +292,13 @@ local function pickPortalTargets(player, portal)
       row.add{type="label",caption=target.site.name}
       createButton(player, row, {
         name="view-portal-details-" .. target.id,
-        caption={"gui-portal-research.portal-details-button-caption"},
+        caption={"portal-research.portal-details-button-caption"},
         action={name="portal-details",portal=target,open_target_select=false,window="tertiary-pane"},
         window="secondary-pane"
       })
       createButton(player, row, {
         name="portal-" .. portal.id .. "-pick-target-portal-" .. target.id,
-        caption={"gui-portal-research.pick-portal-button-caption"},
+        caption={"portal-research.pick-portal-button-caption"},
         action={name="pick-portal-target",portal=portal,target_portal=target},
         window="secondary-pane"
       })
@@ -315,7 +315,7 @@ function Gui.showPortalDetails(player, portal, options)
   -- TODO: Check this doesn't get executed too much when walking through a portal
   local window_options = options or {}
   window_options.window = window_options.window or "object-detail"
-  window_options.caption = window_options.caption or {"gui-portal-research.portal-details-caption"}
+  window_options.caption = window_options.caption or {"portal-research.portal-details-caption"}
   window_options.object = portal
 
   local gui = openWindow(player, window_options)
