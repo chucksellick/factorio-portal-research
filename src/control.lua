@@ -478,6 +478,7 @@ script.on_event(defines.events.on_tick, function(event)
   beltsMoveItems(event)
   scannersScan(event)
   distributeMicrowavePower(event)
+  Gui.tick(event)
 end)
 
 -- TODO: Fix UPS

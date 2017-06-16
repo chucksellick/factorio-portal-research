@@ -72,7 +72,7 @@ function Gui.initForPlayer(player)
   end
 
   playerData.windows = {}
-  local windows = { "primary-tab", "object-detail", "secondary-pane", "hover-detail" }
+  local windows = { "primary-tab", "object-detail", "secondary-pane", "terciary-pane", "hover-detail" }
   for i,windowName in pairs(windows) do
     local window = {
       frame = playerData.gui.add{name=windowName, type="frame", direction="vertical"}
@@ -112,25 +112,6 @@ local function spriteNameForSite(site)
   return "portal-research.site-type-" .. sprite
 end
 
-local function openWindow(player, options)
-  -- TODO: Clean up existing frame data
-  local playerData = getPlayerData(player)
-  local window = playerData.windows[options.window]
-  window.frame.style.visible = true
-  window.frame.caption = options.caption
-  window.scroll.clear()
-  return window.scroll
-end
-
-local function closeWindow(player, options)
-  local playerData = getPlayerData(player)
-  local frame = playerData.gui[options.window]
-  frame.style.visible = false
-  cleanUpButtons(player)
-  -- TODO: Actually delete gui, cancel ticks
-  -- TODO: Also nilify playerData.current_tab if window was primary-tab
-end
-
 local function createButton(player, gui_parent, options)
   local playerData = getPlayerData(player)
   local element = gui_parent.add{
@@ -153,6 +134,25 @@ local function cleanUpButtons(player)
   end
   -- TODO: Cleanup could be specific to the window that's been closed/changed,
   -- however unless I see severe performance problems this is simple enough right now
+end
+
+local function openWindow(player, options)
+  -- TODO: Clean up existing frame data
+  local playerData = getPlayerData(player)
+  local window = playerData.windows[options.window]
+  window.frame.style.visible = true
+  window.frame.caption = options.caption
+  window.scroll.clear()
+  return window.scroll
+end
+
+local function closeWindow(player, options)
+  local playerData = getPlayerData(player)
+  local frame = playerData.gui[options.window]
+  frame.style.visible = false
+  cleanUpButtons(player)
+  -- TODO: Actually delete gui, cancel ticks
+  -- TODO: Also nilify playerData.current_tab if window was primary-tab
 end
 
 local function buildNameEditor(player, gui, object, window_options)
@@ -188,6 +188,13 @@ local function buildSitesList(player, root, options)
     -- Add buttons for 
     local name_base = "-" .. site.name .. "-button"
     --createButton(player, row, {name="site-details" .. name_base,caption="view-button-caption",action={name="site-details",site=site}, windowTarget)
+  end
+end
+
+function Gui.showHoverDetail(player, data)
+  if data.entity.name == "medium-portal"
+    or data.entity.name == "portal-chest" then
+    Gui.showPortalDetails(player, data, {window="hover-detail", open_target_select=false})
   end
 end
 
@@ -256,11 +263,11 @@ local function pickPortalTargets(player, portal)
         createButton(player, row, {
           name="view-site-details-" .. site.name,
           caption={"gui-portal-research.site-details-button-caption"},
-          action={name="site-details",site=site},
+          action={name="site-details",site=site,window="tertiary-pane"},
           window="secondary-pane"
         })
         createButton(player, row, {
-          name="portal-" .. portal.id .. "-pick-target-" .. site.name,
+          name="portal-" .. portal.id .. "-pick-target-site-" .. site.name,
           caption={"gui-portal-research.pick-portal-button-caption"},
           action={name="pick-portal-target",portal=portal,target_site=site},
           window="secondary-pane"
@@ -268,37 +275,49 @@ local function pickPortalTargets(player, portal)
       end
     end
   end
-  --[[
   -- List actual portals (of the same type and within range) that don't have a target
-  for i,target in pairs(global.portals) do
-    if portal.entity.name == target.entity.name and target.entity.force == player.force and portal ~= target and target.teleport_target == nil
+  for i,target in pairs(global.portals) do -- TODO: Portals.list()
+    if portal.entity.name == target.entity.name
+      and target.entity.force == player.force and portal ~= target
+      and target.teleport_target == nil -- TODO: Remove this check soon
       -- Note: It seems like long range shouldn't happen before lander is created,
       -- however we're also checking for different surfaces e.g. those created by Factorissimo
       and (allowLongRange or target.entity.surface == portal.entity.surface) then
-      local buttonId = "portal-target-select-" .. target.entity.unit_number
-      local newButton = targetsFlow.add{
-        type="button",
-        name=buttonId,
-        caption=target.site.name -- And an additional identifier :(
+
+      local row = gui.add{
+        type="flow",
+        direction="horizontal"
       }
-      playerData.guiPortalTargetButtons[newButton.name] = {portal=target}
+      --portalMiniDetails
+      row.add{type="label",caption=target.site.name}
+      createButton(player, row, {
+        name="view-portal-details-" .. target.id,
+        caption={"gui-portal-research.portal-details-button-caption"},
+        action={name="portal-details",portal=target,open_target_select=false,window="tertiary-pane"},
+        window="secondary-pane"
+      })
+      createButton(player, row, {
+        name="portal-" .. portal.id .. "-pick-target-portal-" .. target.id,
+        caption={"gui-portal-research.pick-portal-button-caption"},
+        action={name="pick-portal-target",portal=portal,target_portal=target},
+        window="secondary-pane"
+      })
     end
   end
-  ]]
   -- TODO: X close buttons
-  --targetsFlow.add{type="button", name="cancel-portal-target-select", caption={"cancel-dialog-caption"}}
 end
 
 -- TODO: Too much of this is in Gui rather than Portals
 -- TODO: Close GUI when running away from portal.
-function Gui.showPortalDetails(player, portal)
+function Gui.showPortalDetails(player, portal, options)
+  -- TODO: Show energy also
   local playerData = getPlayerData(player)
   -- TODO: Check this doesn't get executed too much when walking through a portal
-  local window_options = {
-    window="object-detail",
-    caption={"gui-portal-research.portal-details-caption"},
-    object=portal
-  }
+  local window_options = options or {}
+  window_options.window = window_options.window or "object-detail"
+  window_options.caption = window_options.caption or {"gui-portal-research.portal-details-caption"}
+  window_options.object = portal
+
   local gui = openWindow(player, window_options)
 
   local playerData = getPlayerData(player)
@@ -320,7 +339,7 @@ function Gui.showPortalDetails(player, portal)
 
   gui.add{type="label", caption={"portal-research.portal-target-heading"}}
   if portal.teleport_target then
-    local site = getSiteForEntity(portal.teleport_target)
+    local site = getSiteForEntity(portal.teleport_target.entity)
     gui.add{type="label", caption=site.name}
     local target_camera = gui.add{
       type="camera",
@@ -332,7 +351,26 @@ function Gui.showPortalDetails(player, portal)
     target_camera.style.minimal_height = preview_size
   else
     gui.add{type="label", caption={"portal-research.no-target-portal"}}
-    pickPortalTargets(player, portal)
+    if window_options.open_target_select ~= false then
+      pickPortalTargets(player, portal)
+    end
+  end
+end
+
+function Gui.tick(event)
+  for i,player in pairs(game.players) do
+    -- TODO: More optimal to just loop through playerData instead?
+    local playerData = getPlayerData(player)
+    if playerData.hovered_object ~= nil and player.selected ~= playerData.hovered_object then
+      closeWindow(player, {window="hover-detail"})
+    end
+    if player.selected and player.selected ~= playerData.hovered_object then
+      local data = getEntityData(player.selected)
+      if data ~= nil then
+        Gui.showHoverDetail(player, data)
+      end
+    end
+    playerData.hovered_object = player.selected
   end
 end
 
@@ -389,9 +427,9 @@ local function onGuiClick(event)
       -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
       -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
       -- TODO: (Much later) GUI can show connections diagrammatically
-      if chosen.portal.entity.name == "portal-chest" then
-        chosen.portal.is_sender = false
-        chosen.portal.teleport_target.is_sender = true
+      if chosen.entity.name == "portal-chest" then
+        chosen.is_sender = false
+        chosen.teleport_target.is_sender = true
       end
 
       -- Buffer size will need to change
@@ -399,7 +437,7 @@ local function onGuiClick(event)
       Portals.updateEnergyProperties(chosen.teleport_target)
       -- TODO: Window should be closed automagically by the below call to showPortalDetails
       -- but this doesn't work yet
-      closeWindow(player, button.window)
+      closeWindow(player, {window=button.window})
       -- Refresh portal details
       Gui.showPortalDetails(player, button.action.portal)
       -- TODO: If other players had GUI open for the same portal, should update all their views
@@ -419,6 +457,7 @@ function onPlayerJoinedGame(event)
 end
 script.on_event(defines.events.on_player_joined_game, onPlayerJoinedGame)
 
--- TODO: Need to also remove GUI when player leaves?
+-- TODO: Need to also delete GUI when player leaves game?
+
 
 return Gui
