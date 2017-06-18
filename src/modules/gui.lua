@@ -1,3 +1,4 @@
+local inspect = require("lib.inspect")
 local Gui = {}
 
 local buttonDefs = {
@@ -56,8 +57,6 @@ function Gui.initForPlayer(player)
 
   playerData.gui = frame_flow.add{type="flow", name="portal_research_gui_flow", direction="horizontal"}
   playerData.gui.add{name="tabs", type="frame", direction="vertical"}
-  playerData.gui.tabs.style.visible = false
-  --playerData.gui.tabs.add{name="flow", type="flow"}
 
   playerData.tabs = playerData.tabs or {}
   for i,tabDef in pairs(tabDefs) do
@@ -72,7 +71,7 @@ function Gui.initForPlayer(player)
   end
 
   playerData.windows = {}
-  local windows = { "primary-tab", "object-detail", "secondary-pane", "terciary-pane", "hover-detail" }
+  local windows = { "primary-tab", "object-detail", "secondary-pane", "tertiary-pane", "hover-detail" }
   for i,windowName in pairs(windows) do
     local window = {
       frame = playerData.gui.add{name=windowName, type="frame", direction="vertical"}
@@ -140,6 +139,8 @@ local function openWindow(player, options)
   -- TODO: Clean up existing frame data
   local playerData = getPlayerData(player)
   local window = playerData.windows[options.window]
+  if window == nil then player.print("Unknown window: " .. options.window) end
+
   window.frame.style.visible = true
   window.frame.caption = options.caption
   window.scroll.clear()
@@ -198,14 +199,8 @@ function Gui.showHoverDetail(player, data)
   end
 end
 
-function Gui.showSiteDetails(player, site)
-  local flow = mod_gui.get_frame_flow(player)
-
-  local detailsFrame = flow.add{type="frame", name="portal-site-details", caption={"site-details-caption", site.name}}
-  local detailsFlow = detailsFrame.add{type="scroll-pane", direction="vertical"}
-  detailsFlow.horizontal_scroll_policy = "never"
-  detailsFlow.vertical_scroll_policy = "auto"
-  local detailsTable = detailsFlow.add{type="table", colspan="2"}
+function Gui.showSiteDetails(playerData, site, gui, window_options)
+  local detailsTable = gui.add{type="table", colspan="2"}
   local function addDetailRow(label, value)
     --local detailRow = detailsTable.add{type="flow", direction="horizontal"}
     detailsTable.add{type="label", caption={"site-details-label-"..label}}
@@ -216,12 +211,12 @@ function Gui.showSiteDetails(player, site)
   addDetailRow("size", {"site-size-" .. Sites.getSize(site.size).name})
   addDetailRow("distance", site.distance)
 
-  detailsFlow.add{type="label", caption={"estimated-resources-label"}}
+  gui.add{type="label", caption={"estimated-resources-label"}}
 
   if #site.resources == 0 then
-    detailsFlow.add{type="label", caption={"estimated-resources-none"}}
+    gui.add{type="label", caption={"estimated-resources-none"}}
   else
-    local resourceTable = detailsFlow.add{type="table", colspan="2"}
+    local resourceTable = gui.add{type="table", colspan="2"}
 
     for i,estimate in pairs(site.resources) do
       resourceTable.add{type="label", caption={"entity-name."..estimate.resource.name}}
@@ -229,7 +224,8 @@ function Gui.showSiteDetails(player, site)
     end
   end
 
-  detailsFlow.add{type="button", name="close-site-details-button", caption={"close-dialog-caption"}}
+  gui.add{type="button", name="close-site-details-button",
+          caption={"close-dialog-caption"}}
 end
 
 local function pickPortalTargets(player, portal)
@@ -311,7 +307,6 @@ end
 -- TODO: Close GUI when running away from portal.
 function Gui.showPortalDetails(player, portal, options)
   -- TODO: Show energy also
-  local playerData = getPlayerData(player)
   -- TODO: Check this doesn't get executed too much when walking through a portal
   local window_options = options or {}
   window_options.window = window_options.window or "object-detail"
@@ -355,6 +350,84 @@ function Gui.showPortalDetails(player, portal, options)
       pickPortalTargets(player, portal)
     end
   end
+end
+
+local function commonOrbitalDetails(playerData, orbital, gui, window_options)
+  gui.add{type="sprite", sprite="item/" .. orbital.name}
+  -- TODO: Current location, time to destination
+end
+
+local function pickOrbitalDestination(player, orbital)
+
+  local window_options = {
+    window="secondary-pane",
+    caption={"gui-portal-research.orbital-destination-select-caption." .. orbital.name},
+    object=orbital
+  }
+  local gui = openWindow(player, window_options)
+  local playerData = getPlayerData(player)
+
+  for site in Sites.list(player.force) do
+    -- Landers must go to a site without a portal; everything else can go to asteroids
+    -- or nauvis. TODO: Maybe miners should only go to asteroids?
+    if (orbital.name == "portal-lander" and site.is_offworld
+      and not site.surface_generated and not site.has_portal) 
+      or (orbital.name ~= "portal-lander" and (site.is_offworld or site.name=="nauvis"))
+      then
+
+      -- TODO: This row is almost the same as Portals, just a different action..
+      -- Should convert to common code and also format with a table.
+      local row = gui.add{
+        type="flow",
+        direction="horizontal"
+      }
+
+      siteMiniDetails(player, site, row)
+      -- TODO: sprite buttons instead of captions
+      createButton(player, row, {
+        name="view-site-details-" .. site.name,
+        caption={"portal-research.site-details-button-caption"},
+        action={name="site-details",site=site,window="tertiary-pane"},
+        window="secondary-pane"
+      })
+      createButton(player, row, {
+        name="orbital-" .. orbital.id .. "-pick-destination-" .. site.name,
+        caption={"portal-research.pick-destination-button-caption"},
+        action={name="pick-orbital-destination",orbital=orbital,target_site=site},
+        window="secondary-pane"
+      })
+    end
+  end
+end
+
+function Gui.showObjectDetails(player, object, options)
+  local playerData = getPlayerData(player)
+  local window_options = options or {}
+  window_options.window = window_options.window or "object-detail"
+  window_options.object = object
+
+  if window_options.caption == nil then
+    if object.is_offworld then
+      window_options.caption = {"site-details-caption", object.name}
+    elseif object.is_orbital then
+      window_options.caption = {"site-details-caption", {"item-name." .. object.name}}
+    end
+  end
+
+  local gui = openWindow(player, window_options)
+
+  if object.is_offworld then
+    Gui.showSiteDetails(playerData, object, gui, window_options)
+  elseif object.is_orbital then
+    commonOrbitalDetails(playerData, object, gui, window_options)
+    if object.name == "portal-lander" then
+      if not object.destination then
+        pickOrbitalDestination(player, object)
+      end
+    elseif object.name == "solar-harvester" then
+    end
+  end
+
 end
 
 function Gui.tick(event)
@@ -405,22 +478,17 @@ local function onGuiClick(event)
     end
     return
   end
-
+  
   if playerData.window_buttons[name] then
     local button = playerData.window_buttons[name]
     -- TODO: Action handlers definitely need moving out of this
     -- function before it gets out of control
     if button.action.name == "site-details" then
-
+      Gui.showObjectDetails(player, button.action.site, button.action)
+    elseif button.action.name == "portal-details" then
+      Gui.showPortalDetails(player, button.action.portal, button.action)
     elseif button.action.name == "pick-portal-target" then
-        -- action={name="pick-portal-target",portal=portal,target_site=site},
-
       local chosen = button.action.target_portal
-      if button.action.target_site ~= nil then
-        -- Generate the site now to establish a link to the portal entity
-        chosen = Sites.generateSurface(chosen.site)
-      end
-
       button.action.portal.teleport_target = chosen
       chosen.teleport_target = button.action.portal
 
@@ -446,6 +514,7 @@ local function onGuiClick(event)
     elseif button.action.name == "pick-orbital-target" then
       -- Send orbital to selected site
       -- TODO: Instant right now, need to introduce travel times
+      Sites.generateSurface(button.action.site, button.action.orbital.force)
     end
   end
 end

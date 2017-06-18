@@ -41,6 +41,7 @@ Gui = require("modules.gui")
 Player = require("modules.player")
 Portals = require("modules.portals")
 Sites = require("modules.sites")
+Orbitals = require("modules.orbitals")
 
 function On_Init()
   -- TODO: Most of this is dev migration stuff which can be removed after first release
@@ -126,6 +127,10 @@ function On_Init()
     if orbital.force == nil then
       orbital.force = game.players[1].force
     end
+    if orbital.type then
+      orbital.name = orbital.type
+      orbital.type = nil
+    end
   end
 
   for i,player in pairs(global.players) do
@@ -151,7 +156,7 @@ script.on_init(On_Init)
 
 script.on_event(defines.events.on_force_created, function(event)
   On_Init()
-  newForceData(event.force.name)
+  getForceData(event.force.name)
 end)
 
 script.on_configuration_changed(On_Init)
@@ -190,7 +195,7 @@ function verifySiteData(site)
       end
     end
   end
-
+  -- TODO: Fix force vs force.name used in different places
   if site.force == nil then
     site.force = game.players[1].force
   end
@@ -441,23 +446,6 @@ end
 
 script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
 script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
-
--- Orbitals, not real entities
-function newOrbitalUnit(type, force)
-  local orbital = {
-    id = type .. "-" .. global.next_orbital_id,
-    type = type,
-    health = 100,
-    created_at = game.tick,
-    is_orbital = true,
-    force = force
-    -- TODO: Might end up having a hidden surface for placing fake worker entities
-  }
-  -- Store and increment id count
-  global.orbitals[orbital.id] = id
-  global.next_orbital_id = global.next_orbital_id + 1
-  return orbital
-end
 
 function findPortalInArea(surface, area)
   local candidates = surface.find_entities_filtered{area=area, name="medium-portal"}
@@ -869,11 +857,11 @@ end
 function onRocketLaunched(event)
   local force = event.rocket.force
   if event.rocket.get_item_count("portal-lander") > 0 then
-    local lander = newOrbitalUnit("portal-lander", force)
+    local lander = Orbitals.newUnit("portal-lander", force)
     global.landers[lander.id] = lander
     for i, player in pairs(force.connected_players) do
       Gui.updateForPlayer(player)
-      Gui.showOrbitalDetails(player, lander)
+      Gui.showObjectDetails(player, lander)
     end
     -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
     -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
@@ -881,14 +869,14 @@ function onRocketLaunched(event)
 
   if event.rocket.get_item_count("solar-harvester") > 0 then
     -- Add a transmitter
-    local harvester = newOrbitalUnit("solar-harvester", force)
+    local harvester = Orbitals.newUnit("solar-harvester", force)
     global.harvesters[harvester.id] = harvester
     global.transmitters[harvester.id] = harvester
     updateMicrowaveTargets()
 
     for i, player in pairs(force.connected_players) do
       Gui.updateForPlayer(player)
-      Gui.showOrbitalDetails(player, harvester)
+      Gui.showObjectDetails(player, harvester)
     end
   end
 
