@@ -33,7 +33,7 @@ function Sites.getSize(size)
   return site_sizes[size]
 end
 
-function Sites.list(force)
+function Sites.list(force, predicate)
   -- TODO: Getting a bit painful (and not very optimal) to have to filter
   -- everything by force. Probably better to separate all the data now rather
   -- than have a really complex migration later.
@@ -47,7 +47,8 @@ function Sites.list(force)
     while true do
       k,v = next(sites, k)
       if not k then break end
-      if v.force == force or v.surface and v.surface.name == "nauvis" then
+      if (v.force == force or v.surface and v.surface.name == "nauvis")
+        and (predicate == nil or predicate(v)) then
         return v
       end
     end

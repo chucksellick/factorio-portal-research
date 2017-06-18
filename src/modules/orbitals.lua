@@ -20,7 +20,7 @@ function Orbitals.list(force)
   end
 end
 
-function Orbitals.newUnit(name, force, data)
+function Orbitals.newUnit(name, force, launchSite, data)
   local orbital = {
     id = name .. "-" .. global.next_orbital_id,
     name = name,
@@ -28,11 +28,12 @@ function Orbitals.newUnit(name, force, data)
     created_at = game.tick,
     is_orbital = true,
     force = force,
-    data = data
+    data = data,
+    site = launchSite
   }
 
   -- Store and increment id count
-  global.orbitals[orbital.id] = id
+  global.orbitals[orbital.id] = orbital
   global.next_orbital_id = global.next_orbital_id + 1
   return orbital
 end

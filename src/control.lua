@@ -123,16 +123,26 @@ function On_Init()
     end
   end
 
+  for i,h in pairs(global.harvesters) do
+    global.orbitals[h.id] = h
+  end
+  for i,h in pairs(global.landers) do
+    global.orbitals[h.id] = h
+  end
+
   for i,orbital in pairs(global.orbitals) do
-    if orbital.force == nil then
+    if orbital.force == nil or type(orbital.force)=="string" then
       orbital.force = game.players[1].force
     end
     if orbital.type then
       orbital.name = orbital.type
       orbital.type = nil
     end
-  end
 
+    if orbital.site == nil then
+      orbital.site = global.sites["nauvis"]
+    end
+  end
   for i,player in pairs(global.players) do
     if player.player == nil then
       player.player = game.players[1]
@@ -358,6 +368,7 @@ function ensureEnergyInterface(entityData)
 end
 
 function deleteEntityData(entityData)
+  entityData.deleted = true
   global.entities[entityData.id] = nil
     -- Clean up power
   if entityData.fake_energy then
@@ -384,7 +395,7 @@ function deleteEntityData(entityData)
     updateMicrowaveTargets()
     global.transmitters[entityData.id] = nil
   end
-  if global.receivers[entityData.id] ~= nil then
+   if global.receivers[entityData.id] ~= nil then
     global.receivers[entityData.id] = nil
     -- Receivers update *after* removing so they don't get populated into target_antennas
     updateMicrowaveTargets()
@@ -400,8 +411,6 @@ end
 
 function onMinedItem(event)
   -- Don't know exactly which item, check all entities are still valid
-  -- TODO: Double check it's actually onen of ours
-  --if event.item_stack.name == "medium-portal" then
   for i,entity in pairs(global.entities) do
     if not entity.entity.valid then
       deleteEntityData(entity)
@@ -725,7 +734,7 @@ function consumeBeltPower(inputBelt)
 end
 
 function distributeMicrowavePower(event)
-  -- TODO: Important quote here from Wiki. Project aim is to accurately reflect this :)
+  -- TODO: Important quote here from Wiki. Aim is to accurately reflect this.
   -- "A modest Gigawatt-range microwave system, comparable to a large commercial power plant, would require launching
   -- some 80,000 tons of material to orbit, making the cost of energy from such a system vastly more expensive than even
   -- present day nuclear plants. Some technologists speculate that this may change in the distant future if an off-world
@@ -837,8 +846,11 @@ function updateMicrowaveTargets()
     if data.current_target then
       -- Has transmitter been deleted?
       -- TODO: Orbitals dying will be handled differently
-      if not data.is_orbital and not data.entity.valid then
-        data.current_target.entity.active = false
+      if not data.is_orbital and data.deleted then
+        -- TODO: Should have an is_entity probably...
+        if not data.current_target.is_equipment then
+          data.current_target.entity.active = false
+        end
         data.current_target.current_source = nil
       end
       -- Has receiver been deleted?
@@ -852,9 +864,10 @@ function updateMicrowaveTargets()
     end
     for i, antenna in pairs(global.receivers) do
       -- Orbitals can transmit anywhere, ground-based transmitters only within current surface
-      if data.is_orbital
+      if antenna.force == data.force and (data.is_orbital
         or (antenna.is_equipment and antenna.player.surface == data.site.surface)
-        or antenna.site == data.site then
+        or antenna.site == data.site)
+        then
         table.insert(data.target_antennas, antenna)
       end
     end
@@ -865,8 +878,10 @@ end
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
   local force = event.rocket.force
+  local launchSite = getSiteForEntity(event.rocket_silo)
+  game.print(inspect(launchSite))
   if event.rocket.get_item_count("portal-lander") > 0 then
-    local lander = Orbitals.newUnit("portal-lander", force)
+    local lander = Orbitals.newUnit("portal-lander", force, launchSite, {})
     global.landers[lander.id] = lander
     for i, player in pairs(force.connected_players) do
       Gui.updateForPlayer(player)
@@ -878,7 +893,7 @@ function onRocketLaunched(event)
 
   if event.rocket.get_item_count("solar-harvester") > 0 then
     -- Add a transmitter
-    local harvester = Orbitals.newUnit("solar-harvester", force)
+    local harvester = Orbitals.newUnit("solar-harvester", force, launchSite, {})
     global.harvesters[harvester.id] = harvester
     global.transmitters[harvester.id] = harvester
     updateMicrowaveTargets()
