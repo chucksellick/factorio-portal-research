@@ -393,7 +393,7 @@ local function pickOrbitalDestination(player, orbital)
       createButton(player, row, {
         name="orbital-" .. orbital.id .. "-pick-destination-" .. site.name,
         caption={"portal-research.pick-destination-button-caption"},
-        action={name="pick-orbital-destination",orbital=orbital,target_site=site},
+        action={name="pick-orbital-destination",orbital=orbital,destination=site},
         window="secondary-pane"
       })
     end
@@ -511,10 +511,11 @@ local function onGuiClick(event)
       -- TODO: If other players had GUI open for the same portal, should update all their views
       -- Need better tracking of what models are shown in the windows and what their original render
       -- path was
-    elseif button.action.name == "pick-orbital-target" then
+    elseif button.action.name == "pick-orbital-destination" then
       -- Send orbital to selected site
       -- TODO: Instant right now, need to introduce travel times
-      Sites.generateSurface(button.action.site, button.action.orbital.force)
+      Sites.generateSurface(button.action.destination, button.action.orbital.force)
+      closeWindow(player, {window=button.window})
     end
   end
 end
