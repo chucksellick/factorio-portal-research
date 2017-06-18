@@ -156,7 +156,7 @@ script.on_init(On_Init)
 
 script.on_event(defines.events.on_force_created, function(event)
   On_Init()
-  getForceData(event.force.name)
+  getForceData(event.force)
 end)
 
 script.on_configuration_changed(On_Init)
@@ -183,7 +183,8 @@ end
 
 function updateForceData(force)
   local data = getForceData(force)
-  -- TODO: Various technology research will increase distance multiplier
+  -- TODO: Various technology research will increase distance multiplier, as will
+  -- the number of telescopes you have
 end
 
 function verifySiteData(site)
@@ -195,7 +196,6 @@ function verifySiteData(site)
       end
     end
   end
-  -- TODO: Fix force vs force.name used in different places
   if site.force == nil then
     site.force = game.players[1].force
   end
@@ -232,6 +232,15 @@ function verifySiteData(site)
         site.resources_estimated = true
       end
     end
+  end
+
+  if site.force and not site.force.name then
+    site.force = game.forces[site.force]
+  end
+
+  -- Regenerate resources for existing surfaces
+  if site.is_offworld and not site.surface_generated then
+    Sites.generateResourceEstimate(site)
   end
 end
 

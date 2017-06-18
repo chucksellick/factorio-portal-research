@@ -1,3 +1,4 @@
+local inspect = require("lib.inspect")
 local Sites = {}
 
 local site_sizes = {
@@ -46,32 +47,37 @@ function Sites.list(force)
     while true do
       k,v = next(sites, k)
       if not k then break end
-      if v.force == force.name or v.surface and v.surface.name == "nauvis" then
+      if v.force == force or v.surface and v.surface.name == "nauvis" then
         return v
       end
     end
   end
 end
 
--- TODO: Provide an interface to add new ores
-local offworld_resources = {
-  {
-    name="iron-ore",
-    weight=1.2
-  },
-  {
-    name="copper-ore",
-    weight=1
-  },
-  {
-    name="stone",
-    weight=2
-  },
-  {
-    name="uranium",
-    weight=0.01
-  }
-}
+function Sites.generateAsteroidName()
+  local name
+  local done
+  while not done do
+    -- Simple random asteroid name generator "ABC-1234"
+    name = ""
+    for i = 1, (math.random(2)+math.random(2)) do
+      name = name .. Util.charset[26 + math.random(24)]
+    end
+    name = name .. "-"
+    for i = 1, (math.random(3)+math.random(2)) do
+      name = name .. Util.charset[52 + math.random(10)]
+    end
+    -- Check the name isn't a duplicate
+    done = true
+    for i,site in pairs(global.sites) do
+      if site.name == name then
+        done = false
+        break
+      end
+    end
+  end
+  return name
+end
 
 function Sites.generateRandom(force, scanner)
   forceData = getForceData(force)
@@ -80,7 +86,7 @@ function Sites.generateRandom(force, scanner)
     name = "",
     resources = {},
     resources_estimated = true,
-    force = force.name,
+    force = force,
     surface_generated = false,
     -- TODO: This directly translates to a light level but the exact curve is not clear. 0 is full daylight, 0.5 is midnight ... in between there is a curve.
     -- Solar panels still give 100% at 0.25 but start losing power at 0.3 and have lost most at 0.4.
@@ -94,35 +100,26 @@ function Sites.generateRandom(force, scanner)
   -- TODO: Use scanner.scan_strength
   site.distance = 1 + math.random() * forceData.site_distance_multiplier
 
-  -- Simple random asteroid name generator "ABC-1234"
-  -- TODO: Check no duplicate names
-  for i = 1, 3 do
-    site.name = site.name .. Util.charset[26 + math.random(24)]
-  end
-  site.name = site.name .. "-"
-  for i = 1, 4 do
-    site.name = site.name .. Util.charset[52 + math.random(10)]
-  end
+  site.name = Sites.generateAsteroidName()
   site.surface_name = "Asteroid " .. site.name
 
   -- Store in global table
   global.sites[site.surface_name] = site
-  -- TODO: Currently surfaces can never be destroyed but if they ever can, need to handle deletion of sites
-  -- Also if all portals are removed due to catastrophe then we could remove the site
+  -- TODO: Have a sites_by_surface lookup, sites should be by name, to optimise duplicate checking
+  -- TODO: Handle deletion of sites
 
-  -- Resource estimation
-  -- First, copy and shuffle the raw resource table
-  local resources = {}
-  -- TODO: Slow, precache this list at startup, shuffle the same table each time
-  for _, entity in pairs(game.entity_prototypes) do
-    if entity.type == "resource" then
-      table.insert(resources, entity)
-    end
-  end
-  Table.shuffle(resources)
+  Sites.generateResourceEstimate(site)
+  return site
+end
 
-  -- Give each resource in turn a chance to be spawned
-  local chance = 0.95 -- 1/20 chance of barren asteroid, 42.5% chance of secondary resource
+local function averageResourceAmountOnTile(resource, site)
+  return math.floor(5000 * site.distance * resource.richness * 0.5)
+end
+
+local function resourceAmountOnTile(resource, site)
+  return math.max(0, math.floor(5000 * site.distance * resource.richness * (math.random() - 0.1)))
+end
+
   -- TODO: Actually restrict the resources to iron, copper, stone, uranium (v rare). Player still
   -- needs trains to get coal, stone, factorium, oil, poss uranium, and any other modded ores.
   -- Should provided a script interface allowing mods to make their ores available.
@@ -130,17 +127,64 @@ function Sites.generateRandom(force, scanner)
   -- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
   -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
   -- or something else...)
-  for _, resource in pairs(resources) do
+-- TODO: Provide an interface to add new ores
+local offworld_resources = {
+  {
+    name="iron-ore",
+    weight=120,
+    richness=1
+  },
+  {
+    name="copper-ore",
+    weight=100,
+    richness=1.2
+  },
+  {
+    name="stone",
+    weight=200,
+    richness=0.8
+  },
+  {
+    name="uranium",
+    weight=1,
+    richness=0.05
+  }
+}
+
+function Sites.generateResourceEstimate(site)
+  -- Resource estimation
+  site.resources = {}
+
+  -- Give each resource in turn a chance to be spawned
+  local chance = 0.95 -- 1/20 chance of barren asteroid, slim chance of secondary resource
+  while true do
     if (math.random() > chance) then break end
 
-    table.insert(site.resources, {
-      resource = resource,
-      -- TODO: More control over resource sizes
-      -- TODO: Also vary chance of different resources based on scarcity
-      amount = math.random()
-    })
-    -- Halve the chance next time
-    chance = chance / 2
+    local picked = Util.randomWeighted(offworld_resources)
+    if site.resources[picked.name] then
+      -- Same one twice, bump the amount
+      site.resources[picked.name].richness = site.resources[picked.name].richness + math.random() * picked.richness
+    else
+      site.resources[picked.name] = {
+        resource = picked,
+        -- TODO: More control over resource sizes, also adjust amounts against game settings
+        richness = math.random() * picked.richness
+      }
+    end
+    -- Reduce chance for secondary/more resources
+    chance = chance / 3
+  end
+
+  -- Now estimate total quantities for everything
+  -- TODO: More variance in the final result - occasionally not even finding the resource / finding
+  -- different ones
+  local sizeSpec = site_sizes[site.size]
+  local avgSize = (sizeSpec.max_size + sizeSpec.min_size)/2
+  local avgArea = math.ceil(math.pi * avgSize * avgSize)
+  for i,estimate in pairs(site.resources) do
+    -- Note: This estimate doesn't really work properly when multiple types of a resource,
+    -- probably can improve the math (but, hey, it's only supposed to be an estimate)
+    estimate.amount = averageResourceAmountOnTile(estimate, site) * avgArea
   end
 
   return site
@@ -158,29 +202,53 @@ function Sites.generateSurface(site)
 
   local surface = game.create_surface(site.surface_name, {width=2,height=2})--mapgen)
   surface.daytime = site.daytime or 0
-  surface.freeze_daytime = true -- TODO: For now, implement variable day/night later
+  -- TODO: For now; implement variable day/night later
+  surface.freeze_daytime = true
   --surface.request_to_generate_chunks({0, 0}, 3) -- More?
 
-  local tiles = {}
   local halfWidth = math.ceil(site.width / 2)
   local halfHeight = math.ceil(site.height / 2)
-  local estimate = site.resource_estimate[1]
 
-  local resources = {}
+  local actual_resources = {}
+  local tiles = {}
 
-  for x = -halfWidth, halfWidth do
-    for y = -halfHeight, halfHeight do
-      -- TODO: Distort shape with perlin
+  -- TODO: Loads of improvements to terrain generation: Distort asteroid shape with perlin, use
+  -- some custom ground tiles, tidy up the edges, have mixed resources generate in more
+  -- interesting patterns. Misc debris and junk.
+  for x = -site.width, site.width do
+    for y = -site.height, site.height do
       local dist = math.sqrt(math.pow(x/halfWidth,2) + math.pow(y/halfHeight,2))
       if dist<=1 then
-        -- TODO: Vary the ground tiles used, add some custom ones
         table.insert(tiles, {name="red-desert-dark", position={x=x,y=y}})
-        surface.create_entity({
-          name=estimate.resource.name,
-          -- TODO: Improve this formula a lot, e.g. distance scaling (both site distance and position distance from center of patch), better estimate of total resource amount depending on # of tiles, different resources, oil, blah blah blah
-          amount = math.max(1, 5000 * (estimate.amount + (math.random() - 0.5 / 2))),
-          position={x=x,y=y}
-        })
+
+        -- Use whichever resources comes out bigger
+        local max_resource = nil
+        local max_amount = 0
+        for i,estimate in pairs(site.resources) do
+          local amount = resourceAmountOnTile(estimate, site)
+          if amount > max_amount then
+            max_resource = estimate
+            max_amount = amount
+          end
+        end
+        if max_resource then
+          -- Create the resource tile and update the actual count
+          surface.create_entity({
+            name=max_resource.resource.name,
+            amount=max_amount,
+            position={x=x,y=y}
+          })
+          if not actual_resources[max_resource.resource.name] then
+            actual_resources[max_resource.resource.name] = {
+              resource = max_resource.resource,
+              amount = max_amount
+            }
+          else
+            actual_resources[max_resource.resource.name].amount = actual_resources[max_resource.resource.name].amount + max_amount
+          end
+        end
+      else
+        table.insert(tiles, {name="deep-space", position={x=x,y=y}})
       end
     end
   end
@@ -195,14 +263,13 @@ function Sites.generateSurface(site)
   surface.set_tiles(tiles)
 
   -- TODO: Randomise landing position
-  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0}, force = game.forces[site.force]}
+  local gate = surface.create_entity{name="medium-portal", position={x=0,y=0}, force = site.force}
   -- Ensure the entity has data, onCreated event (probably) doesn't fire when placing entities like this
   -- TODO: Check the above!
   local newPortal = getEntityData(gate)
   newPortal.fully_charged = true
 
   -- TODO: Create some crater marks and a little fire and debris on the ground, maybe some other deployment-related entities.
-
   -- TODO: Update site data with real resource count
 
   site.surface = surface
@@ -217,7 +284,7 @@ function Sites.generateSurface(site)
 
   -- TODO: force.chart to reveal map properly?
   if site.force then
-    game.forces[site.force].chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
+    site.force.chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
   end
 
   -- Updates the sites_by_surface table

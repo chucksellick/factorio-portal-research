@@ -35,24 +35,25 @@ function Gui.initForPlayer(player)
   }
 
   for i,buttonDef in pairs(buttonDefs) do
-    if playerData.buttons[buttonDef.name] ~= nil then
-      playerData.buttons[buttonDef.name].button.destroy()
+    local buttonName = buttonDef.name .. "-button"
+    if playerData.buttons[buttonName] ~= nil then
+      playerData.buttons[buttonName].button.destroy()
     end
     buttonDef.button = button_flow.add {
       type = buttonDef.sprite and "sprite-button" or "button",
-      name = buttonDef.name .. "-button",
+      name = buttonName,
       sprite = buttonDef.sprite,
       style = mod_gui.button_style,
       caption = buttonDef.sprite == nil and {"gui-portal-research." .. buttonDef.name .. "-button-caption"} or nil,
-      tooltip = {"gui-portal-research." .. buttonDef.name .. "-button-tooltip"}
+      tooltip = {"gui-portal-research." .. buttonName .. "-tooltip"}
     }
-    playerData.buttons[buttonDef.button.name] = buttonDef
+    playerData.buttons[buttonName] = buttonDef
   end
 
   -- TODO: Don't necessarily destroy every init - just refresh open windows
   local frame_flow = mod_gui.get_frame_flow(player)
-  if frame_flow.portal_research_gui then
-    frame_flow.portal_research_gui.destroy()
+  if frame_flow.portal_research_gui_flow then
+    frame_flow.portal_research_gui_flow.destroy()
   end
 
   playerData.gui = frame_flow.add{type="flow", name="portal_research_gui_flow", direction="horizontal"}
@@ -159,6 +160,12 @@ end
 local function buildNameEditor(player, gui, object, window_options)
 end
 
+-- TODO: Is there any built-in method for this?
+local function formatResourceAmount(amount)
+  local round = Util.round(amount/1000000, 1)
+  return round .. "M"
+end
+
 local function siteMiniDetails(player, site, parent)
   local flow = parent.add{type="flow", direction="vertical"}
   local line1 = flow.add{type="flow", direction="horizontal"}
@@ -175,7 +182,7 @@ local function siteMiniDetails(player, site, parent)
       line2.add{
         type="sprite",
         sprite="entity/" .. resource.resource.name,
-        tooltip={tooltip, {"entity-name." .. resource.resource.name}, resource.amount}
+        tooltip={tooltip, {"entity-name." .. resource.resource.name}, formatResourceAmount(resource.amount)}
       }
     end
   end
@@ -213,15 +220,15 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
 
   gui.add{type="label", caption={"estimated-resources-label"}}
 
-  if #site.resources == 0 then
+  local resourceTable = gui.add{type="table", colspan="2"}
+  local count = 0
+  for i,estimate in pairs(site.resources) do
+    count = count+1
+    resourceTable.add{type="sprite", sprite="item/"..estimate.resource.name, tooltip={"entity-name."..estimate.resource.name}}
+    resourceTable.add{type="label", caption=formatResourceAmount(estimate.amount)}
+  end
+  if count == 0 then
     gui.add{type="label", caption={"estimated-resources-none"}}
-  else
-    local resourceTable = gui.add{type="table", colspan="2"}
-
-    for i,estimate in pairs(site.resources) do
-      resourceTable.add{type="label", caption={"entity-name."..estimate.resource.name}}
-      resourceTable.add{type="label", caption=estimate.amount}
-    end
   end
 
   gui.add{type="button", name="close-site-details-button",

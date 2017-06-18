@@ -183,10 +183,12 @@ function Portals.updateEnergyProperties(portal)
 
   -- Buffer stores enough for 1 teleport only!
   local BUFFER_NUM = 1
+  local SECONDS_TO_CHARGE = 2
   local interface = ensureEnergyInterface(portal)
   interface.electric_buffer_size = BUFFER_NUM * requiredEnergy
-  -- TODO: Set an input flow limit sensibly relative to the buffer size.
-  interface.electric_input_flow_limit = interface.prototype.electric_energy_source_prototype.input_flow_limit
+  -- Buffer fill rate scales with 
+  -- TODO: Should scale a bit but not as much as this
+  interface.electric_input_flow_limit = requiredEnergy / SECONDS_TO_CHARGE
   interface.electric_output_flow_limit = interface.prototype.electric_energy_source_prototype.output_flow_limit
   interface.electric_drain = interface.prototype.electric_energy_source_prototype.drain
 

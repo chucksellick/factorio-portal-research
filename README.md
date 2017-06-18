@@ -32,6 +32,9 @@ TODO:
 
 Thanks to the following mods and mod authors for inspiration and examples.
 
+Space Platform mod by Daid https://mods.factorio.com/mods/daid/space-platform
+(some graphics and implementation)
+
 Factorissimo
 Orbital Ion Cannon
 Space Platform
