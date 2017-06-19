@@ -31,34 +31,9 @@ data:extend(
     }
   },
   {
-    -- Science note: Real plexiglass production (simplified) might take
-    -- acetone (made from propene ~= heavy oil? cumene process) + sodium cyanide +
-    -- (methyl) alchohol + shape mould (what is the mould made from? stone/iron?)
-    type = "recipe",
-    name = "plexiglass-sheet",
-    category = "chemistry",
-    enabled = false,
-    energy_required = 5,
-    ingredients =
-    { 
-      {type="item", name="plastic-bar", amount=10},
-      -- Wood is for producing methyl alcohol. Might need a way to automate wood.
-      -- Alternative recipe could use CO2 (Natural sources include volcanoes, hot springs and geysers,
-      -- and it is freed from carbonate rocks by dissolution in water and acids).
-      -- And/Or Carbon Monoxide from burning coals. Or bacteria.
-      {type="item", name="raw-wood", amount=10},
-      {type="fluid", name="steam", amount=50} -- Steam for destructive distillation of wood (but should it be higher temperature?)
-    },
-    result = "plexiglass-sheet",
-    crafting_machine_tint =
-    {
-      primary = {r=0.0, g=0.0, b=0.85, a=1.00},
-      secondary = {r=0.8, g=0.8, b=0.9, a=1.00},
-      tertiary = {r=0.6, g=0.65, b=0.85, a=1.00},
-    }
-  },
-  {
-    -- TODO: Lenses and tubes should be normal assemblers?
+    -- TODO: If anything else is going to use plexiglass (e.g. space shuttles) should make it a
+    -- separate recipe. Real plexiglass production (simplified) might take
+    -- acetone (made from propene ~= heavy oil? cumene process) + sodium cyanide + (methyl) alchohol + mould (what is the mould made from? stone/iron?)
     -- TODO: Alternately, could be making lenses directly from diamond or factorium ...
     type = "recipe",
     name = "plexiglass-lens",
@@ -67,10 +42,15 @@ data:extend(
     energy_required = 5,
     ingredients =
     { 
-      {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-sheet", amount=2},
-      {type="fluid", name="lubricant", amount=20}, -- TODO: Dry ice for cooling? Lava?
-      {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
+      {type="item", name="plastic-bar", amount=2},
+      -- Wood is for producing methyl alcohol. Might need a way to automate wood.
+      -- Alternative recipe could use CO2 (Natural sources include volcanoes, hot springs and geysers,
+      -- and it is freed from carbonate rocks by dissolution in water and acids). And/Or Carbon Monoxide
+      -- from burning coals.
+      -- Or bacteria.
+      {type="item", name="raw-wood", amount=10},
+      {type="fluid", name="lubricant", amount=25}, -- TODO: Dry ice for cooling? Lava?
+      {type="fluid", name="steam", amount=50} -- Steam for destructive distillation of wood (but should it be higher temperature?)
     },
     result = "plexiglass-lens",
     crafting_machine_tint =
@@ -79,27 +59,7 @@ data:extend(
       secondary = {r=0.8, g=0.8, b=0.9, a=1.00},
       tertiary = {r=0.6, g=0.65, b=0.85, a=1.00},
     }
-  },
-  {
-    type = "recipe",
-    name = "vacuum-tube",
-    category = "chemistry",
-    enabled = false,
-    energy_required = 5,
-    ingredients =
-    {
-      {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-sheet", amount=2},
-      {type="item", name="copper-wire", amount=10},
-      {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
-    },
-    result = "plexiglass-lens",
-    crafting_machine_tint =
-    {
-      primary = {r=0.0, g=0.0, b=0.85, a=1.00},
-      secondary = {r=0.8, g=0.8, b=0.9, a=1.00},
-      tertiary = {r=0.6, g=0.65, b=0.85, a=1.00},
-    }
+    --TODO: Expensive version?
   },
   {
     type = "recipe",
@@ -198,7 +158,7 @@ data:extend(
       {
         {"advanced-circuit", 15},
         {"processing-unit", 5},
-        {"medium-factorium-crystal", 2},
+        {"large-factorium-crystal", 2},
         {type = "fluid", name = "sulfuric-acid", amount = 10}
       },
       result = "portal-control-unit"
@@ -244,9 +204,11 @@ data:extend(
     category = "crafting",
     ingredients =
     {
+      {"accumulator", 50},
+      {"radar", 2},
+      {"plexiglass-lens", 5},
       {"stone-brick", 20},
       {"portal-control-unit", 10},
-      {"plexiglass-lens", 5},
       {"large-factorium-crystal", 1}
       -- Fluid?
     },
@@ -306,20 +268,6 @@ data:extend(
   },
   {
     type = "recipe",
-    name = "satellite-housing",
-    energy_required = 60,
-    enabled = false,
-    category = "crafting",
-    ingredients =
-    {
-      {"low-density-structure", 100},
-      {"rocket-control-unit", 100},
-      {"rocket-fuel", 100}
-    },
-    result = "satellite-housing"
-  },
-  {
-    type = "recipe",
     name = "solar-array",
     energy_required = 60,
     enabled = false,
@@ -340,28 +288,12 @@ data:extend(
     ingredients =
     {
       {"radar", 10},
-      {"effectivity-module-2", 10},
-      {"vacuum-tube", 10},
-      {"steel-plate", 100},
-      {"processing-unit", 100},
+      {"microwave-transmitter", 1}, -- TODO: Butchered for radio transmissions. Could use a dedicated radio transmitter? No, communications-array
+      {"advanced-circuit", 200},
+      {"processing-unit", 50},
+      {"rocket-fuel", 100} -- TODO: Or, a space-friendly fuel
     },
     result = "navigation-computer"
-  },
-  {
-    type = "recipe",
-    name = "communication-systems",
-    energy_required = 60,
-    enabled = false,
-    category = "crafting",
-    ingredients =
-    {
-      {"radio-transmitter", 10},
-      {"radio-antenna", 10},
-      {"advanced-circuit", 200},
-      {"red-wire", 100},
-      {"green-wire", 100}
-    },
-    result = "communication-systems"
   },
   {
     type = "recipe",
@@ -370,17 +302,27 @@ data:extend(
     enabled = false,
     category = "crafting",
     ingredients = {
-      {"satellite-housing", 1},
+      {"satellite", 1},
+      {"microwave-transmitter", 10}, -- Telescope? Lens?
       {"navigation-computer", 1},
-      {"communication-systems", 1},
-      {"microwave-transmitter", 10},
-      -- 12 arrays: satellite normally needs 1 just to power itself, leaving 10x
-      -- worth of arrays to transmit, and power from 1x is lost in transit == 100MW total
-      {"solar-array", 12}
+      {"solar-array", 12} -- TODO: maybe 12? satellite normally needs 1 just to power itself, this can transmit about 10x worth of arrays, and power from 1x is lost in transit
     },
     result = "solar-harvester",
     stack_size = 1
   },
+  -- TODO: Maybe update base satellite recipe to all separate components.
+  -- Might look like:
+  --[[
+    energy_required = 10,
+    ingredients =
+    {
+      {"satellite-housing", 1}, --  = low density structures ( + iron sticks?)
+      {"navigation-computer", 1}, -- remove radars...? - they go to comms system
+      {"solar-array", 2}, --  = 200 solar panels + 200 accum ( + stuff to make it unfold)
+      {"communication-systems", 1}, -- = 5 radar + 100 proc units
+      {"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
+      {"rocket-fuel", 50}
+  ]]
   {
     type = "recipe",
     name = "portal-lander",
@@ -390,17 +332,25 @@ data:extend(
     ingredients =
     {
       {"medium-portal", 1},
-      {"satellite-housing", 1},
+      {"satellite", 1},
       {"navigation-computer", 1},
       --{"re-entry-boosters",1}, (...or foil parachute)
       {"rocket-fuel", 200}
       -- Plus, inserters or robots to unpack the portal on landing?
-      -- How about batteries for the initial power, or some other kind of power method? (Could be a 4th big component)
+      -- How about batteries for the initial power, or some other kind of power method? (Could be a good 4th big component)
+      --[[
+      {"low-density-structure", 100},
+      {"rocket-control-unit", 100},
+      {"radar", 10}, -- 5 on satellite
+      {"processing-unit", 100},
+      {"medium-portal", 1},
+      {"rocket-fuel", 200} -- 50 on satellite ]]--
       -- TODO: Perhaps require a different type of fuel for space operation?
       -- https://forums.factorio.com/viewtopic.php?f=6&t=3802
     },
     result = "portal-lander"
-  },
+  }
+  --[[
   {
     type = "recipe",
     name = "radio-transmitter",
@@ -429,23 +379,6 @@ data:extend(
   }--[[,
   {
     type = "recipe",
-    name = "space-telescope",
-    energy_required = 20,
-    enabled = false,
-    category = "crafting",
-    ingredients =
-    {
-      {"satellite-housing", 1},
-      {"navigation-computer", 1},
-      {"communication-systems", 10},
-      {"solar-array", 4},
-      {"telescope", 10},
-      {"iron-gear-wheel", 100}
-    },
-    result = "space-telescope"
-  },
-  {
-    type = "recipe",
     name = "orbital-logistics-combinator",
     enabled = false,
     ingredients =
@@ -457,5 +390,22 @@ data:extend(
     },
     result = "orbital-logistics-combinator"
   },
+  {
+    type = "recipe",
+    name = "space-telescope",
+    energy_required = 20,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"telescope", 10},
+      {"satellite", 1},
+      {"navigation-computer", 1},
+      {"iron-gear-wheel", 100},
+      --{"radio-transmitter", 1},
+      --{"radio-receiver", 1},
+    },
+    result = "space-telescope"
+  }
   ]]
 })
