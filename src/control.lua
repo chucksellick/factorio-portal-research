@@ -65,11 +65,6 @@ function On_Init()
     global.landers = {}
   end
 
-  -- Fix site data
-  for i,site in pairs(global.sites) do
-    verifySiteData(site, i)
-  end
-
   for i,entity in pairs(global.entities) do
     if entity.entity.name == "portal-chest" or 
       entity.entity.name == "portal-belt" or
