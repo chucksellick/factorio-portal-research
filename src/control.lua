@@ -43,67 +43,26 @@ Portals = require("modules.portals")
 Sites = require("modules.sites")
 Orbitals = require("modules.orbitals")
 
-function On_Init()
-  -- TODO: Most of this is dev migration stuff which can be removed after first release
+remote.add_interface("portal_research", {
+  add_offworld_resource = Sites.addOffworldResource
+})
 
+function On_Init()
   if not global.entities then
     global.entities = {}
     global.portals = {}
     global.players = {}
     global.sites = {}
-  end
-  if not global.forces then
     global.forces = {}
-  end
-  if not global.orbitals then
     global.orbitals = {}
     global.next_orbital_id =  1
-  end
-  if not global.equipment then
     global.equipment = {}
     global.next_equipment_id = 1
-  end
-  if not global.scanners then
     global.scanners = {}
-  end
-  if not global.transmitters then
     global.transmitters = {}
-  end
-  if not global.receivers then
     global.receivers = {}
-  end
-  if not global.harvesters then
     global.harvesters = {}
-  end
-  if not global.landers then
     global.landers = {}
-  end
-
-  if global.forces_portal_data then
-    for forceName, forceData in pairs(global.forces_portal_data) do
-      for i, site in pairs(forceData.known_offworld_sites) do
-        site.is_offworld = true
-        global.sites[site.name] = site
-      end
-      -- TODO: Ensure home site is actually created for new game, might not be needed?
-      if forceData.home_site ~= nil then
-        forceData.home_site.force = nil
-        global.sites[forceData.home_site.name] = forceData.home_site
-      end
-    end
-    global.forces_portal_data = nil
-  end
-
-  if global.portals_by_entity then
-    for i,portal in pairs(global.portals_by_entity) do
-      if portal.entity and portal.entity.valid then
-        portal.id = portal.entity.unit_number
-        global.entities[portal.id] = portal
-        global.portals[portal.id] = portal
-        portal.site = getSiteForEntity(portal.entity)
-      end
-    end
-    global.portals_by_entity = nil
   end
 
   -- Fix site data
@@ -112,43 +71,12 @@ function On_Init()
   end
 
   for i,entity in pairs(global.entities) do
-    if entity.fake_power_consumer then
-      entity.fake_energy = entity.fake_power_consumer
-    end
     if entity.entity.name == "portal-chest" or 
       entity.entity.name == "portal-belt" or
       entity.entity.name == "medium-portal" then
       Portals.updateEnergyProperties(entity)
-      entity.site = global.sites[entity.entity.surface.name]
     end
   end
-
-  for i,h in pairs(global.harvesters) do
-    global.orbitals[h.id] = h
-  end
-  for i,h in pairs(global.landers) do
-    global.orbitals[h.id] = h
-  end
-
-  for i,orbital in pairs(global.orbitals) do
-    if orbital.force == nil or type(orbital.force)=="string" then
-      orbital.force = game.players[1].force
-    end
-    if orbital.type then
-      orbital.name = orbital.type
-      orbital.type = nil
-    end
-
-    if orbital.site == nil then
-      orbital.site = global.sites["nauvis"]
-    end
-  end
-  for i,player in pairs(global.players) do
-    if player.player == nil then
-      player.player = game.players[1]
-    end
-  end
-  -- XXX: Up to here
 
   updateMicrowaveTargets()
 
@@ -159,6 +87,7 @@ function On_Init()
   -- Let the silo track all our custom orbitals
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "add_tracked_item", "solar-harvester")
+  --remote.call("silo_script", "add_tracked_item", "space-telescope")
   remote.call("silo_script", "update_gui")
 end
 
@@ -195,63 +124,6 @@ function updateForceData(force)
   local data = getForceData(force)
   -- TODO: Various technology research will increase distance multiplier, as will
   -- the number of telescopes you have
-end
-
-function verifySiteData(site)
-  if site.portals == nil then
-    site.portals = {}
-    for i,portal in pairs(global.portals) do
-      if portal.site == site then
-        site.portals[portal.id] = portal
-      end
-    end
-  end
-  if site.force == nil then
-    site.force = game.players[1].force
-  end
-
-  if site.is_offworld and not site.force then
-    site.force = game.players[1].force
-  end
-
-  if not site.surface_name then
-    if site.surface.name ~= site.name then
-      site.is_offworld = true
-      site.surface_name = site.surface.name
-      global.sites[site.surface_name] = site
-      global.sites[site.name] = nil
-      game.print(site.name .. " " .. site.surface_name)
-    elseif site.name == "nauvis" or site.name == "Nauvis" then
-      site.surface_name = site.name
-      game.print(site.name)
-    else
-      game.print(site.name)
-      global.sites[i] = nil
-    end
-  end
-
-  if not site.resources then
-    site.resources = {}
-    if site.resource_estimate then
-      site.resources = site.resource_estimate
-      site.resource_estimate = nil
-      if site.surface and site.is_offworld then
-        -- TODO: Real values (normally can get during surface gen)
-        site.resources_estimated = false
-      else
-        site.resources_estimated = true
-      end
-    end
-  end
-
-  if site.force and not site.force.name then
-    site.force = game.forces[site.force]
-  end
-
-  -- Regenerate resources for existing surfaces
-  if site.is_offworld and not site.surface_generated then
-    Sites.generateResourceEstimate(site)
-  end
 end
 
 function newSiteDataForSurface(surface, force)
@@ -650,7 +522,6 @@ function teleportChestStacks(source, num)
             teleported = teleported + 1
           else
             -- TODO: Locale
-            -- game.print(inspect(source.site))
             --source.entity.force.print("Not enough power in chest on " .. source.site.surface_name)
             --source.entity.force.print("Required " .. energyRequired .. " available " .. source.fake_energy.energy)
             abort = true
@@ -753,9 +624,6 @@ function distributeMicrowavePower(event)
   local transmit_duration = 600 -- TODO: Allow configuration per sender via some GUI
 
   for i,transmitter in pairs(global.transmitters) do
-    if transmitter.is_orbital then
-      game.print(transmitter.site.name .. " - " .. #(transmitter.target_antennas))
-    end
     if transmitter.current_target == nil
       or (transmitter.transmit_started_at + transmit_duration) < event.tick then
       -- Deactivate old target so it no longer receives
@@ -881,7 +749,6 @@ end
 function onRocketLaunched(event)
   local force = event.rocket.force
   local launchSite = getSiteForEntity(event.rocket_silo)
-  game.print(inspect(launchSite))
   if event.rocket.get_item_count("portal-lander") > 0 then
     local lander = Orbitals.newUnit("portal-lander", force, launchSite, {})
     global.landers[lander.id] = lander

@@ -106,7 +106,6 @@ function Sites.generateRandom(force, scanner)
 
   -- Store in global table
   global.sites[site.surface_name] = site
-  -- TODO: Have a sites_by_surface lookup, sites should be by name, to optimise duplicate checking
   -- TODO: Handle deletion of sites
 
   Sites.generateResourceEstimate(site)
@@ -121,14 +120,13 @@ local function resourceAmountOnTile(resource, site)
   return math.max(0, math.floor(5000 * site.distance * resource.richness * (math.random() - 0.1)))
 end
 
-  -- TODO: Actually restrict the resources to iron, copper, stone, uranium (v rare). Player still
-  -- needs trains to get coal, stone, factorium, oil, poss uranium, and any other modded ores.
-  -- Should provided a script interface allowing mods to make their ores available.
-  -- (Well. Would be nice to have liquid logistics. Consider allowing oil, or a whole new type
-  -- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
-  -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
-  -- or something else...)
--- TODO: Provide an interface to add new ores
+-- Note: Resources to iron, copper, stone, uranium (v rare). Player still
+-- needs trains to get coal, factorium, oil, reliable quantities of uranium, and
+-- any other modded ores.
+-- (Well. Would be nice to have liquid logistics. TODO: Consider allowing a whole new type
+-- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
+-- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
+-- or something else...)
 local offworld_resources = {
   {
     name="iron-ore",
@@ -146,11 +144,19 @@ local offworld_resources = {
     richness=0.8
   },
   {
-    name="uranium",
+    name="uranium-ore",
     weight=1,
     richness=0.05
   }
 }
+
+function Sites.addOffworldResource(name, weight, richness)
+  table.insert(offworld_resources, {
+    name=name,
+    weight=weight,
+    richness=richness
+  })
+end
 
 function Sites.generateResourceEstimate(site)
   -- Resource estimation
@@ -271,7 +277,6 @@ function Sites.generateSurface(site)
   newPortal.fully_charged = true
 
   -- TODO: Create some crater marks and a little fire and debris on the ground, maybe some other deployment-related entities.
-  -- TODO: Update site data with real resource count
 
   site.surface = surface
   site.surface_generated = true
@@ -283,15 +288,9 @@ function Sites.generateSurface(site)
     end
   end
 
-  -- TODO: force.chart to reveal map properly?
   if site.force then
     site.force.chart(surface, {{-halfWidth,-halfHeight},{halfWidth,halfHeight}})
   end
-
-  -- Updates the sites_by_surface table
-  -- TODO: Not really happy with this, if these kind of calls are getting silly then need some
-  -- system for central entity/force/player/data management.
-  verifySiteData(site)
 
   return newPortal
 end

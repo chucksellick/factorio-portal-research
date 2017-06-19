@@ -1,10 +1,10 @@
 {
   "name":"portal-research",
   "author":"Doc",
-  "version":"0.5.0",
+  "version":"0.5.2",
   "title":"Portal Research",
-  "homepage":"",
+  "homepage":"https://forums.factorio.com/viewtopic.php?f=93&t=49940&p=290043",
   "description":"Everything is better with portals. Research new technologies to get around faster, and even start establishing off-world mining bases.",
   "factorio_version": "0.15",
-  "dependencies": ["base >= 0.15.18"]
+  "dependencies": ["base >= 0.15.21"]
 }
