@@ -9,7 +9,7 @@ data:extend(
     type = "autoplace-control",
     name = "factorium-ore",
     richness = true,
-    order = "b-e"
+    order = "b-g"
   },
   {
     type = "resource",
@@ -19,11 +19,11 @@ data:extend(
     order="a-b-e",
     minable =
     {
-      hardness = 0.95, -- default=0.9
+      hardness = 0.9,
       mining_particle = "stone-particle",
       mining_time = 8, -- uranium is 4, normal is 2
       result = "factorium-ore",
-      fluid_amount = 10,
+      fluid_amount = 20,
       required_fluid = "sulfuric-acid"
     },
     collision_box = {{ -0.1, -0.1}, {0.1, 0.1}},
@@ -32,10 +32,10 @@ data:extend(
     {
       control = "factorium-ore",
       sharpness = 1,
-      richness_multiplier = 6000,
-      richness_multiplier_distance_bonus = 50,
+      richness_multiplier = 2000,
+      richness_multiplier_distance_bonus = 30,
       richness_base = 500,
-      coverage = 0.002,
+      coverage = 0.008,
       peaks =
       {
         {
@@ -44,7 +44,7 @@ data:extend(
           noise_persistence = 0.3,
         },
       },
-      starting_area_size = 600 * 0.001,
+      starting_area_size = 600 * 0.005,
       starting_area_amount = 100
     },
     stage_counts = {1000, 600, 400, 200, 100, 50, 20, 1},
