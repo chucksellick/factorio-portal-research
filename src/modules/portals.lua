@@ -180,9 +180,10 @@ function Portals.updateEnergyProperties(portal)
   if entity.name == "portal-belt" and portal.entity.neighbours then
     requiredEnergy = maxEnergyRequiredForBeltTeleport(portal) * 4 / 100
   end
+  requiredEnergy = math.ceil(requiredEnergy)
 
   -- Buffer stores enough for 1 teleport only!
-  local BUFFER_NUM = 1
+  local BUFFER_NUM = 2
   local SECONDS_TO_CHARGE = 2
   local interface = ensureEnergyInterface(portal)
   interface.electric_buffer_size = BUFFER_NUM * requiredEnergy

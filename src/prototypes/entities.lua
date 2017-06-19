@@ -130,7 +130,7 @@ data:extend(
       }
     },
     collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-    selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+    selection_box = {{-0.5, -0.5}, {0.5, 0.5}}, -- {{-0.3, -0.3}, {0.3, 0.3}},
     fast_replaceable_group = "container",
     inventory_size = 10,
     vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
@@ -173,7 +173,7 @@ data:extend(
     --selection_box = {{-0.2, -0.2}, {0.2, 0.2}},
     -- Can't be selected because it's masked by the chest (for unknown reasons but still), however
     -- the selection_box is used to draw the power connection blue square so it's good to have one.
-    selection_box = {{-0.4, -0.4}, {0.6, 0.6}},
+    --selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
     collision_mask = {},
     enable_gui = false,
     allow_copy_paste = false,

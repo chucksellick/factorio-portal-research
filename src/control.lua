@@ -304,6 +304,7 @@ function createEntityData(entity)
   local data = {
     id = entity.unit_number,
     entity = entity,
+    force = entity.force,
     site = getSiteForEntity(entity),
     created_at = game.tick
   }
@@ -359,7 +360,7 @@ function ensureEnergyInterface(entityData)
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
-      position={entityData.entity.position.x,entityData.entity.position.y+0.1},
+      position={entityData.entity.position.x,entityData.entity.position.y-0.2},
       force=entityData.entity.force
     }
     entityData.fake_energy = consumer
@@ -745,8 +746,6 @@ function distributeMicrowavePower(event)
   -- launched far cheaper. An obvious middle-stage is reusable rockets. A space platform launcher can be effectively
   -- zero-gee and is nearly as cheap as cargo catapult.
 
-  -- TODO: Damn! None of this is taking Force into account :(
-
   local interval = 120
 
   if event.tick % interval ~= 0 then return end
@@ -754,6 +753,9 @@ function distributeMicrowavePower(event)
   local transmit_duration = 600 -- TODO: Allow configuration per sender via some GUI
 
   for i,transmitter in pairs(global.transmitters) do
+    if transmitter.is_orbital then
+      game.print(transmitter.site.name .. " - " .. #(transmitter.target_antennas))
+    end
     if transmitter.current_target == nil
       or (transmitter.transmit_started_at + transmit_duration) < event.tick then
       -- Deactivate old target so it no longer receives
@@ -864,9 +866,9 @@ function updateMicrowaveTargets()
     end
     for i, antenna in pairs(global.receivers) do
       -- Orbitals can transmit anywhere, ground-based transmitters only within current surface
-      if antenna.force == data.force and (data.is_orbital
-        or (antenna.is_equipment and antenna.player.surface == data.site.surface)
-        or antenna.site == data.site)
+      if antenna.force == data.force
+        and ((antenna.is_equipment and antenna.player.surface == data.site.surface)
+          or antenna.site == data.site)
         then
         table.insert(data.target_antennas, antenna)
       end

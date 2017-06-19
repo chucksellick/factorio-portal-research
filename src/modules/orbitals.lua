@@ -38,4 +38,14 @@ function Orbitals.newUnit(name, force, launchSite, data)
   return orbital
 end
 
+function Orbitals.orbitalArrivedAtSite(orbital, site)
+  orbital.site = site
+  if orbital.name == "portal-lander" and not site.surface_generated then
+    Sites.generateSurface(site, orbital.force)
+  end
+  if orbital.name == "solar-harvester" then
+    updateMicrowaveTargets()
+  end
+end
+
 return Orbitals

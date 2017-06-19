@@ -230,11 +230,28 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
   local count = 0
   for i,estimate in pairs(site.resources) do
     count = count+1
-    resourceTable.add{type="sprite", sprite="item/"..estimate.resource.name, tooltip={"entity-name."..estimate.resource.name}}
+    resourceTable.add{type="sprite", sprite="entity/"..estimate.resource.name, tooltip={"entity-name."..estimate.resource.name}}
     resourceTable.add{type="label", caption=formatResourceAmount(estimate.amount)}
   end
   if count == 0 then
     gui.add{type="label", caption={"estimated-resources-none"}}
+  end
+
+  if site.is_offworld then
+    if site.surface_generated then
+      local preview_size = 200
+      -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
+      local camera = gui.add{
+        type="camera",
+        position={x=0,y=0},
+        surface_index = site.surface.index,
+        zoom = 0.05
+      }
+      camera.style.minimal_width = preview_size
+      camera.style.minimal_height = preview_size
+    else
+      gui.add{type="label", caption={"portal-research.site-not-explored"}}
+    end
   end
 
   gui.add{type="button", name="close-site-details-button",
@@ -267,7 +284,35 @@ end
 
 local function commonOrbitalDetails(playerData, orbital, gui, window_options)
   gui.add{type="sprite", sprite="item/" .. orbital.name}
-  -- TODO: Current location, time to destination
+  gui.add{type="label", caption={"portal-research.orbital-location-caption"}}  
+  if orbital.is_moving then
+    gui.add{type="label", caption={"portal-research.orbital-transitting-caption"}}
+    siteMiniDetails(playerData.player, orbital.destination, gui)
+    local time_to_arrival = (orbital.finishes_moving_at - game.tick)/60
+    gui.add{type="label", caption={"portal-research.orbital-eta-caption", time_to_arrival}}
+    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_moving_at)/(orbital.finishes_moving_at - orbital.started_moving_at)}
+  else
+    siteMiniDetails(playerData.player, orbital.site, gui)
+    if orbital.site.is_offworld then
+      local preview_size = 200
+      -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
+      local camera = gui.add{
+        type="camera",
+        position={x=0,y=0},
+        surface_index = orbital.site.surface.index,
+        zoom = 0.05
+      }
+      camera.style.minimal_width = preview_size
+      camera.style.minimal_height = preview_size
+    end
+  end
+  createButton(playerData.player, gui, {
+    name = "change-orbital-destination-" .. orbital.id,
+    caption={"portal-research.change-destination-caption"},
+    action={name="change-orbital-destination",orbital=orbital,window="secondary-pane"},
+    window="object-detail"
+  })
+    -- TODO: Tick to update every second
 end
 
 local function buildOrbitalsList(player, list, root, options)
@@ -278,7 +323,7 @@ local function buildOrbitalsList(player, list, root, options)
     local name_base = "-orbital-" .. orbital.id .. "-button"
 
     row.add{type="label", caption={"item-name." .. orbital.name}}
-    commonOrbitalDetails(playerData, orbital, row, options)
+    row.add{type="sprite", sprite="item/" .. orbital.name}
     if orbital.site then
       siteMiniDetails(player, orbital.site, row)
     end
@@ -315,7 +360,7 @@ local function pickPortalTargets(player, portal)
       -- however we're also checking for different surfaces e.g. those created by Factorissimo
       and (allowLongRange or target.entity.surface == portal.entity.surface) then
 
-      -- TODO: Some of this is repeated in buildSitesLiist but it's a bit different
+      -- TODO: Some of this is repeated in buildSitesList but it's a bit different
 
       local row = gui.add{
         type="flow",
@@ -364,12 +409,21 @@ function Gui.showPortalDetails(player, portal, options)
     type="camera",
     position=portal.entity.position,
     surface_index = portal.entity.surface.index,
-    zoom = 0.2
+    zoom = 0.4
   }
   camera.style.minimal_width = preview_size
   camera.style.minimal_height = preview_size
 
-  gui.add{type="label", caption={"portal-research.portal-target-heading"}}
+  if portal.entity.name == "portal-chest" then
+    if portal.is_sender then
+      gui.add{type="label", caption={"portal-research.portal-chest-sending-heading"}}
+    else
+      gui.add{type="label", caption={"portal-research.portal-chest-receiving-heading"}}
+    end
+  else
+    gui.add{type="label", caption={"portal-research.portal-target-heading"}}
+  end
+
   if portal.teleport_target then
     local site = getSiteForEntity(portal.teleport_target.entity)
     gui.add{type="label", caption=site.name}
@@ -377,7 +431,7 @@ function Gui.showPortalDetails(player, portal, options)
       type="camera",
       position=portal.teleport_target.entity.position,
       surface_index = portal.teleport_target.entity.surface.index,
-      zoom = 0.2
+      zoom = 0.4
     }
     target_camera.style.minimal_width = preview_size
     target_camera.style.minimal_height = preview_size
@@ -389,7 +443,7 @@ function Gui.showPortalDetails(player, portal, options)
   end
 end
 
-local function pickOrbitalDestination(player, orbital)
+local function pickOrbitalDestination(player, orbital, options)
   local window_options = {
     window="secondary-pane",
     caption={"gui-portal-research.orbital-destination-select-caption." .. orbital.name},
@@ -431,7 +485,7 @@ function Gui.showObjectDetails(player, object, options)
     if object.is_offworld then
       window_options.caption = {"site-details-caption", object.name}
     elseif object.is_orbital then
-      window_options.caption = {"site-details-caption", {"item-name." .. object.name}}
+      window_options.caption = {"orbital-details-caption", {"item-name." .. object.name}}
     end
   end
 
@@ -469,7 +523,7 @@ function Gui.tick(event)
 end
 
 local function onGuiClick(event)
-  local player = game.players[event.element.player_index]
+  local player = game.players[event.player_index]
   local playerData = getPlayerData(player)
   local name = event.element.name
   if name == "portal-research-button" then
@@ -514,6 +568,8 @@ local function onGuiClick(event)
       Gui.showObjectDetails(player, button.action.site, button.action)
     elseif button.action.name == "orbital-details" then
       Gui.showObjectDetails(player, button.action.orbital, button.action)
+    elseif button.action.name == "change-orbital-destination" then
+      pickOrbitalDestination(player, button.action.orbital, button.action)
     elseif button.action.name == "portal-details" then
       Gui.showPortalDetails(player, button.action.portal, button.action)
     elseif button.action.name == "pick-portal-target" then
@@ -541,13 +597,14 @@ local function onGuiClick(event)
       -- Need better tracking of what models are shown in the windows and what their original render
       -- path was
     elseif button.action.name == "pick-orbital-destination" then
+      -- TODO: Implement transit time
       -- Send orbital to selected site
-      -- TODO: Instant right now, need to introduce travel times
-      Sites.generateSurface(button.action.destination, button.action.orbital.force)
+      Orbitals.orbitalArrivedAtSite(button.action.orbital, button.action.destination)
       closeWindow(player, {window=button.window})
     end
   end
 end
+
 script.on_event(defines.events.on_gui_click, onGuiClick)
 
 function onPlayerJoinedGame(event)

@@ -174,11 +174,11 @@ local function processRecursive(process, item, path, visited)
 
       for k,v in pairs(processed) do
         processedKey = processRecursive(process, k, makePath(path, k, inspect.KEY), visited)
+
         if processedKey ~= nil then
           processedCopy[processedKey] = processRecursive(process, v, makePath(path, processedKey), visited)
         end
       end
-
       local mt  = processRecursive(process, getmetatable(processed), makePath(path, inspect.METATABLE), visited)
       setmetatable(processedCopy, mt)
       processed = processedCopy
