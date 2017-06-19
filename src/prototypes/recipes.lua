@@ -207,7 +207,7 @@ data:extend(
       {"radar", 2},
       {"plexiglass-lens", 5},
       {"stone-brick", 20},
-      {"portal-control-unit", 10}
+      {"portal-control-unit", 10},
       {"large-factorium-crystal", 1}
       -- Fluid?
     },
