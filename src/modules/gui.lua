@@ -40,6 +40,9 @@ function Gui.initForPlayer(player)
     if playerData.buttons[buttonName] ~= nil then
       playerData.buttons[buttonName].button.destroy()
     end
+    if button_flow[buttonName] ~= nil then
+      button_flow[buttonName].destroy()
+    end
     buttonDef.button = button_flow.add {
       type = buttonDef.sprite and "sprite-button" or "button",
       name = buttonName,
