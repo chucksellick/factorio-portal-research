@@ -128,26 +128,10 @@ end
 -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
 -- or something else...)
 local offworld_resources = {
-  {
-    name="iron-ore",
-    weight=120,
-    richness=1
-  },
-  {
-    name="copper-ore",
-    weight=100,
-    richness=1.2
-  },
-  {
-    name="stone",
-    weight=200,
-    richness=0.8
-  },
-  {
-    name="uranium-ore",
-    weight=1,
-    richness=0.05
-  }
+  { name="iron-ore",  weight=120,  richness=1 },
+  { name="copper-ore", weight=100, richness=1.2 },
+  { name="stone", weight=200, richness=0.8 },
+  { name="uranium-ore", weight=1, richness=0.05 }
 }
 
 function Sites.addOffworldResource(name, weight, richness)

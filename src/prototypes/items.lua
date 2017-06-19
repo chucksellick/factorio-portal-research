@@ -39,11 +39,29 @@ data:extend(
   },
   {
     type = "item",
+    name = "plexiglass-sheet",
+    icon = ICON_BASE .. "factorium-crystal-small.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "raw-material",
+    order = "d[steel-plate]",
+    stack_size = 100
+  },
+  {
+    type = "item",
     name = "plexiglass-lens",
     icon = ICON_BASE .. "factorium-crystal-small.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[plexiglass-lens]",
+    stack_size = 100
+  },
+  {
+    type = "item",
+    name = "vacuum-tube",
+    icon = ICON_BASE .. "factorium-crystal-small.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "h[vacuum-tube]",
     stack_size = 100
   },
   {
@@ -136,6 +154,26 @@ data:extend(
   },
   {
     type = "item",
+    name = "radio-antenna",
+    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=0,g=1,b=0}}},
+    flags = {"goes-to-main-inventory"},
+    --place_result = "radio-antenna",
+    subgroup = "circuit-network",
+    order = "e[radio]-a[radio-antenna]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "radio-transmitter",
+    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=1,g=0,b=0}}},
+    flags = {"goes-to-main-inventory"},
+    --place_result = "radio-transmitter",
+    subgroup = "circuit-network",
+    order = "e[radio]-a[radio-antenna]",
+    stack_size = 50
+  },
+  {
+    type = "item",
     name = "microwave-antenna", -- real name "rectenna"
     icons = {{icon = "__base__/graphics/icons/radar.png", tint={r=0,g=1,b=0}}},
     --TODO: icon = ICON_BASE .. "microwave-antenna.png",
@@ -165,6 +203,24 @@ data:extend(
     flags = {"goes-to-main-inventory"},
     subgroup = "equipment",
     order = "a[energy-source]-b[personal-microwave-antenna]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "satellite-housing",
+    icons = { {icon = "__base__/graphics/icons/satellite.png", tint = {r=0.7, g=0.7, b=1}} },
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "q[satellite-housing]",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "communication-systems",
+    icons = { {icon = "__base__/graphics/icons/radar.png", tint = {r=1, g=0.4, b=0.5}} },
+    flags = {"goes-to-main-inventory"},
+    subgroup = "intermediate-product",
+    order = "q[communication-systems]",
     stack_size = 10
   },
   {
@@ -200,7 +256,8 @@ data:extend(
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "production-machine",
-    order = "g[space-telescope]", -- TODO: It's next to the observatory here, but maybe all satellites should be grouped together instead (entirely new tab?)
+    -- TODO: It's next to the observatory now, but maybe all satellites should be grouped together instead (entirely new tab?)
+    order = "g[space-telescope]",
     stack_size = 1
   },
   {

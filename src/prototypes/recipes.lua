@@ -1,4 +1,4 @@
--- TODO: Expensive versions
+-- TODO: Expensive versions of stuff
 data:extend(
 {
   {
@@ -340,8 +340,10 @@ data:extend(
     ingredients =
     {
       {"radar", 10},
-      {"advanced-circuit", 200},
-      {"processing-unit", 50},
+      {"effectivity-module-2", 10},
+      {"vacuum-tube", 10},
+      {"steel-plate", 100},
+      {"processing-unit", 100},
     },
     result = "navigation-computer"
   },
@@ -353,26 +355,13 @@ data:extend(
     category = "crafting",
     ingredients =
     {
-      {"microwave-transmitter", 1},
-      {"microwave-antenna", 1},
+      {"radio-transmitter", 10},
+      {"radio-antenna", 10},
       {"advanced-circuit", 200},
-      {"processing-unit", 50}
+      {"red-wire", 100},
+      {"green-wire", 100}
     },
     result = "communication-systems"
-  },
-  {
-    -- Modify base satellite recipe to match the new satellites
-    type = "recipe",
-    name = "satellite",
-    energy_required = 30,
-    ingredients = {
-      {"satellite-housing", 1}, --  = low density structures ( + iron sticks?)
-      {"navigation-computer", 1},
-      {"solar-array", 2}, --  = 200 solar panels + 200 accum ( + stuff to make it unfold)
-      {"communication-systems", 1}, -- = 5 radar + 100 proc units
-      --{"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
-      {"rocket-fuel", 50}
-    }
   },
   {
     type = "recipe",
@@ -437,7 +426,7 @@ data:extend(
       {"iron-plate", 4},
     },
     result = "radio-antenna"
-  },
+  }--[[,
   {
     type = "recipe",
     name = "space-telescope",
@@ -454,8 +443,8 @@ data:extend(
       {"iron-gear-wheel", 100}
     },
     result = "space-telescope"
-  }
-  --[[{
+  },
+  {
     type = "recipe",
     name = "orbital-logistics-combinator",
     enabled = false,
