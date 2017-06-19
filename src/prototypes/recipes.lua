@@ -144,7 +144,7 @@ data:extend(
       {
         {"advanced-circuit", 15},
         {"processing-unit", 5},
-        {"large-factorium-crystal", 1},
+        {"medium-factorium-crystal", 1},
         {type = "fluid", name = "sulfuric-acid", amount = 5} -- TODO: Dry ice? Or some other fluid?
       },
       result = "portal-control-unit"
@@ -208,6 +208,7 @@ data:extend(
       {"plexiglass-lens", 5},
       {"stone-brick", 20},
       {"portal-control-unit", 10}
+      {"large-factorium-crystal", 1}
       -- Fluid?
     },
     result = "medium-portal"
