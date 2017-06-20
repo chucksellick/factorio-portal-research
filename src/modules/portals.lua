@@ -103,10 +103,18 @@ local function enterPortal(player, portal, direction)
   player.teleport(targetPos, portal.teleport_target.site.surface)
 end
 
+function findPortalInArea(surface, area)
+  local candidates = surface.find_entities_filtered{area=area, name="medium-portal"}
+  for _,entity in pairs(candidates) do
+    return getEntityData(entity)
+  end
+  return nil
+end
+
 function Portals.checkPlayersForTeleports()
   local tick = game.tick
   for player_index, player in pairs(game.players) do
-    -- TODO: Allow driving into BIG portals? Or medium ones anyway (big only for trains...)
+    -- TODO: Allow driving into BIG portals?
     -- TODO: Balance ticks...
     local playerData = getPlayerData(player)
     if player.connected and not player.driving then
@@ -182,7 +190,7 @@ function Portals.updateEnergyProperties(portal)
   end
   requiredEnergy = math.ceil(requiredEnergy)
 
-  -- Buffer stores enough for 1 teleport only!
+  -- Buffer stores enough for 2 teleports
   local BUFFER_NUM = 2
   local SECONDS_TO_CHARGE = 2
   local interface = ensureEnergyInterface(portal)

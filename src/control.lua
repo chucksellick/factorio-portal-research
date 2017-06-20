@@ -333,14 +333,6 @@ end
 script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
 script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
 
-function findPortalInArea(surface, area)
-  local candidates = surface.find_entities_filtered{area=area, name="medium-portal"}
-  for _,entity in pairs(candidates) do
-    return getEntityData(entity)
-  end
-  return nil
-end
-
 function getSiteForEntity(entity)
   local site = global.sites[entity.surface.name]
   return site
