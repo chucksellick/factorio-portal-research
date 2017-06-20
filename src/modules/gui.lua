@@ -37,10 +37,10 @@ function Gui.initForPlayer(player)
 
   for i,buttonDef in pairs(buttonDefs) do
     local buttonName = buttonDef.name .. "-button"
-    if playerData.buttons[buttonName] ~= nil then
+    if playerData.buttons[buttonName] ~= nil and playerData.buttons[buttonName].button.valid then
       playerData.buttons[buttonName].button.destroy()
     end
-    if button_flow[buttonName] ~= nil then
+    if button_flow[buttonName] ~= nil and button_flow[buttonName].valid then
       button_flow[buttonName].destroy()
     end
     buttonDef.button = button_flow.add {
