@@ -68,7 +68,7 @@ data:extend(
     ingredients =
     { 
       {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-sheet", amount=2},
+      {type="item", name="iron-plate", amount=2},
       {type="fluid", name="lubricant", amount=20}, -- TODO: Dry ice for cooling? Lava?
       {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
     },
@@ -89,8 +89,8 @@ data:extend(
     ingredients =
     {
       {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-sheet", amount=2},
-      {type="item", name="copper-wire", amount=10},
+      {type="item", name="iron-plate", amount=2},
+      {type="item", name="copper-cable", amount=10},
       {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
     },
     result = "plexiglass-lens",
@@ -154,7 +154,6 @@ data:extend(
     { 
       --{type="item", name="observatory-scan", amount=1}
     },
-    -- TODO: Randomise the result for % chance of finding nada
     result = "observatory-scan-result"
   },
   {
@@ -359,20 +358,6 @@ data:extend(
       {"processing-unit", 50}
     },
     result = "communication-systems"
-  },
-  {
-    -- Modify base satellite recipe to match the new satellites
-    type = "recipe",
-    name = "satellite",
-    energy_required = 30,
-    ingredients = {
-      {"satellite-housing", 1}, --  = low density structures ( + iron sticks?)
-      {"navigation-computer", 1},
-      {"solar-array", 2}, --  = 200 solar panels + 200 accum ( + stuff to make it unfold)
-      {"communication-systems", 1}, -- = 5 radar + 100 proc units
-      --{"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
-      {"rocket-fuel", 50}
-    }
   },
   {
     type = "recipe",

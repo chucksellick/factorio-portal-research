@@ -1,7 +1,9 @@
 local enable_productivity_recipes = {
   "factorium-processing",
   "portal-control-unit",
+  "plexiglass-sheet",
   "plexiglass-lens",
+  "vacuum-tube",
   "portal-science-pack",
   "telescope", -- TODO: *Could* be a player-usable item ... for ... what though?,
   "solar-array",

@@ -4,8 +4,8 @@ for i, force in pairs(game.forces) do
   if force.technologies["rocket-silo"] and force.technologies["rocket-silo"].researched then
     -- Some additional components need to be available to build satellites
     local unlock_silo_recipes = {
-      -- "communications-system" or "communication-systems" ??
-      -- "satellite-housing"
+      "communication-systems",
+      "satellite-housing",
       "navigation-computer",
       "solar-array"
     }
