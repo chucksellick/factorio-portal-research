@@ -1,6 +1,6 @@
 # Portal Research Changelog
 
-### 0.5.3
+### 0.5.4
 
   * PCUs now use medium crystals to make science pack easier
   * Separate plexiglass sheet production for lenses
@@ -9,6 +9,10 @@
   * Update recipes for portal lander and solar harvester
   * Modify recipe of base satellite to align with new units
   * Added README.md and CHANGELOG.md
+
+### 0.5.3
+
+  * Fix another init error
 
 ### 0.5.2
 
