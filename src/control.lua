@@ -166,7 +166,9 @@ function createEntityData(entity)
     or entity.name == "portal-chest"
     or entity.name == "portal-belt"
     or entity.name == "microwave-transmitter"
-    or entity.name == "microwave-antenna") then return end
+    or entity.name == "microwave-antenna"
+    or entity.name == "observatory"
+    ) then return end
 
   local data = {
     id = entity.unit_number,
