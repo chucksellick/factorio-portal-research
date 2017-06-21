@@ -40,7 +40,7 @@ data:extend(
   {
     type = "item",
     name = "plexiglass-sheet",
-    icon = ICON_BASE .. "factorium-crystal-small.png",
+    icon = ICON_BASE .. "plexiglass-sheet.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "raw-material",
     order = "d[steel-plate]",
@@ -49,7 +49,7 @@ data:extend(
   {
     type = "item",
     name = "plexiglass-lens",
-    icon = ICON_BASE .. "factorium-crystal-small.png",
+    icon = ICON_BASE .. "plexiglass-lens.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[plexiglass-lens]",
