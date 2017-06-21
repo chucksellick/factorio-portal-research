@@ -787,5 +787,3 @@ end
 script.on_event(defines.events.on_player_changed_force, onPlayerRequiresInit)
 script.on_event(defines.events.on_player_created, onPlayerRequiresInit)
 -- TODO: Need to also delete GUI when player leaves game?
-
-

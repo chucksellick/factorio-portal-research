@@ -3,19 +3,22 @@ data:extend(
 {
   {
     type = "technology",
-    name = "advanced-optics",
-    icon = "__base__/graphics/technology/optics.png",
-    --icon = ICON_BASE .. "advanced-optics.png",
+    name = "advanced-plastics",
+    icon = "__base__/graphics/technology/plastics.png",
+    --icon = ICON_BASE .. "advanced-materials.png",
     icon_size = 128,
     effects =
     {
       {
         type = "unlock-recipe",
-        recipe = "plexiglass-lens"
-      }
-      -- TODO: Unlock an advanced laser or laser gun or something to make this immediately useful
+        recipe = "plexiglass-sheet"
+      }--[[,
+      {
+        type = "unlock-recipe",
+        recipe = "vacuum-forming-plant"
+      }]]
     },
-    prerequisites = {"laser"},
+    prerequisites = {"plastics"},
     unit =
     {
       ingredients =
@@ -26,6 +29,67 @@ data:extend(
       },
       time = 30,
       count = 200
+    }
+  },
+  {
+    type = "technology",
+    name = "advanced-optics",
+    icon = "__base__/graphics/technology/optics.png",
+    --icon = ICON_BASE .. "advanced-optics.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "plexiglass-lens"
+      }
+      -- TODO: Concave mould?
+      -- TODO: Unlock an advanced laser or laser gun or something to make this immediately useful
+    },
+    prerequisites = {"laser","advanced-plastics"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1}
+      },
+      time = 30,
+      count = 200
+    }
+  },
+  {
+    type = "technology",
+    name = "radio",
+    icon = ICON_BASE .. "radio.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "vacuum-tube"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "radio-transmitter"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "radio-antenna"
+      },
+    },
+    prerequisites = {"electric-energy-distribution-1", "advanced-electronics"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+      },
+      time = 30,
+      count = 250
     }
   },
   {
@@ -57,7 +121,7 @@ data:extend(
         {"science-pack-1", 2},
         {"science-pack-2", 2},
         {"science-pack-3", 2},
-        {"production-science-pack", 2}, -- Bit strange esp compared to basic optics, and astronomy which follows only needs 3 (maybe add prod there instead?)
+        {"production-science-pack", 2},
       },
       time = 30,
       count = 250
@@ -97,7 +161,7 @@ data:extend(
       }
     },
     -- TODO: Accumulator tech only needed if antenna has built-in battery... of course you probably want them anyway...
-    prerequisites = {"electric-energy-distribution-2", "electric-energy-accumulators-1" }, -- , "radio"
+    prerequisites = {"electric-energy-distribution-2", "electric-energy-accumulators-1" , "radio"}
     unit =
     {
       ingredients =

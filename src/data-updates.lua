@@ -23,7 +23,7 @@ for k, v in pairs(data.raw.module) do
 end
 
 -- Some additional components need to be available to build satellites
--- TODO: Move satellites to a secondary tech that needs to be research in addition to Silos
+-- TODO: Move satellites to a secondary tech that needs to be research in addition to Silos. Prequisites include Radio.
 local unlock_silo_recipes = {
   "communication-systems",
   "satellite-housing",
@@ -42,7 +42,7 @@ satellite_recipe.ingredients = {
   {"satellite-housing", 1},
   {"navigation-computer", 1},
   {"solar-array", 2},
-  -- TODO: Comms systems aren't needed until the satellite has stuff to send back...
+  -- TODO: Comms systems aren't needed until the satellite has data to send back...
   -- TODO: Improve the science output once satellites are harder to send?
   --{"communication-systems", 1},
   --{"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??

@@ -93,7 +93,7 @@ data:extend(
       {type="item", name="copper-cable", amount=10},
       {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
     },
-    result = "plexiglass-lens",
+    result = "vacuum-tube",
     crafting_machine_tint =
     {
       primary = {r=0.0, g=0.0, b=0.85, a=1.00},
@@ -404,8 +404,8 @@ data:extend(
     ingredients =
     {
       {"copper-cable", 5},
-      {"electronic-circuit", 5},
-      {"vacuum-tube", 1},
+      {"advanced-circuit", 5},
+      {"vacuum-tube", 2},
       {"iron-plate", 4},
     },
     result = "radio-transmitter"
@@ -417,8 +417,8 @@ data:extend(
     ingredients =
     {
       {"copper-cable", 5},
-      {"electronic-circuit", 5},
-      {"vacuum-tube", 1},
+      {"advanced-circuit", 5},
+      {"vacuum-tube", 2},
       {"iron-plate", 4},
     },
     result = "radio-antenna"
