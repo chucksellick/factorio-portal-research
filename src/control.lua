@@ -781,3 +781,11 @@ function onPlayerChangedSurface(event)
 end
 
 script.on_event(defines.events.on_player_changed_surface, onPlayerChangedSurface)
+function onPlayerRequiresInit(event)
+  Gui.initForPlayer(game.players[event.player_index])
+end
+script.on_event(defines.events.on_player_changed_force, onPlayerRequiresInit)
+script.on_event(defines.events.on_player_created, onPlayerRequiresInit)
+-- TODO: Need to also delete GUI when player leaves game?
+
+
