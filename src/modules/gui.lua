@@ -127,6 +127,14 @@ local function cleanUpButtons(player)
   -- however unless I see severe performance problems this is simple enough right now
 end
 
+local function getPlayerGui(playerData)
+  if playerData.gui == nil or not playerData.gui.valid then
+    Gui.initForPlayer(playerData.player)
+  end
+
+  return playerData.gui
+end
+
 local function openWindow(player, options)
   -- TODO: Clean up existing frame data
   local playerData = getPlayerData(player)
@@ -138,14 +146,16 @@ local function openWindow(player, options)
   window.scroll.clear()
 
   -- Make sure Gui is visible
-  playerData.gui.style.visible = true
+  local playerGui = getPlayerGui(playerData)
+  playerGui.style.visible = true
 
   return window.scroll
 end
 
 local function closeWindow(player, options)
   local playerData = getPlayerData(player)
-  local frame = playerData.gui[options.window]
+  local playerGui = getPlayerGui(playerData)
+  local frame = playerGui[options.window]
   frame.style.visible = false
   cleanUpButtons(player)
   -- TODO: Actually delete gui, cancel ticks
@@ -528,9 +538,10 @@ end
 local function onGuiClick(event)
   local player = game.players[event.player_index]
   local playerData = getPlayerData(player)
+  local playerGui = getPlayerGui(playerData)
   local name = event.element.name
   if name == "portal-research-button" then
-    playerData.gui.style.visible = not playerData.gui.style.visible
+    playerGui.style.visible = not playerGui.style.visible
     return
   end
   if name == "emergency-home-button" then
@@ -609,13 +620,5 @@ local function onGuiClick(event)
 end
 
 script.on_event(defines.events.on_gui_click, onGuiClick)
-
-function onPlayerJoinedGame(event)
-  local player = game.players[event.player_index]
-  Gui.initForPlayer(player)
-end
-script.on_event(defines.events.on_player_joined_game, onPlayerJoinedGame)
-
--- TODO: Need to also delete GUI when player leaves game?
 
 return Gui
