@@ -208,7 +208,7 @@ data:extend(
   {
     type = "item",
     name = "satellite-housing",
-    icons = { {icon = "__base__/graphics/icons/satellite.png", tint = {r=0.7, g=0.7, b=1}} },
+    icon = ICON_BASE .. "satellite-housing.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "q[satellite-housing]",
@@ -217,7 +217,7 @@ data:extend(
   {
     type = "item",
     name = "communication-systems",
-    icons = { {icon = "__base__/graphics/icons/radar.png", tint = {r=1, g=0.4, b=0.5}} },
+    icon = ICON_BASE .. "communication-systems.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "q[communication-systems]",
@@ -226,7 +226,7 @@ data:extend(
   {
     type = "item",
     name = "navigation-computer",
-    icons = { {icon = "__base__/graphics/icons/processing-unit.png", tint = {r=1, g=0.4, b=0.5}} },
+    icon = ICON_BASE .. "navigation-computer.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "q[navigation-computer]",
@@ -235,7 +235,7 @@ data:extend(
   {
     type = "item",
     name = "solar-array",
-    icons = { {icon = "__base__/graphics/icons/solar-panel.png", tint = {r=0.8, g=0.12, b=0.85}} },
+    icon = ICON_BASE .. "solar-array.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "p[solar-array]",
@@ -253,7 +253,7 @@ data:extend(
   {
     type = "item",
     name = "space-telescope",
-    icon = "__base__/graphics/icons/satellite.png",
+    icon = ICON_BASE .. "space-telescope.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "production-machine",
     -- TODO: It's next to the observatory now, but maybe all satellites should be grouped together instead (entirely new tab?)
@@ -263,7 +263,7 @@ data:extend(
   {
     type = "item",
     name = "solar-harvester",
-    icon = "__base__/graphics/icons/satellite.png",
+    icon = ICON_BASE .. "solar-harvester.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "energy",
     order = "d[solar-panel]-b[solar-harvester]",
