@@ -29,6 +29,8 @@ local site_sizes = {
   }
 }
 
+local HIDDEN_WORKER_SURFACE_NAME="portal-research-hidden-worker-surface"
+
 function Sites.getSize(size)
   return site_sizes[size]
 end
@@ -53,6 +55,47 @@ function Sites.list(force, predicate)
       end
     end
   end
+end
+
+function Sites.getHiddenWorkerSurface()
+  if global.hidden_worker_surface == nil then
+    local surface = game.create_surface(HIDDEN_WORKER_SURFACE_NAME)
+    surface.daytime = 0
+    surface.freeze_daytime = true
+    surface.peaceful_mode = true
+
+    global.hidden_worker_surface = {
+      next_x = 0,
+      next_y = 0,
+      surface = surface
+    }
+  end
+
+  return global.hidden_worker_surface
+end
+
+function Sites.addHiddenWorkerEntity(attached_to, entity_spec)
+  local surfaceData = Sites.getHiddenWorkerSurface()
+  entity_spec.position = {x = surfaceData.next_x, y = surfaceData.next_y}
+
+  local entity = surfaceData.surface.create_entity(entity_spec)
+  local power = surfaceData.surface.create_entity{
+    name = "portal-research-hidden-worker-power",
+    position = {x = surfaceData.next_x, y = surfaceData.next_y + 5},
+    force = entity_spec.force
+  }
+  local pole = surfaceData.surface.create_entity{
+    name = "medium-electric-pole",
+    position = {x = surfaceData.next_x, y = surfaceData.next_y + 2.5},
+    force = entity_spec.force
+  }
+
+  attached_to.worker_entities = attached_to.worker_entities or {}
+  table.insert(attached_to.worker_entities, entity)
+  table.insert(attached_to.worker_entities, power)
+  table.insert(attached_to.worker_entities, pole)
+  surfaceData.next_x = surfaceData.next_x + 20
+  return entity
 end
 
 function Sites.generateAsteroidName()
@@ -80,10 +123,38 @@ function Sites.generateAsteroidName()
   return name
 end
 
-function Sites.generateRandom(force, scanner)
+local function newSiteDataForSurface(surface)
+  -- TODO: There's some confusion around co-owned sites like nauvis and Factorissimo sites. Should
+  -- there be a separate copy for each force, and actually store this list in forceData, so things don't get mixed up?
+  -- Things will get really confusing with other mods. e.g. long nauvis shouldn't allow orbitals to travel between dimensions.
+  -- Shouldn't allow things to "orbit" Factorissimo sites!
+  local site = {
+    name = surface.name,
+    surface_name = surface.name,
+    force = nil,
+    surface_generated = true,
+    surface = surface,
+    distance = 0,
+    portals = {},
+    resources = {},
+    is_offworld = false
+  }
+  global.sites[surface.name] = site
+  return site
+end
+
+function Sites.getSiteForEntity(entity)
+  local site = global.sites[entity.surface.name]
+  if site == nil then
+    return newSiteDataForSurface(entity.surface)
+  end
+  return site
+end
+
+function Sites.generateRandom(force, scanner, scan_spec)
   forceData = getForceData(force)
   local site = {
-    size = math.random(3), -- TODO: Use scanner.scan_strength
+    size = math.random(scan_spec.max_size), -- TODO: Use scanner.scan_strength
     name = "",
     resources = {},
     resources_estimated = true,
@@ -98,8 +169,7 @@ function Sites.generateRandom(force, scanner)
   }
 
   -- TODO: Needs quite a bit of tweaking
-  -- TODO: Use scanner.scan_strength
-  site.distance = 1 + math.random() * forceData.site_distance_multiplier
+  site.distance = scan_spec.base_distance + scanner.site.distance + math.random() * forceData.site_distance_multiplier
 
   site.name = Sites.generateAsteroidName()
   site.surface_name = "Asteroid " .. site.name
@@ -195,6 +265,8 @@ function Sites.generateSurface(site)
   surface.daytime = site.daytime or 0
   -- TODO: For now; implement variable day/night later
   surface.freeze_daytime = true
+  surface.wind_speed = 0  
+
   --surface.request_to_generate_chunks({0, 0}, 3) -- More?
 
   local halfWidth = math.ceil(site.width / 2)
@@ -250,7 +322,7 @@ function Sites.generateSurface(site)
       richness_base = 500,
   ]]
 
-  site.resources = resources
+  site.resources = actual_resources
   surface.set_tiles(tiles)
 
   -- TODO: Randomise landing position

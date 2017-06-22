@@ -4,7 +4,7 @@ function Player.surfaceChanged(player)
   -- Player may need to use a different transmitter
   for i,equip in pairs(global.equipment) do
     if equip.player == player then
-      equip.site = getSiteForEntity(player)
+      equip.site = Sites.getSiteForEntity(player)
     end
   end
 

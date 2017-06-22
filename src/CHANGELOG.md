@@ -2,6 +2,7 @@
 
 ### 0.6.0
 
+  * Added README.md and CHANGELOG.md
   * PCUs now use medium crystals to make science pack easier
   * Separate plexiglass sheet production from lenses
   * New assembler: Plastic Forming Plant to make plastic objects out of plexiglass
@@ -12,8 +13,9 @@
   * Added unique icons for most items
   * Added some missing descriptions
   * Added technologies: Radio Communication, Advanced Plastics
-  * New orbital: Space Telescope
-  * Added README.md and CHANGELOG.md
+  * New orbital: Space Telescope, can spot asteroids much further away with much better resources
+  * Give increasing space science rewards for all the new satellite types
+  * Fixed crash when removing Microwave equipment from player grid
 
 ### 0.5.5
 

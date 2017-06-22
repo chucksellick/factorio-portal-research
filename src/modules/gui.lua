@@ -258,7 +258,7 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
         type="camera",
         position={x=0,y=0},
         surface_index = site.surface.index,
-        zoom = 0.05
+        zoom = 0.15
       }
       camera.style.minimal_width = preview_size
       camera.style.minimal_height = preview_size
@@ -313,7 +313,7 @@ local function commonOrbitalDetails(playerData, orbital, gui, window_options)
         type="camera",
         position={x=0,y=0},
         surface_index = orbital.site.surface.index,
-        zoom = 0.05
+        zoom = 0.15
       }
       camera.style.minimal_width = preview_size
       camera.style.minimal_height = preview_size
@@ -422,7 +422,7 @@ function Gui.showPortalDetails(player, portal, options)
     type="camera",
     position=portal.entity.position,
     surface_index = portal.entity.surface.index,
-    zoom = 0.4
+    zoom = 0.15
   }
   camera.style.minimal_width = preview_size
   camera.style.minimal_height = preview_size
@@ -438,13 +438,13 @@ function Gui.showPortalDetails(player, portal, options)
   end
 
   if portal.teleport_target then
-    local site = getSiteForEntity(portal.teleport_target.entity)
+    local site = Sites.getSiteForEntity(portal.teleport_target.entity)
     gui.add{type="label", caption=site.name}
     local target_camera = gui.add{
       type="camera",
       position=portal.teleport_target.entity.position,
       surface_index = portal.teleport_target.entity.surface.index,
-      zoom = 0.4
+      zoom = 0.15
     }
     target_camera.style.minimal_width = preview_size
     target_camera.style.minimal_height = preview_size

@@ -42,6 +42,7 @@ Player = require("modules.player")
 Portals = require("modules.portals")
 Sites = require("modules.sites")
 Orbitals = require("modules.orbitals")
+Scanners = require("modules.scanners")
 
 remote.add_interface("portal_research", {
   add_offworld_resource = Sites.addOffworldResource
@@ -121,22 +122,6 @@ function updateForceData(force)
   -- the number of telescopes you have
 end
 
-function newSiteDataForSurface(surface, force)
-  local site = {
-    name = surface.name,
-    surface_name = surface.name,
-    force = force,
-    surface_generated = true,
-    surface = surface,
-    distance = 0,
-    portals = {},
-    resources = {},
-    is_offworld = false
-  }
-  global.sites[surface.name] = site
-  return site
-end
-
 function getEntityData(entity)
   if global.entities[entity.unit_number] == nil then
     local data = createEntityData(entity)
@@ -174,12 +159,9 @@ function createEntityData(entity)
     id = entity.unit_number,
     entity = entity,
     force = entity.force,
-    site = getSiteForEntity(entity),
+    site = Sites.getSiteForEntity(entity),
     created_at = game.tick
   }
-  if data.site == nil then
-    data.site = newSiteDataForSurface(entity.surface)
-  end
   if entity.name == "medium-portal"
     or entity.name == "portal-chest"
     or entity.name == "portal-belt" then
@@ -199,7 +181,7 @@ function createEntityData(entity)
     local data = {
       id = entity.unit_number,
       entity = entity,
-      site = getSiteForEntity(entity),
+      site = Sites.getSiteForEntity(entity),
       scan_strength = 1
     }
     global.scanners[data.id] = data
@@ -314,7 +296,7 @@ function onPlacedEquipment(event)
       player = game.players[event.player_index]
     }
     data.force = data.player.force
-    data.site = getSiteForEntity(data.player)
+    data.site = Sites.getSiteForEntity(data.player)
     global.equipment[data.id] = data
     global.receivers[data.id] = data
     global.next_equipment_id = global.next_equipment_id + 1
@@ -329,57 +311,21 @@ function onRemovedEquipment(event)
         global.receivers[i] = nil
       end
     end
+    updateMicrowaveTargets()
   end
 end
 
 script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
 script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
 
-function getSiteForEntity(entity)
-  local site = global.sites[entity.surface.name]
-  return site
-end
-
 script.on_event(defines.events.on_tick, function(event) 
   Portals.checkPlayersForTeleports()
   chestsMoveStacks(event)
   beltsMoveItems(event)
-  scannersScan(event)
+  Scanners.scan(event)
   distributeMicrowavePower(event)
   Gui.tick(event)
 end)
-
--- TODO: Fix UPS
-function scannersScan(event)
-  local SCAN_CHANCE = 0.1 -- TODO: Can improve with research etc
-  for i,scanner in pairs(global.scanners) do
-    local result = scanner.entity.get_inventory(defines.inventory.assembling_machine_output)
-    if result[1].valid_for_read and result[1].count > 0 then
-      for n = 1, result[1].count do
-        if math.random() < SCAN_CHANCE then
-          -- TODO: Set more parameters of site
-          local newSite = Sites.generateRandom(scanner.entity.force, scanner)
-          scanner.entity.force.print({"site-discovered", newSite.name})
-          --for i,player in pairs(scanner.entity.force.connected_players) do
-          --  Gui.showSiteDetails(player, newSite)
-          --end
-        else
-          -- TODO: Some chance for other finds eventually. e.g. incoming solar storms / meteorites,
-          -- mysterious objects from ancient civilisations, space debris, pods (send probes to intercept)
-          scanner.entity.force.print({"scan-found-nothing"})
-        end
-      end
-      result[1].clear()
-    end
-  end
-  -- TODO: Could additionally require inserting the "scan result" into some kind of navigational computer ("Space Command Mainframe?"). Might seem like busywork. Space telescopes
-  -- would download their results to some kind of printer? Requires some medium to store the result? (circuits) ... not sure about this. But could
-  -- be cool to require *some* sort of ground-based structures that actually coordinate and track all the orbital activity and even portals, and requiring more computers the
-  -- more stuff you have in the air. Mainframes should have a neighbour bonus like nuke plants due to parallel processing, and require use of heat pipes and coolant to keep within
-  -- operational temperature. Going too hot e.g. 200C causes a shutdown and a long reboot process only once temperature comes back under 100C.
-  -- Mainframes could also interact with observatories to track things better, and/or make orbitals generally work quicker, avoid damage, etc etc.
-  -- (Note: mainframe buildable without space science, need them around from the start ... even before the first satellite ... should also make satellites do things! (Map reveal?))
-end
 
 local BASE_COST = 1000000 -- 1MJ
 local GROUND_DISTANCE_MODIFIER = 0.1
@@ -734,12 +680,10 @@ function updateMicrowaveTargets()
   -- TODO: Could fix energy source settings from prototype whilst we're at it in case anything changed (but should only be done oninit really)
 end
 
-
-
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
   local force = event.rocket.force
-  local launchSite = getSiteForEntity(event.rocket_silo)
+  local launchSite = Sites.getSiteForEntity(event.rocket_silo)
   if event.rocket.get_item_count("portal-lander") > 0 then
     local lander = Orbitals.newUnit("portal-lander", force, launchSite, {})
     global.landers[lander.id] = lander
@@ -765,7 +709,11 @@ function onRocketLaunched(event)
   end
 
   if event.rocket.get_item_count("space-telescope") > 0 then
-    
+    local telescope = Orbitals.newUnit("space-telescope", force, launchSite, {})
+    -- TODO: Open orbitals tab / telescope details if nothing else open
+    global.scanners[telescope.id] = telescope
+    -- Create a worker entity
+    Scanners.setupWorkerEntity(telescope)
   end
 end
 

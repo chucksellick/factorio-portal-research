@@ -8,11 +8,11 @@ function Portals.emergencyHomeTeleport(player)
   local playerData = getPlayerData(player)
   local surface = game.surfaces["nauvis"]
   local portal = playerData.emergency_home_portal
-  if portal.entity.valid then
+  if portal and portal.entity.valid then
     surface = portal.entity.surface
   end
 
-  player.teleport(playerData.emergency_home_position, surface)
+  player.teleport(playerData.emergency_home_position or {x=0,y=0}, surface)
   
   playerData.emergency_home_portal = nil
   playerData.emergency_home_position = nil
@@ -21,7 +21,7 @@ function Portals.emergencyHomeTeleport(player)
   -- TODO: And display warning and require confirmationn
   -- Note: Simply setting the health to 0 doesn't seem to ever actually destroy the object.
   --       Could also use die() ... but that wouldn't attribute the kill to anyone!
-  if portal.entity.valid then
+  if portal and portal.entity.valid then
     portal.entity.damage(portal.entity.health, player.force)
   end
 end
@@ -81,7 +81,7 @@ local function enterPortal(player, portal, direction)
 
   -- When travelling offworld, set the emergency teleport back to where we left
   -- Note: "home" is always nauvis for now.
-  local currentSite = getSiteForEntity(player)
+  local currentSite = Sites.getSiteForEntity(player)
   if currentSite ~= portal.site and (currentSite == nil or currentSite.surface.name == "nauvis") then
     local playerData = getPlayerData(player)
     playerData.emergency_home_portal = portal
