@@ -86,7 +86,7 @@ data:extend(
     category = "plastic-forming",
     subgroup = "intermediate-product",
     enabled = false,
-    energy_required = 5,
+    energy_required = 2,
     ingredients =
     { 
       {type="item", name="plexiglass-sheet", amount=2},
@@ -120,7 +120,7 @@ data:extend(
     category = "plastic-forming",
     subgroup = "intermediate-product",
     enabled = false,
-    energy_required = 5,
+    energy_required = 2,
     ingredients =
     {
       {type="item", name="plexiglass-sheet", amount=2},

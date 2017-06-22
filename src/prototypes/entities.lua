@@ -619,8 +619,8 @@ data:extend(
       -- scripting to make the machine deactivate below this temperature, but would that also prevent heat consumption?
       -- http://www.plexiglas.com/export/sites/plexiglas/.content/medias/downloads/sheet-docs/plexiglas-forming-manual.pdf
       max_temperature = 176,
-      specific_heat = "10MJ",
-      max_transfer = "10MW",
+      specific_heat = "100MJ",
+      max_transfer = "100MW",
       connections =
       {
         {
