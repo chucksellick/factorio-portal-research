@@ -16,6 +16,7 @@
   * New orbital: Space Telescope, can spot asteroids much further away with much better resources
   * Give increasing space science rewards for all the new satellite types
   * Fixed crash when removing Microwave equipment from player grid
+  * Reduce portal chest inventory to 1 stack
 
 ### 0.5.5
 

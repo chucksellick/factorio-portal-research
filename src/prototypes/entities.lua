@@ -76,7 +76,7 @@ data:extend(
     collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
     selection_box = {{-0.5, -0.5}, {0.5, 0.5}}, -- {{-0.3, -0.3}, {0.3, 0.3}},
     fast_replaceable_group = "container",
-    inventory_size = 10,
+    inventory_size = 1,
     vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
     picture =
     {
@@ -609,14 +609,18 @@ data:extend(
       apparent_volume = 1.5,
     },
     crafting_speed = 1.25,
-    target_temperature = 200,
-    energy_usage = "100MW",
+    target_temperature = 135,
+    energy_usage = "10MW",
     energy_source =
     {
       type = "heat",
-      max_temperature = 1000,
+      -- Ideal forming temperature for plexiglass = 350F = 176.667C. Above this it can damage the plastic.
+      -- TODO: Minimum temperature is 275F = 135C, so this would be target_temperature if it's ever supported; consider
+      -- scripting to make the machine deactivate below this temperature, but would that also prevent heat consumption?
+      -- http://www.plexiglas.com/export/sites/plexiglas/.content/medias/downloads/sheet-docs/plexiglas-forming-manual.pdf
+      max_temperature = 176,
       specific_heat = "10MJ",
-      max_transfer = "5GW",
+      max_transfer = "10MW",
       connections =
       {
         {

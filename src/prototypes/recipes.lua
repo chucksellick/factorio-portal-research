@@ -371,7 +371,8 @@ data:extend(
     category = "crafting",
     ingredients = {
       {"solar-panel", 100},
-      {"accumulator", 84}, -- Crappy in-joke ;)
+      {"accumulator", 84}, -- Cheesy in-joke
+      -- TODO: Gears for unfolding. Lube? Steel or sticks or low-dens for the scaffold. Plexiglass sheets to protect?
     },
     result = "solar-array",
     stack_size = 20
@@ -386,7 +387,8 @@ data:extend(
     {
       {"radar", 10},
       {"advanced-circuit", 200},
-      {"processing-unit", 50},
+      {"processing-unit", 100},
+      -- TODO: vacuum tubes? effectivity/speed modules?
     },
     result = "navigation-computer"
   },
@@ -398,10 +400,9 @@ data:extend(
     category = "crafting",
     ingredients =
     {
-      {"microwave-transmitter", 1},
-      {"microwave-antenna", 1},
+      {"radio-transmitter", 10},
+      {"radio-antenna", 10},
       {"advanced-circuit", 200},
-      {"processing-unit", 50}
     },
     result = "communication-systems"
   },

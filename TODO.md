@@ -12,3 +12,11 @@ Microwave recipes use too many accumulators (maybe, do the math) ... batteries i
 porrtals need comms system? poss not
 RANDOM LOCKING UP
 portals not being consumed when deployed
+gui close buttons
+open portal gui when nearby / teleporting
+flickering sometimes when hover an entity
+shortcut F to open entity info
+why are some chests not teleporting
+emergency teleport when no portal = pick any nearest one we can find
+allow naming things
+tone down heat consumption of plastic forming

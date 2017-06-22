@@ -420,11 +420,12 @@ function teleportChestStacks(source, num)
   ensureEnergyInterface(target)
 
   -- Move from stack to stack teleporting, but do skip empty stacks
+  local inventory = source.entity.get_inventory(defines.inventory.chest)
   local nextStack = source.next_stack or 1
+  nextStack = (nextStack-1) % #inventory + 1
   local startStack = nextStack
   local abort = false
   local teleported = 0
-  local inventory = source.entity.get_inventory(defines.inventory.chest)
   
   -- Null operation
   if inventory.is_empty() then return end
@@ -432,6 +433,7 @@ function teleportChestStacks(source, num)
   local targetInventory = source.teleport_target.entity.get_inventory(defines.inventory.chest)
 
   -- TODO: Could check hasbar() to avoid looping stacks that are always empty / should not be teleported?
+  -- TODO: Most of this looping is pointless now chests have only 1 stack, but might leave in case ever up them again
 
   while teleported < num and not abort do
     local stack = inventory[nextStack]
@@ -466,8 +468,7 @@ function teleportChestStacks(source, num)
       end
     end
 
-    nextStack = nextStack + 1
-    nextStack = (nextStack-1) % #inventory + 1
+    nextStack = nextStack % #inventory + 1
     -- Abort if gone full circle
     if nextStack == startStack then
       abort=true
