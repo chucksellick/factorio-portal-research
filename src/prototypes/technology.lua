@@ -131,22 +131,6 @@ data:extend(
       count = 250
     }
   },
-  --[[
-  {
-    type = "technology",
-    name = "long-range-optics",
-    icon = ICON_BASE .. "long-range-optics.png",
-    effects =
-    {
-      {
-        type = "unlock-recipe",
-        recipe = "space-telescope"
-      }
-      -- TODO: 
-    },
-    prerequisites = {"astronomy", "rocket-silo"},
-  },]]--
-  -- TODO: There is nothing to manage sending data back/forth, this should be the job of mainframes... Can have maps crackling with static when not enough CPU power and/or satellites
   {
     type = "technology",
     name = "microwave-power-transmission",
@@ -363,6 +347,36 @@ data:extend(
       time = 30
     }
   },
+  {
+    type = "technology",
+    name = "astronomy-2",
+    icon = ICON_BASE .. "space-telescopy.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "space-telescope"
+      }
+    },
+    prerequisites = {"astronomy", "radio", "rocket-silo"},
+    unit =
+    {
+      count = 2000,
+      ingredients =
+      {
+        {"science-pack-1", 2},
+        {"science-pack-2", 2},
+        {"science-pack-3", 2},
+        {"production-science-pack", 1},
+        {"high-tech-science-pack", 1},
+        {"military-science-pack", 1}, -- TODO: ?? - sort of makes sense but not really...
+        {"space-science-pack", 1}
+      },
+      time = 30
+    }
+  },
+  -- TODO: There is nothing to manage sending data back/forth, this should be the job of mainframes... Can have maps crackling with static when not enough CPU power and/or satellites
 --[[,
   {
     type = "technology",

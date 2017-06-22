@@ -23,7 +23,7 @@ for k, v in pairs(data.raw.module) do
 end
 
 -- Some additional components need to be available to build satellites
--- TODO: Move satellites to a secondary tech that needs to be research in addition to Silos. Prequisites include Radio.
+-- TODO: Move satellites to a secondary tech that needs to be research in addition to Silos. Prequisites include Radio (not necessarily silo...?).
 local unlock_silo_recipes = {
   "communication-systems",
   "satellite-housing",
@@ -48,6 +48,11 @@ satellite_recipe.ingredients = {
   --{"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
   {"rocket-fuel", 50}
 }
+
+local rocket = data.raw["rocket-silo-rocket"]["rocket-silo-rocket"]
+table.insert(rocket.result_items, {"space-science-pack", 2000, "solar-harvester"})
+table.insert(rocket.result_items, {"space-science-pack", 3000, "portal-lander"})
+table.insert(rocket.result_items, {"space-science-pack", 4000, "space-telescope"}) -- Telescopes are great for research!
 
 -- Make labs support our new science pack
 -- TODO: Could require a specialised Portal research lab.

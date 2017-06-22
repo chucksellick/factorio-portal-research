@@ -3,15 +3,16 @@
 ### 0.6.0
 
   * PCUs now use medium crystals to make science pack easier
-  * Separate plexiglass sheet production for lenses
+  * Separate plexiglass sheet production from lenses
+  * New assembler: Plastic Forming Plant to make plastic objects out of plexiglass
   * Add a plexiglass vacuum tube recipe
   * Added radio transmitter/receiver recipes (currently non-functional, used as an intermediate)
   * Update recipes for portal lander and solar harvester
   * Modify recipe of base satellite to align with new units
-  * Added technologies: Radio, Advanced Plastics
-  * Added space telescope recipe
-  * Added icons for: communication systems, navigation computer, satellite housing, solar array, solar harvester, space telescope
+  * Added unique icons for most items
   * Added some missing descriptions
+  * Added technologies: Radio Communication, Advanced Plastics
+  * New orbital: Space Telescope
   * Added README.md and CHANGELOG.md
 
 ### 0.5.5

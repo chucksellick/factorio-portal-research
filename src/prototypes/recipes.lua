@@ -160,7 +160,6 @@ data:extend(
       -- TODO: Review amounts
       {type="item", name="plexiglass-lens", amount=5},
       {type="item", name="copper-plate", amount=20},
-      {type="item", name="iron-gear-wheel", amount=10},
       {type="item", name="iron-stick", amount=10},
       {type="fluid", name="lubricant", amount=50}
     },

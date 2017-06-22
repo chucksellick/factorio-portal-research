@@ -82,7 +82,7 @@ function On_Init()
   -- Let the silo track all our custom orbitals
   remote.call("silo_script", "add_tracked_item", "portal-lander")
   remote.call("silo_script", "add_tracked_item", "solar-harvester")
-  --remote.call("silo_script", "add_tracked_item", "space-telescope")
+  remote.call("silo_script", "add_tracked_item", "space-telescope")
   remote.call("silo_script", "update_gui")
 end
 
@@ -734,6 +734,8 @@ function updateMicrowaveTargets()
   -- TODO: Could fix energy source settings from prototype whilst we're at it in case anything changed (but should only be done oninit really)
 end
 
+
+
 -- Handle objects launched in rockets
 function onRocketLaunched(event)
   local force = event.rocket.force
@@ -762,7 +764,9 @@ function onRocketLaunched(event)
     end
   end
 
-  -- TODO: Populate some silo output science packs?
+  if event.rocket.get_item_count("space-telescope") > 0 then
+    
+  end
 end
 
 script.on_event(defines.events.on_rocket_launched, onRocketLaunched)
