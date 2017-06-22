@@ -59,7 +59,7 @@ data:extend(
   {
     type = "item",
     name = "plastic-forming-plant",
-    icons = {{icon="__base__/graphics/icons/chemical-plant.png", tint={r=0.9,g=0.9,b=1,a=1.5}}},
+    icons = {{icon="__base__/graphics/icons/chemical-plant.png", tint={r=0.5,g=0.5,b=1,a=1}}},
     flags = {"goes-to-quickbar"},
     subgroup = "production-machine",
     order = "e[chemical-plant]a[plastic-forming-plant]",

@@ -476,7 +476,7 @@ data:extend(
   {
     type = "assembling-machine",
     name = "plastic-forming-plant",
-    icons = {{icon="__base__/graphics/icons/chemical-plant.png", tint={r=0.9,g=0.9,b=1,a=1}}},
+    icons = {{icon="__base__/graphics/icons/chemical-plant.png", tint={r=0.5,g=0.5,b=1,a=1}}},
     flags = {"placeable-neutral", "placeable-player", "player-creation"},
     minable = {hardness = 0.2, mining_time = 0.5, result = "plastic-forming-plant"},
     max_health = 300,
