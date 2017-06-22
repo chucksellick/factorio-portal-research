@@ -226,8 +226,7 @@ data:extend(
   {
     type = "item",
     name = "personal-microwave-antenna-equipment", -- real name "rectenna"
-    icons = {{icon = "__base__/graphics/icons/fusion-reactor-equipment.png", tint={r=0,g=0,b=1}}},
-    --TODO: icon = ICON_BASE .. "personal-microwave-antenna-equipment.png",
+    icon = ICON_BASE .. "personal-microwave-antenna-equipment.png",
     placed_as_equipment_result = "personal-microwave-antenna-equipment",
     flags = {"goes-to-main-inventory"},
     subgroup = "equipment",
