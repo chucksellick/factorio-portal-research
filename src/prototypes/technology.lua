@@ -146,8 +146,7 @@ data:extend(
     },
     prerequisites = {"astronomy", "rocket-silo"},
   },]]--
-  -- TODO: In none of this do we ever have any technology regarding *data* transmission to/from space. This would be part of the Mainframes tech path really,
-  -- and could also be part of the microwave stuff.
+  -- TODO: There is nothing to manage sending data back/forth, this should be the job of mainframes... Can have maps crackling with static when not enough CPU power and/or satellites
   {
     type = "technology",
     name = "microwave-power-transmission",
