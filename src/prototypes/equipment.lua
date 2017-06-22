@@ -5,11 +5,10 @@ data:extend(
     name = "personal-microwave-antenna-equipment",
     sprite =
     {
-      filename = "__base__/graphics/equipment/fusion-reactor-equipment.png",
+      filename = "__portal-research__/graphics/equipment/personal-microwave-antenna-equipment.png",
       width = 128,
       height = 128,
-      priority = "medium",
-      tint = {r=0,g=0,b=1}
+      priority = "medium"
     },
     -- Can simply drop in place of fusion reactors, no need to drastically reorganise kitt
     -- TODO: Or, what about a different shape?

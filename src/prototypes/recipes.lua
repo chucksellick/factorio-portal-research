@@ -1,3 +1,4 @@
+local ICON_BASE = "__portal-research__/graphics/icons/"
 -- TODO: Expensive versions
 data:extend(
 {
@@ -58,21 +59,53 @@ data:extend(
     }
   },
   {
+    type = "recipe",
+    name = "plastic-forming-plant",
+    energy_required = 5,
+    enabled = false,
+    ingredients =
+    {
+      -- TODO: These are ingredients for chemical plant, need to tweak
+      {"steel-plate", 5},
+      {"iron-gear-wheel", 5},
+      {"electronic-circuit", 5},
+      {"pipe", 5}
+    },
+    result= "chemical-plant"
+  },
+  {
+    type = "recipe-category",
+    name = "plastic-forming"
+  },
+  {
     -- TODO: Lenses and tubes should be normal assemblers?
     -- TODO: Alternately, could be making lenses directly from diamond or factorium ...
     type = "recipe",
     name = "plexiglass-lens",
-    category = "chemistry",
+    icon = ICON_BASE .. "plexiglass-lens.png",
+    category = "plastic-forming",
+    subgroup = "intermediate-product",
     enabled = false,
     energy_required = 5,
     ingredients =
     { 
       {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-plate", amount=2},
-      {type="fluid", name="lubricant", amount=20}, -- TODO: Dry ice for cooling? Lava?
-      {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
+      {type="item", name="iron-plate", amount=2}, -- TODO: Concave-mould, becomes an output
+      --{type="fluid", name="lubricant", amount=20}, -- TODO: Dry ice for cooling? Lava?
+      {type="fluid", name="water", amount=50} -- Water for cooling, results in steam
     },
-    result = "plexiglass-lens",
+    results =
+    {
+      {
+        name = "plexiglass-lens",
+        amount = 1
+      },
+      {
+        type="fluid",
+        name = "steam",
+        amount = 20
+      },
+    },
     crafting_machine_tint =
     {
       primary = {r=0.0, g=0.0, b=0.85, a=1.00},
@@ -83,17 +116,31 @@ data:extend(
   {
     type = "recipe",
     name = "vacuum-tube",
-    category = "chemistry",
+    icon = ICON_BASE .. "vacuum-tube.png",
+    category = "plastic-forming",
+    subgroup = "intermediate-product",
     enabled = false,
     energy_required = 5,
     ingredients =
     {
       {type="item", name="plexiglass-sheet", amount=2},
-      {type="item", name="iron-plate", amount=2},
+      {type="item", name="copper-plate", amount=2},
       {type="item", name="copper-cable", amount=10},
-      {type="fluid", name="steam", amount=50} -- Steam for the vacuum forming process
+      {type="fluid", name="steam", amount=20}, -- Steam for blow molding
+      {type="fluid", name="water", amount=50}, -- Water for coolant
     },
-    result = "vacuum-tube",
+    results =
+    {
+      {
+        name = "vacuum-tube",
+        amount = 1
+      },
+      {
+        type="fluid",
+        name = "steam",
+        amount = 20
+      },
+    },
     crafting_machine_tint =
     {
       primary = {r=0.0, g=0.0, b=0.85, a=1.00},
@@ -120,10 +167,6 @@ data:extend(
     result = "telescope"
   },
   {
-    type = "recipe-category",
-    name = "astronomy"
-  },
-  {
     type = "recipe",
     name = "observatory",
     category = "crafting",
@@ -140,6 +183,10 @@ data:extend(
       {type="item", name="iron-gear-wheel", amount=50}
     },
     result = "observatory"
+  },
+  {
+    type = "recipe-category",
+    name = "astronomy"
   },
   {
     -- Recipe used behind the scenes
@@ -406,7 +453,7 @@ data:extend(
       {"copper-cable", 5},
       {"advanced-circuit", 5},
       {"vacuum-tube", 2},
-      {"iron-plate", 4},
+      {"big-electric-pole", 1}
     },
     result = "radio-transmitter"
   },
@@ -419,7 +466,7 @@ data:extend(
       {"copper-cable", 5},
       {"advanced-circuit", 5},
       {"vacuum-tube", 2},
-      {"iron-plate", 4},
+      {"big-electric-pole", 1}
     },
     result = "radio-antenna"
   },

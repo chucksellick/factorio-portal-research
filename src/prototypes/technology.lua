@@ -2,6 +2,9 @@ local ICON_BASE = "__portal-research__/graphics/technology/"
 data:extend(
 {
   {
+    -- TODO: This could be "space plastics" to be a bit different, and require space science(?).
+    -- But satellites couldn't have comms systems because they would need this prereq, so comms systems
+    -- would be for an "mapping satellite" (look up correct term for this)
     type = "technology",
     name = "advanced-plastics",
     icon = "__base__/graphics/technology/plastics.png",
@@ -12,11 +15,11 @@ data:extend(
       {
         type = "unlock-recipe",
         recipe = "plexiglass-sheet"
-      }--[[,
+      },
       {
         type = "unlock-recipe",
-        recipe = "vacuum-forming-plant"
-      }]]
+        recipe = "plastic-forming-plant"
+      }
     },
     prerequisites = {"plastics"},
     unit =
@@ -87,6 +90,7 @@ data:extend(
         {"science-pack-1", 2},
         {"science-pack-2", 2},
         {"science-pack-3", 2},
+        {"high-tech-science-pack", 1},
       },
       time = 30,
       count = 250
@@ -161,7 +165,7 @@ data:extend(
       }
     },
     -- TODO: Accumulator tech only needed if antenna has built-in battery... of course you probably want them anyway...
-    prerequisites = {"electric-energy-distribution-2", "electric-energy-accumulators-1" , "radio"}
+    prerequisites = {"electric-energy-distribution-2", "electric-energy-accumulators-1" , "radio"},
     unit =
     {
       ingredients =

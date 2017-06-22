@@ -8,10 +8,15 @@
   * Added radio transmitter/receiver recipes (currently non-functional, used as an intermediate)
   * Update recipes for portal lander and solar harvester
   * Modify recipe of base satellite to align with new units
+  * Added technologies: Radio, Advanced Plastics
   * Added space telescope recipe
   * Added icons for: communication systems, navigation computer, satellite housing, solar array, solar harvester, space telescope
-  * Added descriptions for several items
+  * Added some missing descriptions
   * Added README.md and CHANGELOG.md
+
+### 0.5.5
+
+  * Fixed a GUI error sometimes triggered on reload
 
 ### 0.5.4
 

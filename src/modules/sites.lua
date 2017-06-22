@@ -205,7 +205,7 @@ function Sites.generateSurface(site)
 
   -- TODO: Loads of improvements to terrain generation: Distort asteroid shape with perlin, use
   -- some custom ground tiles, tidy up the edges, have mixed resources generate in more
-  -- interesting patterns. Misc debris and junk.
+  -- interesting patterns. Misc debris and junk (use base/graphics/entity/ship-wreck)
   for x = -site.width, site.width do
     for y = -site.height, site.height do
       local dist = math.sqrt(math.pow(x/halfWidth,2) + math.pow(y/halfHeight,2))

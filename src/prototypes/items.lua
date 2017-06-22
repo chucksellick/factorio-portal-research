@@ -1,6 +1,25 @@
 local ICON_BASE = "__portal-research__/graphics/icons/"
 data:extend(
 {
+  --[[
+  {
+    type = "item-group",
+    name = "space",
+    order = "da",
+    icon = "__portal-research__/graphics/item-group/space.png",
+  },
+  {
+    type = "item-subgroup",
+    name = "satellite-components",
+    group = "space",
+    order = "b"
+  },
+  {
+    type = "item-subgroup",
+    name = "satellite",
+    group = "space",
+    order = "c"
+  },]]
   {
     type = "item",
     name = "factorium-ore",
@@ -39,6 +58,16 @@ data:extend(
   },
   {
     type = "item",
+    name = "plastic-forming-plant",
+    icons = {{icon="__base__/graphics/icons/chemical-plant.png", tint={r=0.9,g=0.9,b=1,a=1.5}}},
+    flags = {"goes-to-quickbar"},
+    subgroup = "production-machine",
+    order = "e[chemical-plant]a[plastic-forming-plant]",
+    place_result = "plastic-forming-plant",
+    stack_size = 10
+  },
+  {
+    type = "item",
     name = "plexiglass-sheet",
     icon = ICON_BASE .. "plexiglass-sheet.png",
     flags = {"goes-to-main-inventory"},
@@ -58,7 +87,7 @@ data:extend(
   {
     type = "item",
     name = "vacuum-tube",
-    icon = ICON_BASE .. "factorium-crystal-small.png",
+    icon = ICON_BASE .. "vacuum-tube.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "intermediate-product",
     order = "h[vacuum-tube]",
