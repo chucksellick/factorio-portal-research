@@ -549,6 +549,12 @@ function Gui.updateForPlayer(player, options)
   if options.tab and playerData.current_tab and playerData.current_tab.name == options.tab then
     buildTab(player, options.tab)
   end
+
+  if options.object then
+    if options.show then
+      Gui.showObjectDetails(player, options.object)
+    end
+  end
 end
 
 function Gui.update(options)

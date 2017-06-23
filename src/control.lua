@@ -687,11 +687,6 @@ function onRocketLaunched(event)
   local launchSite = Sites.getSiteForEntity(event.rocket_silo)
   if event.rocket.get_item_count("portal-lander") > 0 then
     local lander = Orbitals.newUnit("portal-lander", force, launchSite, {})
-    global.landers[lander.id] = lander
-    for i, player in pairs(force.connected_players) do
-      Gui.updateForPlayer(player)
-      Gui.showObjectDetails(player, lander)
-    end
     -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
     -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
   end
@@ -699,22 +694,10 @@ function onRocketLaunched(event)
   if event.rocket.get_item_count("solar-harvester") > 0 then
     -- Add a transmitter
     local harvester = Orbitals.newUnit("solar-harvester", force, launchSite, {})
-    global.harvesters[harvester.id] = harvester
-    global.transmitters[harvester.id] = harvester
-    updateMicrowaveTargets()
-
-    for i, player in pairs(force.connected_players) do
-      Gui.updateForPlayer(player)
-      Gui.showObjectDetails(player, harvester)
-    end
   end
 
   if event.rocket.get_item_count("space-telescope") > 0 then
     local telescope = Orbitals.newUnit("space-telescope", force, launchSite, {})
-    -- TODO: Open orbitals tab / telescope details if nothing else open
-    global.scanners[telescope.id] = telescope
-    -- Create a worker entity
-    Scanners.setupWorkerEntity(telescope)
   end
 end
 

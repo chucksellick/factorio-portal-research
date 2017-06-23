@@ -35,7 +35,22 @@ function Orbitals.newUnit(name, force, launchSite, data)
   -- Store and increment id count
   global.orbitals[orbital.id] = orbital
   global.next_orbital_id = global.next_orbital_id + 1
-  Gui.update{tab="orbitals", force=orbital.force, object=orbital}
+
+  if orbital.name == "portal-lander" then
+    global.landers[lander.id] = lander
+  elseif orbital.name == "space-telescope" then
+    -- Create a worker entity
+    Scanners.setupWorkerEntity(orbital)
+    global.scanners[telescope.id] = orbital
+  elseif orbital.name == "solar-harvester" then
+    global.harvesters[harvester.id] = orbital
+    global.transmitters[harvester.id] = orbital
+    updateMicrowaveTargets()
+  end
+
+-- TODO: Only open if nothing else focused? Or wait in a queue until thing is closed. Notification message.
+  Gui.update{tab="orbitals", force=orbital.force, object=orbital, show=true}
+
   return orbital
 end
 
