@@ -168,6 +168,7 @@ function Sites.generateRandom(force, scanner, scan_spec)
     has_portal = false
   }
 
+  -- TODO: Distant scanners will get juicier sites, but you still want some around the base to detect e.g. incoming meteor showers, solar flares
   -- TODO: Needs quite a bit of tweaking
   site.distance = scan_spec.base_distance + scanner.site.distance + math.random() * forceData.site_distance_multiplier
 
