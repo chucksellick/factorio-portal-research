@@ -65,14 +65,17 @@ function Gui.initForPlayer(player)
 
   playerData.tabs = playerData.tabs or {}
   for i,tabDef in pairs(tabDefs) do
-    tabDef.tab = playerData.gui.tabs.add { -- playerData.gui.tabs.flow.add {
+    local tab = playerData.gui.tabs.add {
       type = "sprite-button",
       name = tabDef.name .. "-tab",
       sprite = tabDef.sprite,
       style = mod_gui.button_style,
       tooltip = {"gui-portal-research." .. tabDef.name .. "-tab-tooltip"}
     }
-    playerData.tabs[tabDef.tab.name] = tabDef
+    playerData.tabs[tab.name] = {
+      name = tabDef.name,
+      button = tab
+    }
   end
 
   playerData.windows = {}
@@ -84,7 +87,8 @@ function Gui.initForPlayer(player)
     window.scroll = window.frame.add{name="scroll", type="scroll-pane", direction="vertical"}
     window.scroll.horizontal_scroll_policy = "never"
     window.scroll.vertical_scroll_policy = "auto"
-    window.scroll.style.maximal_height = 500
+    -- TODO: Check height of game, set accordingly?
+    window.scroll.style.maximal_height = 700
     window.scroll.style.bottom_padding = 9
 
     playerData.windows[windowName] = window
@@ -93,14 +97,9 @@ function Gui.initForPlayer(player)
   Gui.updateForPlayer(player)
 end
 
-function Gui.updateForPlayer(player)
-  -- TODO: Only show buttons as appropriate for player entities / tech level
-  local playerData = getPlayerData(player)
+function Gui.message(options)
+  -- TODO: Use a special frame for this and display a notification so player can review messages and jump to object details
 
-  -- Emergency home button needs to show whenever not on Nauvis (at least by teleportation). Some of these surfaces
-  -- could be from other mods (e.g. Factorissimo) and since we have no idea how these are created
-  -- and interlinked there are all kinds of ways players could make broken situations and not be able to get home!
-  playerData.buttons["emergency-home-button"].button.style.visible = (player.surface.name ~= "nauvis")
 end
 
 local function createButton(player, gui_parent, options)
@@ -349,6 +348,23 @@ local function buildOrbitalsList(player, list, root, options)
   end
 end
 
+local function buildTab(player, tab_name)
+  local options = {
+    window="primary-tab",
+    caption={"gui-portal-research."..tab_name.."-tab-caption"}
+  }
+  local gui = openWindow(player, options)
+  if tab_name == "sites" then
+    buildSitesList(player, Sites.list(player.force), gui, options)
+  elseif tab_name == "orbitals" then
+    buildOrbitalsList(player, Orbitals.list(player.force), gui, options)
+  elseif tab_name == "portals" then
+    --buildPortalsList(player, Portals.list(player.force), gui)
+  elseif tab_name == "power" then
+    --buildPowerList(player, Portals.list(player.force), gui)
+  end
+end
+
 local function pickPortalTargets(player, portal)
   local window_options = {
     window="secondary-pane",
@@ -515,7 +531,39 @@ function Gui.showObjectDetails(player, object, options)
     elseif object.name == "solar-harvester" then
     end
   end
+end
 
+-- TODO: Actually break this in two? Deciding generally which buttons are available to a player is a bit
+-- different 
+function Gui.updateForPlayer(player, options)
+  options = options or {}
+  -- TODO: Only show buttons as appropriate for player entities / tech level
+  local playerData = getPlayerData(player)
+
+  -- Emergency home button needs to show whenever not on Nauvis (at least by teleportation). Some of these surfaces
+  -- could be from other mods (e.g. Factorissimo) and since we have no idea how these are created
+  -- and interlinked there are all kinds of ways players could make broken situations and not be able to get home!
+  playerData.buttons["emergency-home-button"].button.style.visible = (player.surface.name ~= "nauvis")
+
+  -- Update the tab only if the player has it open
+  if options.tab and playerData.current_tab and playerData.current_tab.name == options.tab then
+    buildTab(player, options.tab)
+  end
+end
+
+function Gui.update(options)
+  if options.force then
+    for i,player in pairs(options.force.connected_players) do
+      Gui.updateForPlayer(player, options)
+    end
+  elseif options.player then
+    Gui.updateForPlayer(options.player)
+  else
+    -- Otherwise global update! (Careful)
+    for i,player in pairs(game.players) do
+      Gui.update(player, options)
+    end
+  end
 end
 
 function Gui.tick(event)
@@ -549,26 +597,13 @@ local function onGuiClick(event)
     return
   end
 
-  if playerData.tabs[name] and playerData.tabs[name].tab == event.element then
+  if playerData.tabs[name] and playerData.tabs[name].button == event.element then
     local clicked_tab = playerData.tabs[name]
-    local options = {
-      window="primary-tab",
-      caption={"gui-portal-research."..clicked_tab.name.."-tab-caption"}
-    }
     closeWindows(player)
     if playerData.current_tab == clicked_tab then
       playerData.current_tab = nil
     else
-      local gui = openWindow(player, options)
-      if clicked_tab.name == "sites" then
-        buildSitesList(player, Sites.list(player.force), gui, options)
-      elseif clicked_tab.name == "orbitals" then
-        buildOrbitalsList(player, Orbitals.list(player.force), gui, options)
-      elseif clicked_tab.name == "portals" then
-        --buildPortalsList(player, Portals.list(player.force), gui)
-      elseif clicked_tab.name == "power" then
-        --buildPowerList(player, Portals.list(player.force), gui)
-      end
+      buildTab(player, clicked_tab.name)
       playerData.current_tab = clicked_tab
     end
     return
@@ -611,10 +646,11 @@ local function onGuiClick(event)
       -- Need better tracking of what models are shown in the windows and what their original render
       -- path was
     elseif button.action.name == "pick-orbital-destination" then
-      -- TODO: Implement transit time
-      -- Send orbital to selected site
-      Orbitals.orbitalArrivedAtSite(button.action.orbital, button.action.destination)
+      -- Close the triggering window first; could open a new window as a result
       closeWindow(player, {window=button.window})
+      -- Send orbital to selected site
+      -- TODO: Implement transit time
+      Orbitals.orbitalArrivedAtSite(button.action.orbital, button.action.destination)
     end
   end
 end

@@ -1,5 +1,10 @@
 # Portal Research Changelog
 
+### 0.6.1
+  * Fixed portal landers not removing themselves once landed
+  * Some Gui improvements
+  * Update sites, orbitals tab list when unit is added or removed
+
 ### 0.6.0
 
   * Added README.md and CHANGELOG.md

@@ -57,6 +57,10 @@ function Sites.list(force, predicate)
   end
 end
 
+function Sites.getSiteName(site)
+  return site.surface_name or site.custom_name or site.name
+end
+
 function Sites.getHiddenWorkerSurface()
   if global.hidden_worker_surface == nil then
     local surface = game.create_surface(HIDDEN_WORKER_SURFACE_NAME)
