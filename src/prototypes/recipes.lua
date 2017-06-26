@@ -71,7 +71,7 @@ data:extend(
       {"electronic-circuit", 5},
       {"pipe", 5}
     },
-    result= "chemical-plant"
+    result = "plastic-forming-plant"
   },
   {
     type = "recipe-category",

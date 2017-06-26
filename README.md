@@ -1,6 +1,6 @@
 == Space & Portals
 
-Factorio mod (C) 2017 Downplay Ltd
+Factorio mod by Doc
 
 This mod adds a variety of mid- and late-game technologies and extends the end-game with new research into space exploration and portals. Entirely new mechanics, logistical and design challenges await as you expand your orbital network to plunder resources from asteroids ... and perhaps ultimately acquire the ability to send a distress message home!
 
@@ -21,7 +21,6 @@ Major features:
 
 TODO:
 
-   - Mainframe
    - Orbital Cargo Drop Containers, an efficient way to deliver resources from off-world
    - Orbital Mining Lasers enable extremely fast resource extraction
    - Personal Microwave Antenna lets you power your suit remotely from the grid
@@ -29,14 +28,4 @@ TODO:
    - Portal defense equipment ... rips stuff up automaticallly with portals
    - Portal weapon / factorium ammo
    - Oh and a couple of turrets
-
-Thanks to the following mods and mod authors for inspiration and examples.
-
-Space Platform mod by Daid https://mods.factorio.com/mods/daid/space-platform
-(some graphics and implementation)
-
-Factorissimo
-Orbital Ion Cannon
-Space Platform
-Teleportation
-RSO
+   - Mainframe

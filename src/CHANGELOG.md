@@ -1,13 +1,16 @@
 # Portal Research Changelog
 
+### 0.6.2
+
+  * Fix completely broken plastic plant recipe
+
 ### 0.6.1
   * Fixed portal landers not removing themselves once landed
-  * Some Gui improvements
-  * Update sites, orbitals tab list when unit is added or removed
+  * Update orbitals tab list when any unit is added or removed
 
 ### 0.6.0
 
-  * Added README.md and CHANGELOG.md
+  * New orbital: Space Telescope, can spot asteroids much further away with much better resources
   * PCUs now use medium crystals to make science pack easier
   * Separate plexiglass sheet production from lenses
   * New assembler: Plastic Forming Plant to make plastic objects out of plexiglass
@@ -18,10 +21,10 @@
   * Added unique icons for most items
   * Added some missing descriptions
   * Added technologies: Radio Communication, Advanced Plastics
-  * New orbital: Space Telescope, can spot asteroids much further away with much better resources
   * Give increasing space science rewards for all the new satellite types
   * Fixed crash when removing Microwave equipment from player grid
   * Reduce portal chest inventory to 1 stack
+  * Added README.md and CHANGELOG.md
 
 ### 0.5.5
 
