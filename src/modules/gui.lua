@@ -262,7 +262,7 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
       camera.style.minimal_width = preview_size
       camera.style.minimal_height = preview_size
     else
-      gui.add{type="label", caption={"portal-research.site-not-explored"}}
+      gui.add{type="label", caption={"portal-research.site-not-yet-explored"}}
     end
   end
 
