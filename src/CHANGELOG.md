@@ -26,6 +26,7 @@
   * Broken build with no files
 
 ### 0.6.1
+
   * Fixed portal landers not removing themselves once landed
   * Update orbitals tab list when any unit is added or removed
 
