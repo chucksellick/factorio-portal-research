@@ -433,6 +433,7 @@ data:extend(
       module_slots = 3
     },
     allowed_effects = {"consumption", "speed", "productivity", "pollution"},
+    light = {intensity = 1, size = 10},
     resistances =
     {
       {

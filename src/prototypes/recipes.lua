@@ -78,8 +78,6 @@ data:extend(
     name = "plastic-forming"
   },
   {
-    -- TODO: Lenses and tubes should be normal assemblers?
-    -- TODO: Alternately, could be making lenses directly from diamond or factorium ...
     type = "recipe",
     name = "plexiglass-lens",
     icon = ICON_BASE .. "plexiglass-lens.png",
@@ -91,8 +89,10 @@ data:extend(
     { 
       {type="item", name="plexiglass-sheet", amount=2},
       {type="item", name="iron-plate", amount=2}, -- TODO: Concave-mould, becomes an output
-      --{type="fluid", name="lubricant", amount=20}, -- TODO: Dry ice for cooling? Lava?
-      {type="fluid", name="water", amount=50} -- Water for cooling, results in steam
+      --{type="fluid", name="lubricant", amount=20}, 
+      {type="fluid", name="steam", amount=20}, -- Steam for heating
+      {type="fluid", name="water", amount=50} -- Water for cooling, results in steam. TODO: Need some tactic to dispose of the steam.
+      -- TODO: Dry ice for cooling?
     },
     results =
     {
@@ -351,6 +351,32 @@ data:extend(
   },
   {
     type = "recipe",
+    name = "radio-transceiver-mast",
+    enabled = false,
+    ingredients =
+    {
+      {"copper-cable", 5},
+      {"advanced-circuit", 5},
+      {"vacuum-tube", 2},
+      {"big-electric-pole", 1}
+    },
+    result = "radio-transceiver-mast"
+  },
+  {
+    type = "recipe",
+    name = "orbital-logistics-combinator",
+    enabled = false,
+    ingredients =
+    {
+      {"copper-cable", 5},
+      {"electronic-circuit", 5},
+      {"iron-plate", 4},
+      {"radio-transceiver-mast", 1},
+    },
+    result = "orbital-logistics-combinator"
+  },
+  {
+    type = "recipe",
     name = "satellite-housing",
     energy_required = 60,
     enabled = false,
@@ -400,9 +426,9 @@ data:extend(
     category = "crafting",
     ingredients =
     {
-      {"radio-transmitter", 10},
-      {"radio-antenna", 10},
+      {"radio-transceiver-mast", 20},
       {"advanced-circuit", 200},
+      -- TODO: Needs some extra bells and whistles really. Maybe a speaker combinator?
     },
     result = "communication-systems"
   },
@@ -446,32 +472,6 @@ data:extend(
   },
   {
     type = "recipe",
-    name = "radio-transmitter",
-    enabled = false,
-    ingredients =
-    {
-      {"copper-cable", 5},
-      {"advanced-circuit", 5},
-      {"vacuum-tube", 2},
-      {"big-electric-pole", 1}
-    },
-    result = "radio-transmitter"
-  },
-  {
-    type = "recipe",
-    name = "radio-antenna",
-    enabled = false,
-    ingredients =
-    {
-      {"copper-cable", 5},
-      {"advanced-circuit", 5},
-      {"vacuum-tube", 2},
-      {"big-electric-pole", 1}
-    },
-    result = "radio-antenna"
-  },
-  {
-    type = "recipe",
     name = "space-telescope",
     energy_required = 20,
     enabled = false,
@@ -487,18 +487,23 @@ data:extend(
     },
     result = "space-telescope"
   }
-  --[[{
+  --[[
+  {
     type = "recipe",
-    name = "orbital-logistics-combinator",
+    name = "orbital-mining-laser",
+    energy_required = 20,
     enabled = false,
+    category = "crafting",
     ingredients =
     {
-      {"copper-cable", 5},
-      {"electronic-circuit", 5},
-      {"vacuum-tube", 1},
-      {"iron-plate", 4},
+      {"satellite-housing", 1},
+      {"navigation-computer", 1},
+      {"communication-systems", 1},
+      {"solar-array", 4},
+      {"telescope", 10},
+      {"iron-gear-wheel", 100}
     },
-    result = "orbital-logistics-combinator"
+    result = "orbital-mining-laser"
   },
   ]]
 })

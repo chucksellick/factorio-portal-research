@@ -4,7 +4,7 @@ data:extend(
   {
     -- TODO: This could be "space plastics" to be a bit different, and require space science(?).
     -- But satellites couldn't have comms systems because they would need this prereq, so comms systems
-    -- would be for an "mapping satellite" (look up correct term for this)
+    -- would be for an "mapping satellite" (need better term for this)
     type = "technology",
     name = "advanced-plastics",
     icon = "__base__/graphics/technology/plastics.png",
@@ -75,12 +75,8 @@ data:extend(
       },
       {
         type = "unlock-recipe",
-        recipe = "radio-transmitter"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "radio-antenna"
-      },
+        recipe = "radio-transceiver-mast"
+      }
     },
     prerequisites = {"electric-energy-distribution-1", "advanced-electronics"},
     unit =
