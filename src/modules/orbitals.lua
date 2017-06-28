@@ -41,14 +41,14 @@ function Orbitals.newUnit(name, force, launchSite, data)
   elseif orbital.name == "space-telescope" then
     -- Create a worker entity
     Scanners.setupWorkerEntity(orbital)
-    global.scanners[telescope.id] = orbital
+    global.scanners[orbital.id] = orbital
   elseif orbital.name == "solar-harvester" then
-    global.harvesters[harvester.id] = orbital
-    global.transmitters[harvester.id] = orbital
+    global.harvesters[orbital.id] = orbital
+    global.transmitters[orbital.id] = orbital
     updateMicrowaveTargets()
   end
 
--- TODO: Only open if nothing else focused? Or wait in a queue until thing is closed. Notification message.
+  -- TODO: Only open if nothing else focused? Or wait in a queue until thing is closed. Notification message.
   Gui.update{tab="orbitals", force=orbital.force, object=orbital, show=true}
 
   return orbital
