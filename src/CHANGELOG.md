@@ -1,5 +1,9 @@
 # Portal Research Changelog
 
+### 0.6.6
+
+  * Revert plastic forming plant to electric energy
+
 ### 0.6.5
 
   * Fixed launching portals

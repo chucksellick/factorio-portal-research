@@ -609,6 +609,15 @@ data:extend(
       apparent_volume = 1.5,
     },
     crafting_speed = 1.25,
+    energy_source =
+    {
+      type = "electric",
+      usage_priority = "secondary-input",
+      emissions = 0.05 / 3.5
+    },
+    energy_usage = "350kW",
+    -- TODO: Was quite an interesting build with heat. Consider bringing back with some kind of electric heater?
+    --[[
     target_temperature = 135,
     energy_usage = "10MW",
     energy_source =
@@ -650,6 +659,7 @@ data:extend(
           }
         })
     },
+    ]]
     ingredient_count = 6,
     crafting_categories = {"plastic-forming"},
     fluid_boxes =
