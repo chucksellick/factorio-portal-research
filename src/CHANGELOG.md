@@ -1,8 +1,21 @@
 # Portal Research Changelog
 
-### 0.6.2
+### 0.6.5
+
+  * Fixed launching portals
+
+### 0.6.4
+
+  * Include *.md files in build (README.md, CHANGELOG.md)
+  * Add script interfaces to remove/alter resources
+
+### 0.6.3
 
   * Fix completely broken plastic plant recipe
+
+### 0.6.2
+
+  * Broken build with no files
 
 ### 0.6.1
   * Fixed portal landers not removing themselves once landed

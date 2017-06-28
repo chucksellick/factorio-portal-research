@@ -37,7 +37,7 @@ function Orbitals.newUnit(name, force, launchSite, data)
   global.next_orbital_id = global.next_orbital_id + 1
 
   if orbital.name == "portal-lander" then
-    global.landers[lander.id] = lander
+    global.landers[orbital.id] = orbital
   elseif orbital.name == "space-telescope" then
     -- Create a worker entity
     Scanners.setupWorkerEntity(orbital)

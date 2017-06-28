@@ -1,6 +1,6 @@
 {
   "name": "factorio-portal-research",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "dependencies": {
     "gulp": "^3.9.1"
   }
