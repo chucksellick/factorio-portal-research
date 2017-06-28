@@ -337,7 +337,7 @@ data:extend(
         {"science-pack-3", 2},
         {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
-        {"military-science-pack", 1}, -- TODO: ?? - sort of makes sense but not really...
+        {"military-science-pack", 1},
         {"space-science-pack", 1}
       },
       time = 30
@@ -366,15 +366,85 @@ data:extend(
         {"science-pack-3", 2},
         {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
-        {"military-science-pack", 1}, -- TODO: ?? - sort of makes sense but not really...
-        {"space-science-pack", 1}
+        {"military-science-pack", 1},
+        {"space-science-pack", 2}
       },
       time = 30
     }
   },
-  -- TODO: There is nothing to manage sending data back/forth, this should be the job of mainframes... Can have maps crackling with static when not enough CPU power and/or satellites
---[[,
   {
+    type = "technology",
+    name = "extraplanetary-logistics", -- TODO: Does orbital logistics sound better even if less accurate?
+    -- TODO: Radio is only required for the combinator. Could move to another tech. Hesitant to put it on radio tho as orbitals aren't possible yet at that point.
+    prerequisites = {"interplanetary-teleportation", "logistics-3", "radio"},
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "cargo-container"
+      },
+      --{
+        --type = "unlock-recipe",
+        --recipe = "cargo-loader" -- ideally doubles as an unloader...
+      --},
+      {
+        type = "unlock-recipe",
+        recipe = "cargo-catapult"
+      },
+      { 
+        type = "unlock-recipe",
+        recipe = "cargo-drop-site"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-logistics-combinator"
+      }
+    },
+    -- TODO: Research is quite harsh for this and for zero-gee robots.
+    unit =
+    {
+      count = 2500,
+      ingredients =
+      {
+        {"science-pack-1", 4},
+        {"science-pack-2", 4},
+        {"science-pack-3", 4},
+        {"production-science-pack", 2},
+        {"high-tech-science-pack", 1},
+        {"military-science-pack", 1},
+        {"space-science-pack", 2}
+      },
+      time = 30
+    }
+  },
+  {
+    type = "technology",
+    name = "zero-gravity-robotics",
+    prerequisites = {"construction-robotics", "extraplanetary-logistics"},
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-repair-station"
+      }
+    },
+    unit =
+    {
+      count = 2500,
+      ingredients =
+      {
+        {"science-pack-1", 4},
+        {"science-pack-2", 4},
+        {"science-pack-3", 4},
+        {"production-science-pack", 2},
+        {"high-tech-science-pack", 1},
+        {"military-science-pack", 1},
+        {"space-science-pack", 2}
+      },
+      time = 30
+    }
+  } --[[,
+    {
     type = "technology",
     name = "orbital-mining",
     prerequisites = {"long-range-optics"},
@@ -390,38 +460,8 @@ data:extend(
       }
     }
   },
-  {
-    type = "technology",
-    name = "extraplanetary-logistics", -- Does orbital logistics sound betteer even if less accurate?
-    prerequisites = {"interplanetary-teleportation", "logistics-3"},
-    -- The container could still be used without the catapult to improve throughput if using
-    -- another method of cargo delivery (trains, portal boxes/belts), which WILL be necessary anyway.
-    -- So could move the catapult unlock to e.g. gravitational mechanics. I dunno...
-    effects =
+
     {
-      {
-        type = "unlock-recipe",
-        recipe = "cargo-container"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "cargo-loader" -- ideally doubles as an unloader...
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "cargo-catapult"
-      },
-      { 
-        type = "unlock-recipe",
-        recipe = "cargo-drop-site"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "orbital-logistics-combinator"
-      }
-    }
-  },
-  {
     type = "technology",
     name = "portal-robotics",
     prerequisites = {"construction-robotics", "extraplanetary-logistics"},
@@ -437,19 +477,5 @@ data:extend(
     --    recipe = "portal-logistics-robot"
   --    }
     }
-  },
-  {
-    type = "technology",
-    name = "zero-gravity-robotics",
-    prerequisites = {"construction-robotics", "extraplanetary-logistics"},
-    effects =
-    {
-      {
-        type = "unlock-recipe",
-        recipe = "orbital-repair-station"
-      }
-    }
   }]]--
-  -- TODO: teletrains! personal teleport. phase ammo.
-  -- Portal destruction planner. portal bulk move, orbital factory deployment...
 })

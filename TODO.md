@@ -43,3 +43,9 @@ tone down heat consumption of plastic forming
     - Send up repair drones
     - Some research to reduce damage from micrometeors etc. (defense system)
     - Mainframes to help with this, also observatories/telescopes
+
+
+  * Mainframes generally needed to manage data IO
+    - Maps crackling with static when not enough CPU power and/or satellites
+  * teletrains! personal teleport. phase ammo.
+  * Portal destruction planner. portal bulk move, orbital factory deployment...

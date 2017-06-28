@@ -486,6 +486,25 @@ data:extend(
       {"iron-gear-wheel", 100}
     },
     result = "space-telescope"
+  },
+  {
+    type = "recipe",
+    name = "orbital-repair-station",
+    energy_required = 20,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"satellite-housing", 1},
+      {"navigation-computer", 1},
+      {"communication-systems", 5},
+      {"solar-array", 10},
+      {"construction-robot", 100},
+      {"roboport", 1},
+      {"repair-pack", 1000}
+      -- TODO: A whole new assembler for satellites! (satellite hangar?)
+    },
+    result = "space-telescope"
   }
   --[[
   {
@@ -501,7 +520,6 @@ data:extend(
       {"communication-systems", 1},
       {"solar-array", 4},
       {"telescope", 10},
-      {"iron-gear-wheel", 100}
     },
     result = "orbital-mining-laser"
   },
