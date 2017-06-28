@@ -20,3 +20,26 @@ why are some chests not teleporting
 emergency teleport when no portal = pick any nearest one we can find
 allow naming things
 tone down heat consumption of plastic forming
+
+
+  Some general ideas/todos:
+
+  * Environmental conditions on asteroids.
+    - Different day/night cycle
+    - No wind but is there anything to affect?
+    - No burners allowed in atmosphere. (Unless some crazy atmosphericc bubble constructed)
+    - No clouds :(  (seems ok at night tho)
+  * Orbital research lab
+    - Initially deploys with 1000(?) of each science pack (a separate science pack bundle recipe)
+    - Needs deliveries of additional science bundles over time as they are consumed
+    - Must receive power (microwave)?
+  * Space platform / space elevator
+    - Shuttle system to move goods between offworld sites
+    - Elevator to move goods between ground and space
+  * More detailed simulation of offworld activity
+    - Time taken for e.g. landers to reach asteroids (scaling with time)
+    - Orbital map, danger of orbit collisions (reduced with research), control heights/speeds of orbit
+    - Degradation over time due to micrometeors, solar flares, general weathering
+    - Send up repair drones
+    - Some research to reduce damage from micrometeors etc. (defense system)
+    - Mainframes to help with this, also observatories/telescopes

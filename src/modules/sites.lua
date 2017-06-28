@@ -210,11 +210,28 @@ local offworld_resources = {
 }
 
 function Sites.addOffworldResource(name, weight, richness)
+  -- Remove if already exists
+  Sites.removeOffworldResource(name)
   table.insert(offworld_resources, {
     name=name,
     weight=weight,
     richness=richness
   })
+end
+
+function Sites.removeOffworldResource(name)
+  -- Safe remove by iterating backwards
+  for i=#offworld_resources,1,-1 do
+    if offworld_resources[i].name == name then
+      table.remove(offworld_resources, i)
+    end
+  end
+end
+
+function Sites.clearOffworldResources()
+  -- Remove all resources, originally here for Omnimatter which does its own thing
+  -- Note: Could have be dependency issues depending on the running order, if multiple mods are doing this.
+  offworld_resources = {}
 end
 
 function Sites.generateResourceEstimate(site)
