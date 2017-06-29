@@ -15,6 +15,7 @@ local inspect = require("lib.inspect")
 -- TODO: Intentionally global now to avoid cross-references between modules causing
 -- recursion. Could try the package.loaded[...] solution from:
 -- https://stackoverflow.com/questions/8248698/recommended-way-to-have-2-modules-recursively-refer-to-each-other-in-lua-5-2
+Ticks = require("modules.ticks")
 Gui = require("modules.gui")
 Player = require("modules.player")
 Portals = require("modules.portals")
@@ -66,6 +67,8 @@ function On_Init()
   remote.call("silo_script", "add_tracked_item", "solar-harvester")
   remote.call("silo_script", "add_tracked_item", "space-telescope")
   remote.call("silo_script", "update_gui")
+
+  Ticks.init()
 end
 
 script.on_init(On_Init)
@@ -299,12 +302,14 @@ end
 script.on_event({defines.events.on_player_placed_equipment}, onPlacedEquipment)
 script.on_event({defines.events.on_player_removed_equipment}, onRemovedEquipment)
 
-script.on_event(defines.events.on_tick, function(event) 
+script.on_event(defines.events.on_tick, function(event)
+  -- TODO: Eventually handle all of these by registering ticks
   Portals.checkPlayersForTeleports()
   chestsMoveStacks(event)
   beltsMoveItems(event)
   Scanners.scan(event)
   Power.distributeMicrowavePower(event)
+  Ticks.tick(event.tick)
   Gui.tick(event)
 end)
 

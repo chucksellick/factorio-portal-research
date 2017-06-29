@@ -5,7 +5,7 @@ var path = require("path");
 var gulp = require('gulp');
 
 var infoPath = "./src/info.json";
-var srcPaths = ["src/**/*.lua", "src/**/*.png", "src/**/*.cfg", "src/**/*.md"];
+var srcPaths = ["src/**/*.lua", "src/**/*.png", "src/**/*.cfg", "src/**/*.md", "src/**/*.json"];
 
 var homePath = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 var appPath = (process.platform === 'win32') ? "AppData\\Roaming\\Factorio" : "Library/Application Support/factorio";

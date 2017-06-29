@@ -289,15 +289,17 @@ local function buildSitesList(player, list, root, options)
   end
 end
 
+-- TODO: Move this stuff out to Orbitals
 local function commonOrbitalDetails(playerData, orbital, gui, window_options)
   gui.add{type="sprite", sprite="item/" .. orbital.name}
   gui.add{type="label", caption={"portal-research.orbital-location-caption"}}  
-  if orbital.is_moving then
+  if orbital.in_transit then
     gui.add{type="label", caption={"portal-research.orbital-transitting-caption"}}
-    siteMiniDetails(playerData.player, orbital.destination, gui)
-    local time_to_arrival = (orbital.finishes_moving_at - game.tick)/60
-    gui.add{type="label", caption={"portal-research.orbital-eta-caption", time_to_arrival}}
-    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_moving_at)/(orbital.finishes_moving_at - orbital.started_moving_at)}
+    siteMiniDetails(playerData.player, orbital.transit_destination, gui)
+    -- TODO: Assumptions here and elsewhere that speed is constant (for now it is).
+    local time_to_arrival = (orbital.transit_complete_tick.tick - game.tick)/60
+    gui.add{type="label", caption={"portal-research.orbital-eta-caption", Util.round(time_to_arrival, 1), Util.round(orbital.transit_distance,1)}}
+    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
   else
     siteMiniDetails(playerData.player, orbital.site, gui)
     if orbital.site.is_offworld then
@@ -334,13 +336,20 @@ local function buildOrbitalsList(player, list, root, options)
     if orbital.site then
       siteMiniDetails(player, orbital.site, row)
     end
+
     createButton(player, row, {
       name="view-orbital-details-" .. orbital.id,
       caption={"portal-research.portal-details-button-caption"},
       action={name="orbital-details",orbital=orbital},
       window=options.window
     })
+    if orbital.in_transit then
+      row = root.add{type="flow",direction="horizontal"}
+      siteMiniDetails(player, orbital.transit_destination, row)
+      row.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
+    end
   end
+    -- TODO: Tick to update every second
 end
 
 local function buildTab(player, tab_name)
@@ -520,10 +529,12 @@ function Gui.showObjectDetails(player, object, options)
   elseif object.is_orbital then
     commonOrbitalDetails(playerData, object, gui, window_options)
     if object.name == "portal-lander" then
-      if not object.destination then
+      if not object.transit_destination then
         pickOrbitalDestination(player, object)
       end
+      -- TODO: Maybe don't deploy automatically on arrival; show button to do so
     elseif object.name == "solar-harvester" then
+      -- TODO: Show power / target
     end
   end
 end
@@ -669,9 +680,8 @@ local function onGuiClick(event)
     elseif button.action.name == "pick-orbital-destination" then
       -- Close the triggering window first; could open a new window as a result
       closeWindow(player, {window=button.window})
-      -- Send orbital to selected site
-      -- TODO: Implement transit time
-      Orbitals.orbitalArrivedAtSite(button.action.orbital, button.action.destination)
+      -- Start orbital moving to selected site
+      Orbitals.sendOrbitalToSite(button.action.orbital, button.action.destination)
     end
   end
 end
