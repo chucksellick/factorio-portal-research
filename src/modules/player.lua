@@ -12,7 +12,7 @@ function Player.surfaceChanged(player)
 
   -- Player may need to use a different transmitter
   -- TODO: Immediately cutoff beam (and update microwaves list)
-  updateMicrowaveTargets()
+  Power.updateMicrowaveTargets()
 
   -- Update home teleport button
   Gui.updateForPlayer(player)

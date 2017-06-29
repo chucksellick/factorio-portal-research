@@ -49,3 +49,12 @@ tone down heat consumption of plastic forming
     - Maps crackling with static when not enough CPU power and/or satellites
   * teletrains! personal teleport. phase ammo.
   * Portal destruction planner. portal bulk move, orbital factory deployment...
+
+Graphics:
+  Tech icons:
+    * advanced-plastics
+    * advanced-optics
+    * extraplanetary-logistics
+    * zero-gravity-robotics
+    * orbital-mining
+    * portal-robotics

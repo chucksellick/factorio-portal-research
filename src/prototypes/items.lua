@@ -183,22 +183,22 @@ data:extend(
   },
   {
     type = "item",
-    name = "radio-antenna",
-    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=0,g=1,b=0}}},
+    name = "orbital-logistics-combinator",
+    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=1,g=0,b=0}}},
     flags = {"goes-to-main-inventory"},
-    --place_result = "radio-antenna",
+    --place_result = "orbital-logistics-combinator",
     subgroup = "circuit-network",
-    order = "e[radio]-a[radio-antenna]",
+    order = "e[radio]-a[orbital-logistics-combinator]",
     stack_size = 50
   },
   {
     type = "item",
-    name = "radio-transmitter",
-    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=1,g=0,b=0}}},
+    name = "radio-transceiver-mast",
+    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=0,g=1,b=0}}},
     flags = {"goes-to-main-inventory"},
-    --place_result = "radio-transmitter",
+    --place_result = "radio-receiver-mast",
     subgroup = "circuit-network",
-    order = "e[radio]-a[radio-antenna]",
+    order = "e[radio]-a[radio-transceiver-mast]",
     stack_size = 50
   },
   {

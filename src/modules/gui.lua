@@ -97,11 +97,6 @@ function Gui.initForPlayer(player)
   Gui.updateForPlayer(player)
 end
 
-function Gui.message(options)
-  -- TODO: Use a special frame for this and display a notification so player can review messages and jump to object details
-
-end
-
 local function createButton(player, gui_parent, options)
   local playerData = getPlayerData(player)
   local element = gui_parent.add{
@@ -563,11 +558,31 @@ function Gui.update(options)
       Gui.updateForPlayer(player, options)
     end
   elseif options.player then
-    Gui.updateForPlayer(options.player)
+    Gui.updateForPlayer(options.player, options)
   else
     -- Otherwise global update! (Careful)
     for i,player in pairs(game.players) do
-      Gui.update(player, options)
+      Gui.updateForPlayer(player, options)
+    end
+  end
+end
+
+function Gui.messagePlayer(player, options)
+  -- TODO: Use a special frame for this and display a notification so player can review messages and jump to object details
+  -- TODO: Options.target is a target entity that can be viewed in a camera if off-surface
+  player.print(options.message)
+end
+function Gui.message(options)
+  if options.force then
+    for i,player in pairs(options.force.connected_players) do
+      Gui.messagePlayer(player, options)
+    end
+  elseif options.player then
+    Gui.messagePlayer(options.player)
+  else
+    -- Otherwise global update! (Careful)
+    for i,player in pairs(game.players) do
+      Gui.messagePlayer(player, options)
     end
   end
 end

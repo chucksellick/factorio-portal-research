@@ -45,7 +45,7 @@ function Orbitals.newUnit(name, force, launchSite, data)
   elseif orbital.name == "solar-harvester" then
     global.harvesters[orbital.id] = orbital
     global.transmitters[orbital.id] = orbital
-    updateMicrowaveTargets()
+    Power.updateMicrowaveTargets()
   end
 
   -- TODO: Only open if nothing else focused? Or wait in a queue until thing is closed. Notification message.
@@ -67,10 +67,9 @@ function Orbitals.orbitalArrivedAtSite(orbital, site)
     }
   end
   if orbital.name == "solar-harvester" then
-    updateMicrowaveTargets()
+    Power.updateMicrowaveTargets()
   end
 end
-
 function Orbitals.remove(orbital)
   global.orbitals[orbital.id] = nil
   -- TODO: Update microwave links if harvester

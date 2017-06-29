@@ -374,11 +374,16 @@ data:extend(
   },
   {
     type = "technology",
-    name = "extraplanetary-logistics", -- TODO: Does orbital logistics sound better even if less accurate?
-    -- TODO: Radio is only required for the combinator. Could move to another tech. Hesitant to put it on radio tho as orbitals aren't possible yet at that point.
+    name = "orbital-logistics", -- TODO: Does orbital logistics sound better even if less accurate?
+    icon = "__base__/graphics/technology/plastics.png",
     prerequisites = {"interplanetary-teleportation", "logistics-3", "radio"},
     effects =
     {
+      {
+        type = "unlock-recipe",
+        recipe = "orbital-logistics-combinator"
+      },
+      --[[
       {
         type = "unlock-recipe",
         recipe = "cargo-container"
@@ -394,11 +399,7 @@ data:extend(
       { 
         type = "unlock-recipe",
         recipe = "cargo-drop-site"
-      },
-      {
-        type = "unlock-recipe",
-        recipe = "orbital-logistics-combinator"
-      }
+      },]]
     },
     -- TODO: Research is quite harsh for this and for zero-gee robots.
     unit =
@@ -420,7 +421,8 @@ data:extend(
   {
     type = "technology",
     name = "zero-gravity-robotics",
-    prerequisites = {"construction-robotics", "extraplanetary-logistics"},
+    icon = "__base__/graphics/technology/construction-robotics.png",
+    prerequisites = {"construction-robotics", "orbital-logistics"},
     effects =
     {
       {
@@ -464,7 +466,7 @@ data:extend(
     {
     type = "technology",
     name = "portal-robotics",
-    prerequisites = {"construction-robotics", "extraplanetary-logistics"},
+    prerequisites = {"construction-robotics", "orbital-logistics"},
     effects =
     {
       {
