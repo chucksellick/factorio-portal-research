@@ -1,16 +1,22 @@
 local ICON_BASE = "__portal-research__/graphics/icons/"
 data:extend(
 {
-  --[[
   {
     type = "item-group",
     name = "space",
     order = "da",
     icon = "__portal-research__/graphics/item-group/space.png",
+    icon_size = 64,
   },
   {
     type = "item-subgroup",
-    name = "satellite-components",
+    name = "cargo-drop",
+    group = "space",
+    order = "a"
+  },
+  {
+    type = "item-subgroup",
+    name = "satellite-component",
     group = "space",
     order = "b"
   },
@@ -19,7 +25,7 @@ data:extend(
     name = "satellite",
     group = "space",
     order = "c"
-  },]]
+  },
   {
     type = "item",
     name = "factorium-ore",
@@ -183,22 +189,42 @@ data:extend(
   },
   {
     type = "item",
-    name = "orbital-logistics-combinator",
-    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=1,g=0,b=0}}},
+    name = "radio-mast",
+    icon = ICON_BASE .. "radio-mast.png",
     flags = {"goes-to-main-inventory"},
-    --place_result = "orbital-logistics-combinator",
+    place_result = "radio-mast",
+    subgroup = "circuit-network",
+    order = "e[radio]-a[radio-mast]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "orbital-logistics-combinator",
+    icon = ICON_BASE .. "orbital-logistics-combinator.png",
+    flags = {"goes-to-main-inventory"},
+    place_result = "orbital-logistics-combinator",
     subgroup = "circuit-network",
     order = "e[radio]-a[orbital-logistics-combinator]",
     stack_size = 50
   },
   {
     type = "item",
-    name = "radio-transceiver-mast",
-    icons = {{icon = "__base__/graphics/icons/constant-combinator.png", tint={r=0,g=1,b=0}}},
+    name = "cargo-container",
+    icons = {{icon = "__base__/graphics/icons/cargo-wagon.png", tint={r=0.8,g=0.8,b=0.8}}},
     flags = {"goes-to-main-inventory"},
-    --place_result = "radio-receiver-mast",
-    subgroup = "circuit-network",
-    order = "e[radio]-a[radio-transceiver-mast]",
+    --place_result = "cargo-container",
+    subgroup = "cargo-drop",
+    order = "a[cargo-container]",
+    stack_size = 50
+  },
+  {
+    type = "item",
+    name = "cargo-catapult",
+    icons = {{icon = "__base__/graphics/icons/rail.png", tint={r=0.4,g=0.4,b=1}}},
+    flags = {"goes-to-main-inventory"},
+    --place_result = "cargo-catapult",
+    subgroup = "cargo-drop",
+    order = "c[cargo-catapult]",
     stack_size = 50
   },
   {
@@ -238,8 +264,8 @@ data:extend(
     name = "satellite-housing",
     icon = ICON_BASE .. "satellite-housing.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product",
-    order = "q[satellite-housing]",
+    subgroup = "satellite-component",
+    order = "a[satellite-housing]",
     stack_size = 10
   },
   {
@@ -247,8 +273,8 @@ data:extend(
     name = "communication-systems",
     icon = ICON_BASE .. "communication-systems.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product",
-    order = "q[communication-systems]",
+    subgroup = "satellite-component",
+    order = "c[communication-systems]",
     stack_size = 10
   },
   {
@@ -256,8 +282,8 @@ data:extend(
     name = "navigation-computer",
     icon = ICON_BASE .. "navigation-computer.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product",
-    order = "q[navigation-computer]",
+    subgroup = "satellite-component",
+    order = "b[navigation-computer]",
     stack_size = 10
   },
   {
@@ -265,8 +291,8 @@ data:extend(
     name = "solar-array",
     icon = ICON_BASE .. "solar-array.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product",
-    order = "p[solar-array]",
+    subgroup = "satellite-component",
+    order = "d[solar-array]",
     stack_size = 10
   },
   {
@@ -274,18 +300,8 @@ data:extend(
     name = "portal-lander",
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product",
-    order = "r[portal-system]-a[portal-lander]",
-    stack_size = 1
-  },
-  {
-    type = "item",
-    name = "space-telescope",
-    icon = ICON_BASE .. "space-telescope.png",
-    flags = {"goes-to-main-inventory"},
-    subgroup = "production-machine",
-    -- TODO: It's next to the observatory now, but maybe all satellites should be grouped together instead (entirely new tab?)
-    order = "g[space-telescope]",
+    subgroup = "satellite",
+    order = "a[portal-lander]",
     stack_size = 1
   },
   {
@@ -293,8 +309,26 @@ data:extend(
     name = "solar-harvester",
     icon = ICON_BASE .. "solar-harvester.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "energy",
-    order = "d[solar-panel]-b[solar-harvester]",
+    subgroup = "satellite",
+    order = "b[solar-harvester]",
+    stack_size = 1
+  },
+  {
+    type = "item",
+    name = "space-telescope",
+    icon = ICON_BASE .. "space-telescope.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "satellite",
+    order = "c[space-telescope]",
+    stack_size = 1
+  },
+  {
+    type = "item",
+    name = "orbital-repair-station",
+    icon = "__base__/graphics/icons/satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "satellite",
+    order = "d[orbital-mining-laser]",
     stack_size = 1
   },
   {
@@ -302,8 +336,8 @@ data:extend(
     name = "orbital-mining-laser",
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
-    subgroup = "intermediate-product", -- Subgroup production instead?
-    order = "r[portal-system]-c[orbital-mining-laser]",
+    subgroup = "satellite",
+    order = "e[orbital-mining-laser]",
     stack_size = 1
   }
 })

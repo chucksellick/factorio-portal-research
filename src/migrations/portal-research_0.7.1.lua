@@ -14,6 +14,6 @@ for i, force in pairs(game.forces) do
     end
   end
   if force.technologies["radio"] and force.technologies["radio"].researched then
-    force.recipes["radio-transceiver-mast"].enabled = true
+    force.recipes["radio-mast"].enabled = true
   end
 end

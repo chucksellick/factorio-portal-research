@@ -1,8 +1,6 @@
 -- Orbitals units. Usually these are just data but sometimes we might need to hide
 -- a real entity somewhere to do their work.
 
--- TODO: hidden surface for placing fake worker entities
-
 local Orbitals = {}
 
 function Orbitals.list(force)

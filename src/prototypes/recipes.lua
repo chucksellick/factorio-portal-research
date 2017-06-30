@@ -351,7 +351,7 @@ data:extend(
   },
   {
     type = "recipe",
-    name = "radio-transceiver-mast",
+    name = "radio-mast",
     enabled = false,
     ingredients =
     {
@@ -360,7 +360,7 @@ data:extend(
       {"vacuum-tube", 2},
       {"big-electric-pole", 1}
     },
-    result = "radio-transceiver-mast"
+    result = "radio-mast"
   },
   {
     type = "recipe",
@@ -371,10 +371,44 @@ data:extend(
       {"copper-cable", 5},
       {"electronic-circuit", 5},
       {"iron-plate", 4},
-      {"radio-transceiver-mast", 1},
+      {"radio-mast", 1},
     },
     result = "orbital-logistics-combinator"
   },
+  {
+    type = "recipe",
+    name = "cargo-container",
+    enabled = false,
+    ingredients =
+    {
+      {"iron-gear-wheel", 10},
+      {"iron-plate", 20},
+      {"low-density-structure", 5}
+    },
+    result = "cargo-container"
+  },
+  {
+    type = "recipe",
+    name = "cargo-catapult",
+    enabled = false,
+    ingredients =
+    {
+      {"iron-gear-wheel", 10},
+      {"rail", 10},
+      {"accumulator", 10},
+      {"copper-cable", 20}
+    },
+    result = "cargo-catapult"
+  },
+  --[[
+      --{
+        --type = "unlock-recipe",
+        --recipe = "cargo-loader" -- ideally doubles as an unloader...
+      --},
+      { 
+        type = "unlock-recipe",
+        recipe = "cargo-drop-site"
+      },]]
   {
     type = "recipe",
     name = "satellite-housing",
@@ -394,11 +428,14 @@ data:extend(
     name = "solar-array",
     energy_required = 60,
     enabled = false,
-    category = "crafting",
+    category = "crafting-with-fluid",
     ingredients = {
       {"solar-panel", 100},
-      {"accumulator", 84}, -- Cheesy in-joke
-      -- TODO: Gears for unfolding. Lube? Steel or sticks or low-dens for the scaffold. Plexiglass sheets to protect?
+      --{"plexiglass-sheet", 100},
+      {"accumulator", 84},
+      {"iron-gear-wheel", 50},
+      --{"iron-stick", 20},
+      {type="fluid", name="lubricant", amount=100},
     },
     result = "solar-array",
     stack_size = 20
@@ -412,9 +449,9 @@ data:extend(
     ingredients =
     {
       {"radar", 10},
-      {"advanced-circuit", 200},
       {"processing-unit", 100},
-      -- TODO: vacuum tubes? effectivity/speed modules?
+      {"vacuum-tube", 50},
+      {"speed-module", 10}
     },
     result = "navigation-computer"
   },
@@ -426,7 +463,7 @@ data:extend(
     category = "crafting",
     ingredients =
     {
-      {"radio-transceiver-mast", 20},
+      {"radio-mast", 20},
       {"advanced-circuit", 200},
       -- TODO: Needs some extra bells and whistles really. Maybe a speaker combinator?
     },
@@ -453,17 +490,18 @@ data:extend(
   {
     type = "recipe",
     name = "portal-lander",
-    energy_required = 20,
+    energy_required = 90,
     enabled = false,
     category = "crafting",
     ingredients =
     {
       {"medium-portal", 1},
       {"satellite-housing", 1},
-      {"navigation-computer", 1},
-      --{"re-entry-boosters",1}, (...or foil parachute)
-      {"rocket-fuel", 200}
-      -- Plus, inserters or robots to unpack the portal on landing?
+      {"navigation-computer", 5},
+      {"solar-array", 1},
+      {"rocket-fuel", 200},
+      {"fast-inserter", 10},
+      {"construction-robot", 10},
       -- How about batteries for the initial power, or some other kind of power method? (Could be a 4th big component)
       -- TODO: Perhaps require a different type of fuel for space operation?
       -- https://forums.factorio.com/viewtopic.php?f=6&t=3802
@@ -473,7 +511,7 @@ data:extend(
   {
     type = "recipe",
     name = "space-telescope",
-    energy_required = 20,
+    energy_required = 90,
     enabled = false,
     category = "crafting",
     ingredients =
@@ -482,15 +520,15 @@ data:extend(
       {"navigation-computer", 1},
       {"communication-systems", 10},
       {"solar-array", 4},
-      {"telescope", 10},
-      {"iron-gear-wheel", 100}
+      {"telescope", 50},
+      {"iron-gear-wheel", 200}
     },
     result = "space-telescope"
   },
   {
     type = "recipe",
     name = "orbital-repair-station",
-    energy_required = 20,
+    energy_required = 120,
     enabled = false,
     category = "crafting",
     ingredients =
@@ -500,13 +538,33 @@ data:extend(
       {"communication-systems", 5},
       {"solar-array", 10},
       {"construction-robot", 100},
-      {"roboport", 1},
+      {"roboport", 5},
       {"repair-pack", 1000}
-      -- TODO: A whole new assembler for satellites! (satellite hangar?)
+      -- TODO: A whole new assembler for satellites! (satellite hangar?) and have them all require 7-8 ingredients
     },
-    result = "space-telescope"
+    result = "orbital-repair-station"
   }
   --[[
+  -- TODO: Spy satellite and space telescope could have an imaging system in common?
+  {
+    type = "recipe",
+    name = "spy-satellite",
+    energy_required = 45,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"satellite-housing", 1},
+      {"navigation-computer", 2},
+      {"communication-systems", 2},
+      {"solar-array", 2},
+      {"telescope", 20},
+      {"radar", 20},
+      {"vacuum-tube", 50},
+      {"processing-unit", 100},
+    },
+    result = "spy-satellite"
+  },
   {
     type = "recipe",
     name = "orbital-mining-laser",
@@ -518,8 +576,11 @@ data:extend(
       {"satellite-housing", 1},
       {"navigation-computer", 1},
       {"communication-systems", 1},
-      {"solar-array", 4},
-      {"telescope", 10},
+      {"telescope", 2},
+      {"solar-array", 20},
+      -- TODO: Or some combination of lenses/tubes to make a super laser?
+      -- Also use the super laser for a new 
+      {"laser-turret", 50},
     },
     result = "orbital-mining-laser"
   },

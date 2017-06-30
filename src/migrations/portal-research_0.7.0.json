@@ -1,12 +1,12 @@
 {
   "recipe":
   [
-    ["radio-antenna", "radio-transceiver-mast"],
-    ["radio-transmitter", "radio-transceiver-mast"]
+    ["radio-antenna", "radio-mast"],
+    ["radio-transmitter", "radio-mast"]
   ],
   "item":
   [
-    ["radio-antenna", "radio-transceiver-mast"],
-    ["radio-transmitter", "radio-transceiver-mast"]
+    ["radio-antenna", "radio-mast"],
+    ["radio-transmitter", "radio-mast"]
   ]
 }

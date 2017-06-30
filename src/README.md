@@ -63,3 +63,18 @@ The default table of values is as follows:
 ### Clear all ores
 
   remote.call("portal_research", "clear_offworld_resources")
+
+## Credits
+
+Special thanks to all other modders of Factorio for inspiration and examples but in particular:
+
+### Supercheese - Satellite Uplink Station
+
+https://forums.factorio.com/viewtopic.php?f=97&t=19883
+
+  * Borrowed dish graphic
+
+### MagmaMcFry - Factorissimo2
+
+  * A lot of code examples
+  

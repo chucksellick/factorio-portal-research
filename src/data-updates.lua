@@ -42,10 +42,6 @@ satellite_recipe.ingredients = {
   {"satellite-housing", 1},
   {"navigation-computer", 1},
   {"solar-array", 2},
-  -- TODO: Comms systems aren't needed until the satellite has data to send back...
-  -- TODO: Improve the science output once satellites are harder to send?
-  --{"communication-systems", 1},
-  --{"imaging-system", 1} -- Made from telescopes and stuff so it can see the planet surface. And computer stuff to process images. "ground-imager"??
   {"rocket-fuel", 50}
 }
 

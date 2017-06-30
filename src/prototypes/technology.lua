@@ -75,7 +75,7 @@ data:extend(
       },
       {
         type = "unlock-recipe",
-        recipe = "radio-transceiver-mast"
+        recipe = "radio-mast"
       }
     },
     prerequisites = {"electric-energy-distribution-1", "advanced-electronics"},
@@ -374,24 +374,24 @@ data:extend(
   },
   {
     type = "technology",
-    name = "orbital-logistics", -- TODO: Does orbital logistics sound better even if less accurate?
-    icon = "__base__/graphics/technology/plastics.png",
+    name = "orbital-logistics",
+    icon = ICON_BASE .. "orbital-logistics.png",
+    icon_size = 128,
     prerequisites = {"interplanetary-teleportation", "logistics-3", "radio"},
     effects =
     {
       {
         type = "unlock-recipe",
         recipe = "orbital-logistics-combinator"
-      },
-      --[[
+      },--[[
       {
         type = "unlock-recipe",
         recipe = "cargo-container"
       },
-      --{
-        --type = "unlock-recipe",
-        --recipe = "cargo-loader" -- ideally doubles as an unloader...
-      --},
+      {
+        type = "unlock-recipe",
+        recipe = "cargo-loader"
+      },
       {
         type = "unlock-recipe",
         recipe = "cargo-catapult"
