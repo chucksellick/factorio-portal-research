@@ -3,6 +3,19 @@
 
 local Orbitals = {}
 
+function Orbitals.init()
+  if not global.orbital_counts then
+    global.orbital_counts = {}
+    for id,orbital in global.orbitals do
+      if not global.orbital_counts[orbital.name] then
+        global.orbital_counts[orbital.name] = 1
+      else
+        global.orbital_counts[orbital.name] = global.orbital_counts[orbital.name] + 1
+      end
+    end
+  end
+end
+
 function Orbitals.list(options)
   local orbitals = global.orbitals
   local k,v = next(orbitals)
@@ -49,6 +62,7 @@ function Orbitals.newUnit(name, force, launchSite, data)
   -- Store and increment id count
   global.orbitals[orbital.id] = orbital
   global.next_orbital_id = global.next_orbital_id + 1
+  global.orbital_counts[orbital.name] = global.orbital_counts[orbital.name] + 1
 
   if orbital.name == "portal-lander" then
     global.landers[orbital.id] = orbital
@@ -81,6 +95,8 @@ function Orbitals.remove(orbital)
     global.scanners[orbital.id] = nil
     Scanners.destroyWorkerEntity(orbital)
   end
+  
+  global.orbital_counts[orbital.name] = global.orbital_counts[orbital.name] - 1
   Gui.update{tab="orbitals", force=orbital.force, object=orbital}
 end
 
@@ -269,6 +285,10 @@ function Orbitals.pickOrbitalDestination(player, orbital, options)
       end
     }
   })
+end
+
+function Orbitals.getCounts()
+  return global.orbital_counts
 end
 
 return Orbitals

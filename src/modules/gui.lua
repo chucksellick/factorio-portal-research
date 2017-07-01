@@ -9,8 +9,8 @@ local buttonDefs = {
 local tabDefs = {
   { name="orbitals", sprite = "item/satellite" },
   { name="sites", sprite = "portal-research.site-type-very-large-asteroid" },
-  { name="portals", sprite = "item/medium-portal" },
-  { name="power", sprite = "item/microwave-antenna" },
+  --{ name="portals", sprite = "item/medium-portal" },
+  --{ name="power", sprite = "item/microwave-antenna" },
 }
 local windowNames = { "primary-tab", "object-detail", "secondary-pane", "tertiary-pane", "hover-detail" }
 

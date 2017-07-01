@@ -23,6 +23,7 @@ Sites = require("modules.sites")
 Orbitals = require("modules.orbitals")
 Scanners = require("modules.scanners")
 Power = require("modules.power")
+Radio = require("modules.radio")
 
 remote.add_interface("portal_research", {
   add_offworld_resource = Sites.addOffworldResource,
@@ -129,15 +130,20 @@ function getEntityData(entity)
   return global.entities[entity.unit_number]
 end
 
+entity_types = {
+  ['medium-portal'] = {},
+  ['portal-chest'] = {},
+  ['portal-belt'] = {},
+  ['microwave-transmitter'] = {},
+  ['microwave-antenna'] = {},
+  ['observatory'] = {},
+  ['radio-mast'] = {},
+  ['orbital-logistics-combinator'] = {}
+}
+
 -- TODO: This is more of a entire "initializeEntity" now it also ends up creating power entities
 function createEntityData(entity)
-  if not(entity.name == "medium-portal"
-    or entity.name == "portal-chest"
-    or entity.name == "portal-belt"
-    or entity.name == "microwave-transmitter"
-    or entity.name == "microwave-antenna"
-    or entity.name == "observatory"
-    ) then return end
+  if not entity_types[entity.name] then return end
 
   local data = {
     id = entity.unit_number,
@@ -182,6 +188,14 @@ function createEntityData(entity)
     global.receivers[data.id] = data
     Power.updateMicrowaveTargets()
   end
+  if entity.name == "radio-mast" then
+    Radio.initializeMast(data)
+    ensureEnergyInterface(data)
+  end
+  if entity.name == "orbital-logistics-combinator" then
+    Radio.initializeLogisticsCombinator(data)
+    ensureEnergyInterface(data)
+  end
   return data
 end
 
@@ -191,7 +205,9 @@ function ensureEnergyInterface(entityData)
   end
 
   if entityData.entity.name == "portal-belt" or
-    entityData.entity.name == "portal-chest" then
+    entityData.entity.name == "portal-chest" or
+    entityData.entity.name == "radio-mast" or
+    entityData.entity.name == "orbital-logistics-combinator" then
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
@@ -245,25 +261,19 @@ function onBuiltEntity(event)
   getEntityData(event.created_entity)
 end
 
-function onMinedItem(event)
-  -- Don't know exactly which item, check all entities are still valid
-  for i,entity in pairs(global.entities) do
-    if not entity.entity.valid then
-      deleteEntityData(entity)
+function onDestroyEntity(event)
+  if entity_types[event.entity.name] then
+    local data = getEntityData(event.entity)
+    if data ~= nil then
+      deleteEntityData(data)
     end
   end
 end
 
-function onEntityDied(event)
-  local data = getEntityData(event.entity)
-  if data ~= nil then
-    deleteEntityData(data)
-  end
-end
-
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, onBuiltEntity)
-script.on_event({defines.events.on_player_mined_item, defines.events.on_robot_mined}, onMinedItem)
-script.on_event(defines.events.on_entity_died, onEntityDied)
+script.on_event({defines.events.on_entity_died, defines.events.on_player_mined_entity, defines.events.on_robot_mined_entity}, onDestroyEntity)
+
+-- TODO: For any tile entities will need to register different events
 
 --script.on_event(defines.events.on_preplayer_mined_item, onMinedItem)
 -- TODO: Check for the following, stop portals/chests/etc working while marked
@@ -528,6 +538,7 @@ function consumeBeltPower(inputBelt)
 end
 
 -- Handle objects launched in rockets
+-- TODO: Handle this in Orbitals
 function onRocketLaunched(event)
   local force = event.rocket.force
   local launchSite = Sites.getSiteForEntity(event.rocket_silo)
