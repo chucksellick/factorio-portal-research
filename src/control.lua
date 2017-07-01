@@ -533,12 +533,9 @@ function onRocketLaunched(event)
   local launchSite = Sites.getSiteForEntity(event.rocket_silo)
   if event.rocket.get_item_count("portal-lander") > 0 then
     local lander = Orbitals.newUnit("portal-lander", force, launchSite, {})
-    -- TODO: Once the portal is deployed, the lander can revert to a normal satellite - revealing map, acting as radar,
-    -- and it sort of justifies being able to carry on locating the portal, and receiving ongoing data about the asteroid.
   end
 
   if event.rocket.get_item_count("solar-harvester") > 0 then
-    -- Add a transmitter
     local harvester = Orbitals.newUnit("solar-harvester", force, launchSite, {})
   end
 

@@ -166,8 +166,8 @@ function Power.updateMicrowaveTargets()
     data.target_antennas = {}
     if data.current_target then
       -- Has transmitter been deleted?
-      -- TODO: Orbitals dying will be handled differently
-      if not data.is_orbital and data.deleted then
+      if data.deleted then
+        destroyBeamEntity(data)
         -- TODO: Should have an is_entity probably...
         if not data.current_target.is_equipment then
           data.current_target.entity.active = false

@@ -36,20 +36,36 @@ function Orbitals.newUnit(name, force, launchSite, data)
 
   if orbital.name == "portal-lander" then
     global.landers[orbital.id] = orbital
-  elseif orbital.name == "space-telescope" then
-    -- Create a worker entity
-    Scanners.setupWorkerEntity(orbital)
-    global.scanners[orbital.id] = orbital
   elseif orbital.name == "solar-harvester" then
     global.harvesters[orbital.id] = orbital
     global.transmitters[orbital.id] = orbital
     Power.updateMicrowaveTargets()
+  elseif orbital.name == "space-telescope" then
+    -- Create a worker entity
+    Scanners.setupWorkerEntity(orbital)
+    global.scanners[orbital.id] = orbital
   end
 
   -- TODO: Only open if nothing else focused? Or wait in a queue until thing is closed. Notification message.
   Gui.update{tab="orbitals", force=orbital.force, object=orbital, show=true}
 
   return orbital
+end
+
+function Orbitals.remove(orbital)
+  orbital.deleted = true
+  global.orbitals[orbital.id] = nil
+  if orbital.name == "portal-lander" then
+    global.landers[orbital.id] = nil
+  elseif orbital.name == "solar-harvester" then
+    global.harvesters[orbital.id] = nil
+    global.transmitters[orbital.id] = nil
+    Power.updateMicrowaveTargets()
+  elseif orbital.name == "space-telescope" then
+    global.scanners[orbital.id] = nil
+    Scanners.destroyWorkerEntity(orbital)
+  end
+  Gui.update{tab="orbitals", force=orbital.force, object=orbital}
 end
 
 function Orbitals.orbitalArrivedAtSite(orbital)
@@ -66,6 +82,8 @@ function Orbitals.orbitalArrivedAtSite(orbital)
   }
   if orbital.name == "portal-lander" and not site.surface_generated then
     -- Portal is deployeed, generate the asteroid and delete the orbital
+    -- TODO: lander can revert to a normal satellite - justifies being able to carry on
+    -- seeing/locating the portal, and receiving ongoing data about the asteroid
     local portal = Sites.generateSurface(site, orbital.force)
     Orbitals.remove(orbital)
     Gui.message{
@@ -118,12 +136,6 @@ function Orbitals.sendOrbitalToSite(orbital, site)
       Util.round(orbital.transit_distance,1)
     }
   }
-end
-
-function Orbitals.remove(orbital)
-  global.orbitals[orbital.id] = nil
-  -- TODO: Update microwave links if harvester
-  Gui.update{tab="orbitals", force=orbital.force, object=orbital}
 end
 
 Ticks.registerHandler("orbital.arrive_at_destination", function(data)
