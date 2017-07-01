@@ -1,6 +1,7 @@
+local GRAPHICS_BASE = "__portal-research__/graphics/"
 local beam_blend_mode = "additive-soft"
 
-function makeBeam(name, sound, width)
+function makeBeam(name, sound, width, tint)
   local result = 
   {
     type = "beam",
@@ -121,9 +122,22 @@ end
 
 data:extend(
 {
-  makeBeam("microwave-beam", true, 2.5, {r=1,g=0,b=0}),
-  makeBeam("microwave-beam", false, 2.5, {r=1,g=0,b=0}),
-  makeBeam("orbital-microwave-beam", true, 10, {r=1,g=0,b=0}),
-  makeBeam("orbital-microwave-beam", false, 10, {r=1,g=0,b=0})
+  makeBeam("microwave-beam", true, 2.5, {r=0,g=1,b=0}),
+  makeBeam("microwave-beam", false, 2.5, {r=0,g=1,b=0}),
+  makeBeam("orbital-microwave-beam", true, 10, {r=0,g=1,b=0}),
+  makeBeam("orbital-microwave-beam", false, 10, {r=0,g=1,b=0}),
+  {
+    -- Dummy entity to act as orbital source for beam
+    -- TODO: For equipment, could implement as a sticker on the player so it moves properly with the player?
+    type="simple-entity",
+    name="orbital-microwave-beam-source",
+    flags = {"not-on-map"},
+    collision_mask = {},
+    picture = {
+      filename = GRAPHICS_BASE .. "blank.png",
+      width = 1,
+      height = 1
+    }
+  }
 }
 )

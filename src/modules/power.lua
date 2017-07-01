@@ -1,13 +1,51 @@
 local Power = {}
 
-local function createBeamEntity(transmitter)
-  if transmitter.beam_entity or transmitter.is_orbital then return end -- TODO: Support orbital beams too
+-- TODO: Player beams are particularly distracting. Better to just have some glowly sprite
+-- sticking out of the player's backpack rather than a whole beam.
 
-  transmitter.beam_entity = transmitter.entity.surface.create_entity{
-    name="microwave-beam",
-    source=transmitter.entity,
-    target=transmitter.current_target.entity,
-    position=transmitter.entity.position
+local function destroyBeamEntity(transmitter)
+  if transmitter.beam_entity and transmitter.beam_entity.valid then
+    transmitter.beam_entity.destroy()
+    transmitter.beam_entity = nil
+  end
+  if transmitter.beam_entity_source and transmitter.beam_entity_source.valid then
+    transmitter.beam_entity_source.destroy()
+    transmitter.beam_entity_source = nil
+  end
+end
+
+local function createBeamEntity(transmitter)
+  -- Don't recreate beam when not needed
+  if transmitter.beam_entity and transmitter.beam_entity.valid
+    and not transmitter.is_orbital and not transmitter.current_target.is_equipment
+    then
+    return
+  end
+
+  destroyBeamEntity(transmitter)
+
+  local beam_name = "microwave-beam"
+  local beam_source = transmitter.entity
+  local beam_target = transmitter.current_target.is_equipment
+    and transmitter.current_target.player.character or transmitter.current_target.entity
+
+  -- TODO: Maybe instead of using beams should manually use a decorative/sticker sprite
+  -- that's very long (is any rotation possible at all?) Beams seem to have some issues we can't get around.
+  if transmitter.is_orbital then
+    beam_name = "orbital-microwave-beam"
+    beam_source =
+      beam_target.surface.create_entity{
+        name="orbital-microwave-beam-source",
+        position={x=beam_target.position.x,y=beam_target.position.y-100}
+      }
+    transmitter.beam_entity_source = beam_source
+  end
+
+  transmitter.beam_entity = beam_target.surface.create_entity {
+    name=beam_name,
+    source=beam_source,
+    target=beam_target,
+    position={x=beam_target.position.x,y=beam_target.position.y}
   }
 end
 
@@ -42,10 +80,7 @@ function Power.distributeMicrowavePower(event)
       end
 
       -- Beam can become invalid when the source or target are removed
-      if transmitter.beam_entity and transmitter.beam_entity.valid then
-        transmitter.beam_entity.destroy()
-        transmitter.beam_entity = nil
-      end
+      destroyBeamEntity(transmitter)
 
       -- Pick a new target.
       if transmitter.current_target_index == nil then transmitter.current_target_index = #transmitter.target_antennas end
@@ -121,14 +156,12 @@ function Power.distributeMicrowavePower(event)
       end
     end
   end
-  -- TODO: Need a bunch of visual improvements. Radars should point in the right directions and have beams.
+  -- TODO: Nice if radars pointed in the right directions
 end
 
 function Power.updateMicrowaveTargets()
   -- TODO: This could become horrible with a lot of units. It doesn't happen very often but still this
   -- data could be maintained more efficiently on create/destroy
-  -- TODO: Also there's a bug when the player changes surface, they might carry on receiving
-  -- power for a few cycles even tho the transmitter is no longer valid for them...
   for i, data in pairs(global.transmitters) do
     data.target_antennas = {}
     if data.current_target then
@@ -143,11 +176,15 @@ function Power.updateMicrowaveTargets()
       end
       -- Has receiver been deleted?
       if (data.current_target.entity and not data.current_target.entity.valid)
-        or (data.current_target.is_equipment and not data.current_target.equipment.valid)
+        or (data.current_target.is_equipment and 
+          (not data.current_target.equipment.valid
+            or data.current_target.player.surface ~= data.site.surface))
         then
+        data.current_target.current_source = nil
         data.current_target = nil
         -- Check same index again next time rather than end up skipping a target
         data.current_target_index = data.current_target_index - 1
+        destroyBeamEntity(data)
       end
     end
     for i, antenna in pairs(global.receivers) do
@@ -162,7 +199,5 @@ function Power.updateMicrowaveTargets()
   end
   -- TODO: Could fix energy source settings from prototype whilst we're at it in case anything changed (but should only be done oninit really)
 end
-
-
 
 return Power

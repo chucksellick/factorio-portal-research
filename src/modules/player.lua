@@ -8,10 +8,9 @@ function Player.surfaceChanged(player)
     end
   end
 
-  -- TODO: Also teleport logistic/construction/follower bots! (Fine when changing surface but not otherwise)
+  -- TODO: Also teleport logistic/construction/follower bots! (Only matters on current surface)
 
   -- Player may need to use a different transmitter
-  -- TODO: Immediately cutoff beam (and update microwaves list)
   Power.updateMicrowaveTargets()
 
   -- Update home teleport button

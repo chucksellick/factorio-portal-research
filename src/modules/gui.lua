@@ -302,9 +302,9 @@ local function commonOrbitalDetails(playerData, orbital, gui, window_options)
     gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
   else
     siteMiniDetails(playerData.player, orbital.site, gui)
-    if orbital.site.is_offworld then
+    -- TODO: Add a function to build a "standard" camera widget with map toggle^B^B^B^B and zoom support
+    if orbital.site.is_offworld and orbital.site.surface_generated then
       local preview_size = 200
-      -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
       local camera = gui.add{
         type="camera",
         position={x=0,y=0},

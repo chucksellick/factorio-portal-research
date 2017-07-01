@@ -252,7 +252,6 @@ data:extend(
  {
     type = "electric-energy-interface",
     name = "portal-belt-power",
-    --icon = "__base__/graphics/icons/express-underground-belt.png",
     icons = {{icon="__base__/graphics/icons/express-underground-belt.png",tint = {r=1, g=0.8, b=1, a=1}}},
     flags = {"placeable-off-grid"},
     collision_box = {{0, 0}, {0, 0}},

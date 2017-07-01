@@ -409,6 +409,7 @@ data:extend(
         type = "unlock-recipe",
         recipe = "cargo-drop-site"
       },]]
+
   {
     type = "recipe",
     name = "satellite-housing",
@@ -500,9 +501,8 @@ data:extend(
       {"navigation-computer", 5},
       {"solar-array", 1},
       {"rocket-fuel", 200},
-      {"fast-inserter", 10},
       {"construction-robot", 10},
-      -- How about batteries for the initial power, or some other kind of power method? (Could be a 4th big component)
+      -- How about batteries for the initial power, or some other kind of power method?
       -- TODO: Perhaps require a different type of fuel for space operation?
       -- https://forums.factorio.com/viewtopic.php?f=6&t=3802
     },
