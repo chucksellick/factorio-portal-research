@@ -97,12 +97,15 @@ function Gui.initForPlayer(player)
   Gui.updateForPlayer(player)
 end
 
-local function createButton(player, gui_parent, options)
+function Gui.createButton(player, gui_parent, options)
   local playerData = getPlayerData(player)
   local element = gui_parent.add{
     type = (options.sprite and "sprite-button" or "button"),
     name = options.name, -- TODO: Concatenate window name as well?
-    caption = (not options.sprite and options.caption or nil)
+    caption = (not options.sprite and options.caption or nil),
+    sprite = options.sprite,
+    style = mod_gui.button_style,
+    tooltip = (options.sprite and options.caption or nil)
   }
 
   -- TODO: Should display a warning if conflicting with an existing button id?
@@ -129,7 +132,7 @@ local function getPlayerGui(playerData)
   return playerData.gui
 end
 
-local function openWindow(player, options)
+function Gui.openWindow(player, options)
   -- TODO: Clean up existing frame data
   local playerData = getPlayerData(player)
   local window = playerData.windows[options.window]
@@ -188,26 +191,37 @@ local function spriteNameForSite(site)
   return "portal-research.site-type-" .. sprite
 end
 
-local function siteMiniDetails(player, site, parent)
-  local flow = parent.add{type="flow", direction="vertical"}
-  local line1 = flow.add{type="flow", direction="horizontal"}
-  local line2 = flow.add{type="flow", direction="horizontal"}
-  local line3 = flow.add{type="flow", direction="horizontal"}
-
+-- 3 cells in total for parent table (2 without resources)
+function siteMiniDetails(player, site, table, show_resources)
+  -- Wrap in a horizontal flow if not already rendering a table
+  if table.type ~= "table" then
+    table = table.add{type="flow", direction="horizontal"}
+  else
+    table.style.column_alignments[2] = "center"
+  end
+  if show_resources == nil then
+    show_resources = true
+  end
   local spriteName = spriteNameForSite(site)
   if spriteName~=nil then
-    line1.add{type="sprite",sprite=spriteName,tooltip={spriteName}}
+    local sprite = table.add{type="sprite",sprite=spriteName,tooltip={spriteName}}
+  else
+    table.add{type="label",caption="?"}
   end
-  line1.add{type="label",caption=site.custom_name or site.name}
-  if site.resources then
-    local tooltip = "portal-research.resource-quantity" .. (site.resources_estimated and "-estimated" or "")
-    for i,resource in pairs(site.resources) do
-      -- TODO: Display friendly numbers on button
-      line2.add{
-        type="sprite",
-        sprite="entity/" .. resource.resource.name,
-        tooltip={tooltip, {"entity-name." .. resource.resource.name}, formatResourceAmount(resource.amount)}
-      }
+  table.add{type="label",caption=site.custom_name or site.name}
+
+  if show_resources then
+    local row = table.add{type="flow",direction="horizontal"}
+    if site.resources then
+      local tooltip = "portal-research.resource-quantity" .. (site.resources_estimated and "-estimated" or "")
+      for i,resource in pairs(site.resources) do
+        -- TODO: Display friendly numbers on button
+        row.add{
+          type="sprite",
+          sprite="entity/" .. resource.resource.name,
+          tooltip={tooltip, {"entity-name." .. resource.resource.name}, formatResourceAmount(resource.amount)}
+        }
+      end
     end
   end
 end
@@ -265,17 +279,15 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
           caption={"close-dialog-caption"}}
 end
 
-local function buildSitesList(player, list, root, options)
+function Gui.buildSitesList(player, list, root, options)
   local options = options or {}
+  local table = root.add{type="table",colspan=(4 + (options.extra_buttons and #options.extra_buttons or 0))}
+
   for site in list do
-    local row = root.add{type="flow",direction="horizontal"}
-    siteMiniDetails(player, site, row)
-    -- Add buttons for 
-    local name_base = "-" .. site.name .. "-button"
-    --createButton(player, row, {name="site-details" .. name_base,caption="view-button-caption",action={name="site-details",site=site}, windowTarget)
+    siteMiniDetails(player, site, table)
 
     -- TODO: sprite buttons instead of captions
-    createButton(player, row, {
+    Gui.createButton(player, table, {
       name="view-site-details-" .. site.name,
       caption={"portal-research.site-details-button-caption"},
       action={name="site-details",site=site,window="tertiary-pane"},
@@ -283,85 +295,21 @@ local function buildSitesList(player, list, root, options)
     })
     if options.extra_buttons then
       for i,button in pairs(options.extra_buttons) do
-        createButton(player, row, button(site))
+        Gui.createButton(player, table, button(site))
       end
     end
   end
 end
 
--- TODO: Move this stuff out to Orbitals
-local function commonOrbitalDetails(playerData, orbital, gui, window_options)
-  gui.add{type="sprite", sprite="item/" .. orbital.name}
-  gui.add{type="label", caption={"portal-research.orbital-location-caption"}}  
-  if orbital.in_transit then
-    gui.add{type="label", caption={"portal-research.orbital-transitting-caption"}}
-    siteMiniDetails(playerData.player, orbital.transit_destination, gui)
-    -- TODO: Assumptions here and elsewhere that speed is constant (for now it is).
-    local time_to_arrival = (orbital.transit_complete_tick.tick - game.tick)/60
-    gui.add{type="label", caption={"portal-research.orbital-eta-caption", Util.round(time_to_arrival, 1), Util.round(orbital.transit_distance,1)}}
-    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
-  else
-    siteMiniDetails(playerData.player, orbital.site, gui)
-    -- TODO: Add a function to build a "standard" camera widget with map toggle^B^B^B^B and zoom support
-    if orbital.site.is_offworld and orbital.site.surface_generated then
-      local preview_size = 200
-      local camera = gui.add{
-        type="camera",
-        position={x=0,y=0},
-        surface_index = orbital.site.surface.index,
-        zoom = 0.15
-      }
-      camera.style.minimal_width = preview_size
-      camera.style.minimal_height = preview_size
-    end
-  end
-  createButton(playerData.player, gui, {
-    name = "change-orbital-destination-" .. orbital.id,
-    caption={"portal-research.change-destination-caption"},
-    action={name="change-orbital-destination",orbital=orbital,window="secondary-pane"},
-    window="object-detail"
-  })
-    -- TODO: Tick to update every second
-end
-
-local function buildOrbitalsList(player, list, root, options)
+local function buildTab(player, tab_name, options)
   local options = options or {}
-  local playerData = getPlayerData(player)
-  for orbital in list do
-    local row = root.add{type="flow",direction="horizontal"}
-    local name_base = "-orbital-" .. orbital.id .. "-button"
-
-    row.add{type="label", caption={"item-name." .. orbital.name}}
-    row.add{type="sprite", sprite="item/" .. orbital.name}
-    if orbital.site then
-      siteMiniDetails(player, orbital.site, row)
-    end
-
-    createButton(player, row, {
-      name="view-orbital-details-" .. orbital.id,
-      caption={"portal-research.portal-details-button-caption"},
-      action={name="orbital-details",orbital=orbital},
-      window=options.window
-    })
-    if orbital.in_transit then
-      row = root.add{type="flow",direction="horizontal"}
-      siteMiniDetails(player, orbital.transit_destination, row)
-      row.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
-    end
-  end
-    -- TODO: Tick to update every second
-end
-
-local function buildTab(player, tab_name)
-  local options = {
-    window="primary-tab",
-    caption={"gui-portal-research."..tab_name.."-tab-caption"}
-  }
-  local gui = openWindow(player, options)
+  options.window=options.window or "primary-tab"
+  options.caption=options.caption or {"gui-portal-research."..tab_name.."-tab-caption"}
+  local gui = Gui.openWindow(player, options)
   if tab_name == "sites" then
-    buildSitesList(player, Sites.list(player.force), gui, options)
+    Gui.buildSitesList(player, Sites.list(player.force), gui, options)
   elseif tab_name == "orbitals" then
-    buildOrbitalsList(player, Orbitals.list(player.force), gui, options)
+    Orbitals.buildOrbitalsList(player, gui, options)
   elseif tab_name == "portals" then
     --buildPortalsList(player, Portals.list(player.force), gui)
   elseif tab_name == "power" then
@@ -375,12 +323,17 @@ local function pickPortalTargets(player, portal)
     caption={"gui-portal-research.portal-target-select-caption." .. portal.entity.name},
     object=portal
   }
-  local gui = openWindow(player, window_options)
+  local gui = Gui.openWindow(player, window_options)
   local playerData = getPlayerData(player)
 
   -- List sites that don't yet have a portal
   local allowLongRange = player.force.technologies["interplanetary-teleportation"]
     and player.force.technologies["interplanetary-teleportation"].researched
+
+  local row = gui.add{
+    type="table",
+    colspan=5
+  }
 
   -- TODO: However, for box portals do check they're close enough on the surface until interplanetary is unlocked
   -- TODO: Maybe shorter distances initially, go to 50 on long-range, go to infinite on interplanetary
@@ -393,21 +346,17 @@ local function pickPortalTargets(player, portal)
       -- however we're also checking for different surfaces e.g. those created by Factorissimo
       and (allowLongRange or target.entity.surface == portal.entity.surface) then
 
-      -- TODO: Some of this is repeated in buildSitesList but it's a bit different
+      -- TODO: Some of this is repeated in Gui.buildSitesList but it's a bit different
 
-      local row = gui.add{
-        type="flow",
-        direction="horizontal"
-      }
-      --portalMiniDetails
-      siteMiniDetails(player, target.site, row)
-      createButton(player, row, {
+      -- TODO: Portal name at least
+      siteMiniDetails(player, target.site, table)
+      Gui.createButton(player, table, {
         name="view-portal-details-" .. target.id,
         caption={"portal-research.portal-details-button-caption"},
         action={name="portal-details",portal=target,open_target_select=false,window="tertiary-pane"},
         window="secondary-pane"
       })
-      createButton(player, row, {
+      Gui.createButton(player, table, {
         name="portal-" .. portal.id .. "-pick-target-portal-" .. target.id,
         caption={"portal-research.pick-portal-button-caption"},
         action={name="pick-portal-target",portal=portal,target_portal=target},
@@ -428,10 +377,10 @@ function Gui.showPortalDetails(player, portal, options)
   window_options.caption = window_options.caption or {"portal-research.portal-details-caption"}
   window_options.object = portal
 
-  local gui = openWindow(player, window_options)
+  local gui = Gui.openWindow(player, window_options)
 
   local playerData = getPlayerData(player)
-  -- TODO: Handle this in the openWindow stuff?
+  -- TODO: Handle this in the Gui.openWindow stuff?
   playerData.current_detail_object = portal
 
   buildNameEditor(player, gui, window_options)
@@ -476,38 +425,6 @@ function Gui.showPortalDetails(player, portal, options)
   end
 end
 
-local function pickOrbitalDestination(player, orbital, options)
-  local window_options = {
-    window="secondary-pane",
-    caption={"gui-portal-research.orbital-destination-select-caption." .. orbital.name},
-    object=orbital
-  }
-  local gui = openWindow(player, window_options)
-  local playerData = getPlayerData(player)
-
-  local predicate = function(site)
-    -- Landers must go to a site without a portal; everything else can go to asteroids
-    -- or nauvis. TODO: Maybe miners should only go to asteroids?
-    return (orbital.name == "portal-lander" and site.is_offworld
-      and not site.surface_generated and not site.has_portal) 
-      or (orbital.name ~= "portal-lander" and (site.is_offworld or site.name=="nauvis"))
-  end
-
-  -- TODO: The buttons system is pretty horrible, could be improved
-  buildSitesList(player, Sites.list(player.force, predicate), gui, {
-    extra_buttons = {
-      function(site)
-        return {
-          name="orbital-" .. orbital.id .. "-pick-destination-" .. site.name,
-          caption={"portal-research.pick-destination-button-caption"},
-          action={name="pick-orbital-destination",orbital=orbital,destination=site},
-          window="secondary-pane"
-        }
-      end
-    }
-  })
-end
-
 function Gui.showObjectDetails(player, object, options)
   local playerData = getPlayerData(player)
   local window_options = options or {}
@@ -522,15 +439,15 @@ function Gui.showObjectDetails(player, object, options)
     end
   end
 
-  local gui = openWindow(player, window_options)
+  local gui = Gui.openWindow(player, window_options)
 
   if object.is_offworld then
     Gui.showSiteDetails(playerData, object, gui, window_options)
   elseif object.is_orbital then
-    commonOrbitalDetails(playerData, object, gui, window_options)
+    Orbitals.commonOrbitalDetails(playerData, object, gui, window_options)
     if object.name == "portal-lander" then
       if not object.transit_destination then
-        pickOrbitalDestination(player, object)
+        Orbitals.pickOrbitalDestination(player, object)
       end
       -- TODO: Maybe don't deploy automatically on arrival; show button to do so
     elseif object.name == "solar-harvester" then
@@ -647,10 +564,12 @@ local function onGuiClick(event)
     -- function before it gets out of control
     if button.action.name == "site-details" then
       Gui.showObjectDetails(player, button.action.site, button.action)
+    elseif button.action.name == "filter-orbitals-list" then
+      buildTab(player, "orbitals", {orbital_type=button.action.type})
     elseif button.action.name == "orbital-details" then
       Gui.showObjectDetails(player, button.action.orbital, button.action)
     elseif button.action.name == "change-orbital-destination" then
-      pickOrbitalDestination(player, button.action.orbital, button.action)
+      Orbitals.pickOrbitalDestination(player, button.action.orbital, button.action)
     elseif button.action.name == "portal-details" then
       Gui.showPortalDetails(player, button.action.portal, button.action)
     elseif button.action.name == "pick-portal-target" then
