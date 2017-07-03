@@ -65,7 +65,7 @@ end
 
 local function enterPortal(player, portal, direction)
   if portal.teleport_target == nil then
-    Portals.openPortalGui(player, portal)
+    Gui.showEntityDetails(player, portal)
     return
   end
   -- Check enough energy is available

@@ -52,7 +52,7 @@ data:extend(
     selection_box = {{-1, -1}, {1, 1}},
     drawing_box = {{-1, -3}, {1, 0.5}},
 
-    item_slot_count = 18,
+    item_slot_count = 5,
     vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
     sprites =
     {
@@ -143,7 +143,7 @@ data:extend(
     selection_box = {{-1, -1}, {1, 1}},
     drawing_box = {{-1, -3}, {1, 0.5}},
 
-    item_slot_count = 18,
+    item_slot_count = 10,
     vehicle_impact_sound = { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
     sprites =
     {
@@ -212,7 +212,54 @@ data:extend(
       mastCircuit()
     },
 
-    circuit_wire_max_distance = 9
-  }  
+    circuit_wire_max_distance = 9,
+    additional_pastable_entities = {"radio-mast-transmitter"}
+  },
+  {
+    type = "lamp",
+    name = "radio-mast-transmitter",
+    minable = {hardness = 0.2, mining_time = 0.5, result = "radio-mast"},
+    max_health = 150,
+    corpse = "medium-remnants",
+    resistances =
+    {
+      {
+        type = "fire",
+        percent = 100
+      }
+    },
+    collision_box = {{-0.65, -0.65}, {0.65, 0.65}},
+    selection_box = {{-1, -1}, {1, 1}},
+    drawing_box = {{-1, -3}, {1, 0.5}},
+    vehicle_impact_sound = { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+    -- TODO: Maybe utilise the light to signal comms
+    -- TODO: What about having both entities in existence and tweaking z indices to choose which
+    -- one is active? Or having the constant combinator always in front and just updating the circuit
+    -- wires every time a Tick happens?
+    light =
+    {
+        intensity = 0.0,
+        size = 0
+    },
+    energy_source =
+    {
+      type = "electric",
+      usage_priority = "secondary-input",
+      buffer_capacity = "50kJ",
+    },
+    energy_usage_per_tick = "1kW",
+    -- TODO: Different pic for transmitter
+    picture_off = mastSprite("radio-mast"),
+    picture_on =
+    {
+        filename = GRAPHICS_BASE .. "blank.png",
+        width = 1,
+        height = 1,
+        frame_count = 1
+    },
+    circuit_wire_connection_point = mastCircuit(),
+    circuit_wire_max_distance = 9,
+    additional_pastable_entities = {"radio-mast"}
+  }
 }
 )

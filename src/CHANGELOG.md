@@ -3,11 +3,13 @@
 ### 0.7.2
 
   * Added entity: Orbital Logistics Combinator
+  * Added entity: Radio Mast
   * Implemented Ticks system for periodic entity actions with reduced UPS load
   * Tidied up GUI quite a bit
   * Orbitals now take time to move to their destination and their progress can be seen in GUI
   * Lots of recipe changes (particularly satellites) for both realism and balancing.
     Updating users will unfortunately need to check their machines are still working.
+  * Visible beams for microwave transmitters/receivers
 
 ### 0.6.7
 

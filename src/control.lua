@@ -84,6 +84,8 @@ end)
 script.on_configuration_changed(On_Init)
 
 function getPlayerData(player)
+  -- Might already be a playerData
+  if player.index == nil then return player end
   if not global.players[player.name] then
     global.players[player.name] = {
       player = player
@@ -140,6 +142,7 @@ entity_types = {
   ['microwave-antenna'] = {},
   ['observatory'] = {},
   ['radio-mast'] = {},
+  ['radio-mast-transmitter'] = {}, -- Can never be placed, but can be destroyed
   ['orbital-logistics-combinator'] = {}
 }
 
@@ -380,24 +383,6 @@ function energyRequiredForBeltTeleport(belt, count)
 end
 
 function chestsMoveStacks(event)
-
-  for player_index, player in pairs(game.players) do
-    -- Open chest GUI when player has chest open
-    local playerData = getPlayerData(player)
-
-    -- TODO: Move this to a generic checkOpenEntities() function in Gui.tick()
-    if not player.opened and playerData.guiPortalCurrent and playerData.guiPortalCurrent.entity.name == "portal-chest" then
-      closePortalTargetSelectGUI(player, chestData)
-    end
-    if player.opened and player.opened.name == "portal-chest" then
-      local chestData = getEntityData(player.opened)
-      if playerData.guiPortalCurrent ~= chestData then
-        -- TODO: However, periodically refresh the list in case chests are being built elsewhere
-        Portals.openPortalGui(player, chestData)
-      end
-    end
-  end
-
   -- Chests teleport every 2s (for now)
   -- TODO: Probably allow this to be set in GUI
   local checkFrequency = 120

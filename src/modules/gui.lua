@@ -226,13 +226,6 @@ function siteMiniDetails(player, site, table, show_resources)
   end
 end
 
-function Gui.showHoverDetail(player, data)
-  if data.entity.name == "medium-portal"
-    or data.entity.name == "portal-chest" then
-    Gui.showPortalDetails(player, data, {window="hover-detail", open_target_select=false})
-  end
-end
-
 function Gui.showSiteDetails(playerData, site, gui, window_options)
   local detailsTable = gui.add{type="table", colspan="2"}
   local function addDetailRow(label, value)
@@ -369,21 +362,9 @@ end
 
 -- TODO: Too much of this is in Gui rather than Portals
 -- TODO: Close GUI when running away from portal.
-function Gui.showPortalDetails(player, portal, options)
+function Gui.showPortalDetails(playerData, gui, portal, options)
   -- TODO: Show energy also
-  -- TODO: Check this doesn't get executed too much when walking through a portal
-  local window_options = options or {}
-  window_options.window = window_options.window or "object-detail"
-  window_options.caption = window_options.caption or {"portal-research.portal-details-caption"}
-  window_options.object = portal
-
-  local gui = Gui.openWindow(player, window_options)
-
-  local playerData = getPlayerData(player)
-  -- TODO: Handle this in the Gui.openWindow stuff?
-  playerData.current_detail_object = portal
-
-  buildNameEditor(player, gui, window_options)
+  buildNameEditor(playerData, gui, window_options)
 
   local preview_size = 200
   -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
@@ -419,9 +400,35 @@ function Gui.showPortalDetails(player, portal, options)
     target_camera.style.minimal_height = preview_size
   else
     gui.add{type="label", caption={"portal-research.no-target-portal"}}
-    if window_options.open_target_select ~= false then
-      pickPortalTargets(player, portal)
+    if options.open_target_select ~= false then
+      pickPortalTargets(playerData.player, portal)
     end
+  end
+end
+
+function Gui.showEntityDetails(player, data, options)
+  -- TODO: Check this doesn't get executed too much when walking through a portal
+  -- TODO: Periodically refresh the list for changes
+  local window_options = options or {}
+  window_options.window = window_options.window or "object-detail"
+  window_options.caption = window_options.caption
+    or {"portal-research." .. data.entity.name .. "-portal-details-caption"}
+  window_options.object = data
+
+  local gui = Gui.openWindow(player, window_options)
+  local playerData = getPlayerData(player)
+
+  if data.entity.name == "medium-portal"
+    or data.entity.name == "portal-chest" then
+
+    window_options.open_target_select = (window_name == "object-detail")
+    Gui.showPortalDetails(playerData, gui, data, window_options)
+
+  elseif data.entity.name == "radio-mast"
+    or data.entity.name == "radio-mast-transmitter" then
+
+    Radio.openMastGui(playerData, gui, data, window_options)
+
   end
 end
 
@@ -500,6 +507,7 @@ function Gui.messagePlayer(player, options)
   -- TODO: Options.target is a target entity that can be viewed in a camera if off-surface
   player.print(options.message)
 end
+
 function Gui.message(options)
   if options.force then
     for i,player in pairs(options.force.connected_players) do
@@ -517,18 +525,40 @@ end
 
 function Gui.tick(event)
   for i,player in pairs(game.players) do
-    -- TODO: More optimal to just loop through playerData instead?
+    -- TODO: More optimal to just loop through playerData instead since this happens every tick?
+
     local playerData = getPlayerData(player)
-    if playerData.hovered_object ~= nil and player.selected ~= playerData.hovered_object then
-      closeWindow(player, {window="hover-detail"})
+
+    -- Check for open via chests etc
+    if playerData.opened_object and not playerData.manually_opened_object
+      and player.opened ~= playerData.opened_object then
+
+      closeWindow(player, {window="object-detail"})
+      playerData.opened_object = nil
     end
-    if player.selected and player.selected ~= playerData.hovered_object then
+    if player.opened and player.opened ~= playerData.opened_object and entity_types[player.opened.name] then
+      local data = getEntityData(player.opened)
+      if data ~= nil then
+        Gui.showEntityDetails(player, data)
+      end
+      playerData.opened_object = player.opened
+    end
+
+    if playerData.hovered_object ~= nil and (player.selected ~= playerData.hovered_object
+      or playerData.hovered_object == playerData.opened_object) then
+
+      closeWindow(player, {window="hover-detail"})
+      playerData.hovered_object = nil
+    end
+    if player.selected and player.selected ~= playerData.hovered_object
+      and player.selected ~= playerData.opened_object
+      and entity_types[player.selected.name] then
       local data = getEntityData(player.selected)
       if data ~= nil then
-        Gui.showHoverDetail(player, data)
+        Gui.showEntityDetails(player, data, {window="hover-detail"})
       end
+      playerData.hovered_object = player.selected
     end
-    playerData.hovered_object = player.selected
   end
 end
 
@@ -571,7 +601,7 @@ local function onGuiClick(event)
     elseif button.action.name == "change-orbital-destination" then
       Orbitals.pickOrbitalDestination(player, button.action.orbital, button.action)
     elseif button.action.name == "portal-details" then
-      Gui.showPortalDetails(player, button.action.portal, button.action)
+      Gui.showEntityDetails(player, button.action.portal, button.action)
     elseif button.action.name == "pick-portal-target" then
       local chosen = button.action.target_portal
       button.action.portal.teleport_target = chosen
@@ -588,11 +618,8 @@ local function onGuiClick(event)
       -- Buffer size will need to change
       Portals.updateEnergyProperties(chosen)
       Portals.updateEnergyProperties(chosen.teleport_target)
-      -- TODO: Window should be closed automagically by the below call to showPortalDetails
-      -- but this doesn't work yet
-      closeWindow(player, {window=button.window})
       -- Refresh portal details
-      Gui.showPortalDetails(player, button.action.portal)
+      Gui.showEntityDetails(player, button.action.portal)
       -- TODO: If other players had GUI open for the same portal, should update all their views
       -- Need better tracking of what models are shown in the windows and what their original render
       -- path was
@@ -601,6 +628,11 @@ local function onGuiClick(event)
       closeWindow(player, {window=button.window})
       -- Start orbital moving to selected site
       Orbitals.sendOrbitalToSite(button.action.orbital, button.action.destination)
+    elseif button.action.name == "radio-mast-set-transmit" then
+      Radio.setTransmit(button.action.mast, button.action.transmit)
+      -- Reopen gui since the entity has changed, the window will automatically close
+      -- TODO: Other players on the same force may have lost the window
+      Gui.showEntityDetails(player, button.action.mast)
     end
   end
 end
