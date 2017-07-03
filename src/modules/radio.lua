@@ -9,11 +9,16 @@ local max_radio_combinator_slots = 10
 
 local wire_colours = {defines.wire_type.red,defines.wire_type.green}
 
-function Radio.init()
-  -- TODO: This implementation is broken for multiple forces, need to store channels per force
-  global.radio = global.radio or {
-    channels = {}
-  }
+function Radio.initForce(forceData)
+  forceData.radio = { channels = {} }
+end
+
+local function getChannels(force)
+  local data = getForceData(force)
+  if not data.radio then
+    Radio.initForce(data)
+  end
+  return data.radio.channels
 end
 
 function Radio.initializeMast(entityData)
@@ -110,7 +115,8 @@ end
 function Radio.changeMastChannel(entityData, channel)
   -- TODO: Clearing channel immediately, should lag a bit?
   if entityData.channel == channel then return end
-  global.radio.channels[entityData.channel] = nil
+  local channels = getChannel(entityData.force)
+  channels[entityData.channel] = nil
   entityData.channel = channel
 end
 
@@ -142,16 +148,18 @@ function Radio.readMastInput(entityData)
   end
 
   -- TODO: Store a list of the receivers
-  global.radio.channels[entityData.channel] = global.radio.channels[entityData.channel] or {}
-  global.radio.channels[entityData.channel].parameters = {parameters = parameters} -- That's correct.
+  local channels = getChannel(entityData.force)
+  channels[entityData.channel] = channels[entityData.channel] or {}
+  channels[entityData.channel].parameters = {parameters = parameters} -- That's correct.
 end
 
 function Radio.setMastOutput(entityData)
   -- TODO: Consume power
   local control_behavior = entityData.entity.get_or_create_control_behavior()
   if not control_behavior.enabled then return end
-  if global.radio.channels[entityData.channel] then
-    control_behavior.parameters = global.radio.channels[entityData.channel].parameters
+  local channels = getChannel(entityData.force)
+  if channels[entityData.channel] then
+    control_behavior.parameters = channels[entityData.channel].parameters
   else
     control_behavior.parameters = nil
   end

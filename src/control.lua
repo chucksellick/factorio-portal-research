@@ -101,6 +101,7 @@ function getForceData(force)
       site_distance_multiplier = 1
     }
     updateForceData(force)
+    Radio.initForce(global.forces[force.name])
   end
   return global.forces[force.name]
 end
