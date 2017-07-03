@@ -1,35 +1,41 @@
-# Portal Research (and Asteroid Mining)
+# Asteroid Mining and Portal Research
 
 Factorio mod by Doc
 https://forums.factorio.com/viewtopic.php?f=93&t=49940&p=290043
 
-This mod adds a number of powerful late- and end-game technologies, unlocking amazing new items that enable the following:
+This mod adds a number of late- and end-game technologies, unlocking amazing new items and locations and providing an entirely new post-rocket-launch game layer.
 
-* Use portals to teleport yourself (and items) quickly around the base
-* Scan the skies for asteroids containing vast amounts of resources
-* Deploy portals remotely to asteroids so you can travel there to set up a mining outpost
-* Power your asteroid outputs (and your suit) with space-based solar power
-* ...And eventually much more!
+Scan the skies for resource-rich asteroids, then teleport up there and build your outpost. Maintain your orbital fleet 
 
-Note: This is a very alpha release. The above features are all working but the GUI is pretty horrible and most graphics are just placeholders. There are also a lot of issues with balance and recipes that will take a lot of tweaking. I have plenty of ideas to develop and improve this mod but these things take time.
+Note: This is still a work in progress but has plenty of functional gameplay already. Recipes are unfortunately changing quite a bit between releases. The biggest problem is the GUI which is taking a lot of work!
 
-Some planned features are as follows:
+Planned features include a variety of new satellite types to launch such as probes, spy satellites, research stations, a defense grid, and orbital mining lasers! New ways to transfer resources between your base and your asteroid outposts, such as orbital drops and a space shuttle network. More fun stuff to happen in space! And perhaps one day the ultimate crowning achievement, the Space Elevator.
 
-* New combinators to send signals wirelessly, and read data from your orbital network
-* Use cheap probes to gauge asteroid resources before sending the expensive lander
-* Space telescopes to find juicier asteroids farther away, and perhaps other interstellar objects
-* Orbital mining lasers!
+## Guide
+
+### Asteroid mining
+
+Two key components are needed in order to mine asteroids. Firstly you will need to find asteroids: this is achieved by building Observatories or launching Space Telescopes which will keep scanning until they find asteroids. Space Telescopes can find much better asteroids. Then you will need to deliver a portal to the asteroid to establish a two-way portal link.
+
+Light levels vary on asteroids so solar may or may not work depending on the asteroid. Either way you might want to start investing in Space Based Solar Power to supply power remotely via microwave link.
+
+Resources can be returned to your base using a portal chest but watch out, portal usage consumes a *lot* of power.
+
+### Orbital Network
+
+Units that you launch will initially orbit your home base (Nauvis) but they can be sent to other locations that you've discovered to provide support there instead. Orbital units will take damage over time however and must be repaired by launching a Repair Station and keeping it stocked.
 
 ## 3rd party mod integrations
 
 This list will be maintained whenever I am made aware of an integration. A huge thanks to any authors who create these, and of course to the original creators of the mods in question! Below the list is some information about the script interface to add new integrations.
 
-### Omnimatter
+### RSO (Resource Spawner Overhaul) https://mods.factorio.com/mods/orzelek/rso-modhttps://mods.factorio.com/mods/orzelek/rso-mod
 
-Original mod:
-https://mods.factorio.com/mods/EmperorZelos/omnimatter
+Built-in support added v 3.3.10 by orzelek.
 
-Integration (by nucleargen):
+### Omnimatter https://mods.factorio.com/mods/EmperorZelos/omnimatter
+
+Support by nucleargen:
 https://mods.factorio.com/mods/nucleargen/portal-research-addon
 
 ## Script interface for mod authors
