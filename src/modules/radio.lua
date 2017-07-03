@@ -108,7 +108,7 @@ function Radio.switchToReceiver(entityData)
 end
 
 function Radio.changeMastChannel(entityData, channel)
-  -- TODO: When a transmitter is deleted, clear the channel too
+  -- TODO: Clearing channel immediately, should lag a bit?
   if entityData.channel == channel then return end
   global.radio.channels[entityData.channel] = nil
   entityData.channel = channel

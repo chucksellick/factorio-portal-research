@@ -344,7 +344,8 @@ data:extend(
       {"processing-unit", 20},
       {"copper-cable", 100},
       {"energy-shield-mk2-equipment", 10},
-      {"battery-mk2-equipment", 10}, -- TODO: Batteries or no? Really depends on the internall buffering question...
+      {"battery-mk2-equipment", 10},
+      -- TODO: Batteries or no? Really depends on the internal buffering question...
       -- TODO: Copper cable is for grounding but we need electrical insulation. Energy shield is kind of a nod towards this but maybe some insulation component would be interesting.
     },
     result = "personal-microwave-antenna-equipment"
@@ -358,7 +359,8 @@ data:extend(
       {"copper-cable", 5},
       {"advanced-circuit", 5},
       {"vacuum-tube", 2},
-      {"big-electric-pole", 1}
+      {"big-electric-pole", 1},
+      {"radar", 1}
     },
     result = "radio-mast"
   },
@@ -370,7 +372,7 @@ data:extend(
     {
       {"copper-cable", 5},
       {"electronic-circuit", 5},
-      {"iron-plate", 4},
+      {"iron-plate", 20},
       {"radio-mast", 1},
     },
     result = "orbital-logistics-combinator"
@@ -424,6 +426,8 @@ data:extend(
     },
     result = "satellite-housing"
   },
+  -- TODO: A relatively simple "space probe" to replace the normal satellite and get 1000 science packs.
+  -- Just housing, navigation systems, and fuel?
   {
     type = "recipe",
     name = "solar-array",
@@ -499,7 +503,7 @@ data:extend(
       {"medium-portal", 1},
       {"satellite-housing", 1},
       {"navigation-computer", 5},
-      {"solar-array", 1},
+      {"solar-array", 2},
       {"rocket-fuel", 200},
       {"construction-robot", 10},
       -- How about batteries for the initial power, or some other kind of power method?
@@ -524,7 +528,7 @@ data:extend(
       {"iron-gear-wheel", 200}
     },
     result = "space-telescope"
-  },
+  }--[[,
   {
     type = "recipe",
     name = "orbital-repair-station",

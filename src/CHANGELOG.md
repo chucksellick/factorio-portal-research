@@ -10,6 +10,7 @@
   * Lots of recipe changes (particularly satellites) for both realism and balancing.
     Updating users will unfortunately need to check their machines are still working.
   * Visible beams for microwave transmitters/receivers
+  * Made all techs use even ratio of science packs, in line with 0.15.27
 
 ### 0.6.7
 

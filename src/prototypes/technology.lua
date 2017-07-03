@@ -4,7 +4,7 @@ data:extend(
   {
     -- TODO: This could be "space plastics" to be a bit different, and require space science(?).
     -- But satellites couldn't have comms systems because they would need this prereq, so comms systems
-    -- would be for an "mapping satellite" (need better term for this)
+    -- would be for spy satellites only (need better term for this)
     type = "technology",
     name = "advanced-plastics",
     icon = "__base__/graphics/technology/plastics.png",
@@ -149,14 +149,14 @@ data:extend(
     {
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
         {"high-tech-science-pack", 1},
         {"production-science-pack", 1},
       },
       time = 30,
-      count = 500
+      count = 750
     }
   },
   {
@@ -175,16 +175,16 @@ data:extend(
     prerequisites = {"fusion-reactor-equipment", "microwave-power-transmission"},
     unit =
     {
-      count = 800,
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
         {"military-science-pack", 1},
         {"high-tech-science-pack", 1}
       },
-      time = 30
+      time = 30,
+      count = 1000
     }
   },
   {
@@ -215,10 +215,11 @@ data:extend(
         {"science-pack-1", 1},
         {"science-pack-2", 1},
         {"science-pack-3", 1},
+        {"production-science-pack", 1},
         {"high-tech-science-pack", 1}
       },
-      time = 30,
-      count = 1000
+      time = 60,
+      count = 500
     },
     order = "e-p-b-c"
   },
@@ -243,14 +244,15 @@ data:extend(
     {
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
-        {"high-tech-science-pack", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"high-tech-science-pack", 1},
+        {"production-science-pack", 1},
         {"portal-science-pack", 1}
       },
-      time = 30,
-      count = 500
+      time = 60,
+      count = 750
     },
     order = "e-p-b-c"
   },
@@ -271,14 +273,15 @@ data:extend(
     {
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
-        {"high-tech-science-pack", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"military-science-pack", 1},
+        {"high-tech-science-pack", 1},
         {"portal-science-pack", 1}
       },
-      time = 30,
-      count = 500
+      time = 60,
+      count = 750
     },
     order = "e-p-b-c"
   },
@@ -300,17 +303,17 @@ data:extend(
     {
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
-        {"high-tech-science-pack", 2},
-        {"production-science-pack", 2},
-        {"military-science-pack", 1}, -- TODO: ?? - sort of makes sense but not really...
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"high-tech-science-pack", 1},
+        {"production-science-pack", 1},
+        {"military-science-pack", 1},
         {"portal-science-pack", 1},
-        {"space-science-pack", 2}
+        {"space-science-pack", 1}
       },
-      time = 30,
-      count = 500 -- TODO: Seems much easier than SBSP? (Apart from portal science packs...)
+      time = 60,
+      count = 1500 -- TODO: Seems much easier than SBSP? (Apart from portal science packs...)
     },
     order = "e-p-b-c"
   },
@@ -329,18 +332,18 @@ data:extend(
     prerequisites = {"microwave-power-transmission", "solar-energy", "rocket-silo"},
     unit =
     {
-      count = 2000,
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
         {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
         {"military-science-pack", 1},
         {"space-science-pack", 1}
       },
-      time = 30
+      time = 60,
+      count = 2000
     }
   },
   {
@@ -358,18 +361,18 @@ data:extend(
     prerequisites = {"astronomy", "radio", "rocket-silo"},
     unit =
     {
-      count = 2000,
+      count = 2500,
       ingredients =
       {
-        {"science-pack-1", 2},
-        {"science-pack-2", 2},
-        {"science-pack-3", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
         {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
         {"military-science-pack", 1},
-        {"space-science-pack", 2}
+        {"space-science-pack", 1}
       },
-      time = 30
+      time = 60
     }
   },
   {
@@ -401,23 +404,23 @@ data:extend(
         recipe = "cargo-drop-site"
       },]]
     },
-    -- TODO: Research is quite harsh for this and for zero-gee robots.
     unit =
     {
-      count = 2500,
+      -- TODO: This is quite easy now but needs to be harder once cargo stuff unlocked
+      count = 1000,
       ingredients =
       {
-        {"science-pack-1", 4},
-        {"science-pack-2", 4},
-        {"science-pack-3", 4},
-        {"production-science-pack", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
         {"military-science-pack", 1},
-        {"space-science-pack", 2}
+        {"space-science-pack", 1}
       },
-      time = 30
+      time = 60
     }
-  },
+  }--[[,,
   {
     type = "technology",
     name = "zero-gravity-robotics",
@@ -432,20 +435,20 @@ data:extend(
     },
     unit =
     {
-      count = 2500,
+      count = 3000,
       ingredients =
       {
-        {"science-pack-1", 4},
-        {"science-pack-2", 4},
-        {"science-pack-3", 4},
-        {"production-science-pack", 2},
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 1},
         {"high-tech-science-pack", 1},
         {"military-science-pack", 1},
-        {"space-science-pack", 2}
+        {"space-science-pack", 1}
       },
-      time = 30
+      time = 60
     }
-  } --[[,
+  }
     {
     type = "technology",
     name = "orbital-mining",
