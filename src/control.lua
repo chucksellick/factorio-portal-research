@@ -70,6 +70,8 @@ function On_Init()
   remote.call("silo_script", "update_gui")
 
   Ticks.init()
+  Orbitals.init()
+  Radio.init()
 end
 
 script.on_init(On_Init)
@@ -205,9 +207,9 @@ function ensureEnergyInterface(entityData)
   end
 
   if entityData.entity.name == "portal-belt" or
-    entityData.entity.name == "portal-chest" or
-    entityData.entity.name == "radio-mast" or
-    entityData.entity.name == "orbital-logistics-combinator" then
+    entityData.entity.name == "portal-chest" then --or
+    --entityData.entity.name == "radio-mast" or
+    --entityData.entity.name == "orbital-logistics-combinator" then
 
     local consumer = entityData.entity.surface.create_entity {
       name=entityData.entity.name .. "-power",
@@ -222,10 +224,14 @@ end
 function deleteEntityData(entityData)
   entityData.deleted = true
   global.entities[entityData.id] = nil
-    -- Clean up power
+  -- Clean up power
   if entityData.fake_energy then
     entityData.fake_energy.destroy()
     entityData.fake_energy = nil
+  end
+  -- Clean up registered ticks
+  if entityData.next_update_tick then
+    Ticks.cancel(entityData.next_update_tick)
   end
   if global.portals[entityData.id] ~= nil then
     global.portals[entityData.id] = nil

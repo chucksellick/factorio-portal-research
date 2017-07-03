@@ -6,7 +6,7 @@ local Orbitals = {}
 function Orbitals.init()
   if not global.orbital_counts then
     global.orbital_counts = {}
-    for id,orbital in global.orbitals do
+    for id,orbital in pairs(global.orbitals) do
       if not global.orbital_counts[orbital.name] then
         global.orbital_counts[orbital.name] = 1
       else

@@ -48,7 +48,7 @@ function Ticks.on(tick, action, data)
     end
   end
   table.insert(target_tick.actions, data)
-  return { tick = tick, data = data }
+  return { tick = target_tick, data = data }
 end
 
 function Ticks.after(ticks, action, data)
@@ -67,13 +67,10 @@ function getTick(tick)
 end
 
 function Ticks.cancel(tick_data)
-  local tick = getTick(tick_data.tick)
-  if tick ~= nil then
-    -- Safe remove by iterating backwards
-    for i=#tick.actions,1,-1 do
-      if tick.actions[i].data == tick_data.data then
-        table.remove(tick.actions, i)
-      end
+  -- Safe remove by iterating backwards
+  for i=#(tick_data.tick.actions),1,-1 do
+    if tick_data.tick.actions[i] == tick_data.data then
+      table.remove(tick_data.tick.actions, i)
     end
   end
 end

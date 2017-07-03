@@ -144,7 +144,7 @@ data:extend(
     drawing_box = {{-1, -3}, {1, 0.5}},
 
     item_slot_count = 18,
-    vehicle_impact_sound =  { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+    vehicle_impact_sound = { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
     sprites =
     {
       north = mastSprite("radio-mast"),
