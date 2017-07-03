@@ -10,6 +10,7 @@ local max_radio_combinator_slots = 10
 local wire_colours = {defines.wire_type.red,defines.wire_type.green}
 
 function Radio.init()
+  -- TODO: This implementation is broken for multiple forces, need to store channels per force
   global.radio = global.radio or {
     channels = {}
   }
@@ -106,6 +107,13 @@ function Radio.switchToReceiver(entityData)
   entityData.is_transmitter = false
 end
 
+function Radio.changeMastChannel(entityData, channel)
+  -- TODO: When a transmitter is deleted, clear the channel too
+  if entityData.channel == channel then return end
+  global.radio.channels[entityData.channel] = nil
+  entityData.channel = channel
+end
+
 function Radio.readMastInput(entityData)
   -- Merge red and green network counts together
   local signals = {}
@@ -145,7 +153,6 @@ function Radio.setMastOutput(entityData)
   if global.radio.channels[entityData.channel] then
     control_behavior.parameters = global.radio.channels[entityData.channel].parameters
   else
-    -- TODO: When a transmitter is deleted, clear the channel too
     control_behavior.parameters = nil
   end
 end
@@ -194,7 +201,7 @@ function Radio.openMastGui(playerData, gui, data, window_options)
 
   row2.add{
     type="label",
-    caption={"portal-research.radio-mast-"..(data.is_transmitting and "transmitting" or "receiving").."-caption"}
+    caption={"portal-research.radio-mast-"..(data.is_transmitter and "transmitting" or "receiving").."-caption"}
   }
 
   row2.add{
@@ -205,7 +212,6 @@ function Radio.openMastGui(playerData, gui, data, window_options)
 
   -- TODO: Slider for channel # ... if they ever provide one ... could fudge with scrollbar?
   -- TODO: List receivers or at least receiver counts. Update when channel changed.
-
 end
 
 return Radio

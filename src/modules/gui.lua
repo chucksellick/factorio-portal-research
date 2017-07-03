@@ -154,6 +154,7 @@ local function closeWindow(player, options)
   local playerGui = getPlayerGui(playerData)
   local frame = playerGui[options.window]
   frame.style.visible = false
+  frame.scroll.clear()
   cleanUpButtons(player)
   -- TODO: Actually delete gui, cancel ticks
   -- TODO: Also nilify playerData.current_tab if window was primary-tab
@@ -412,7 +413,7 @@ function Gui.showEntityDetails(player, data, options)
   local window_options = options or {}
   window_options.window = window_options.window or "object-detail"
   window_options.caption = window_options.caption
-    or {"portal-research." .. data.entity.name .. "-portal-details-caption"}
+    or {"portal-research." .. data.entity.name .. "-details-caption"}
   window_options.object = data
 
   local gui = Gui.openWindow(player, window_options)
@@ -638,5 +639,25 @@ local function onGuiClick(event)
 end
 
 script.on_event(defines.events.on_gui_click, onGuiClick)
+
+local function onGuiTextChanged(event)
+  if event.element.name == "radio-mast-channel-number-textfield" then
+    local number = tonumber(event.element.text)
+    if number == nil then return end
+    number = math.min(100, math.max(1, math.floor(number)))
+    if event.element.text ~= tostring(number) then
+      event.element.text = number
+    end
+    local playerData = getPlayerData(game.players[event.player_index])
+    if playerData.opened_object
+      and (playerData.opened_object.name == "radio-mast"
+          or playerData.opened_object.name == "radio-mast-transmitter") then
+      local data = getEntityData(playerData.opened_object)
+      Radio.changeMastChannel(data,number)
+    end
+  end
+end
+
+script.on_event(defines.events.on_gui_text_changed, onGuiTextChanged)
 
 return Gui
