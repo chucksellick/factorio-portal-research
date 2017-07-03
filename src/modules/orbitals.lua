@@ -14,6 +14,12 @@ function Orbitals.init()
       end
     end
   end
+  for i,orbital in global.orbitals do
+    if not orbital.next_update_tick then
+      orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
+      orbital.health = 1000 -- Better health
+    end
+  end
 end
 
 function Orbitals.list(options)
@@ -82,9 +88,28 @@ function Orbitals.newUnit(name, force, launchSite, data)
   return orbital
 end
 
+function Orbitals.update(orbital)
+  -- Lose a random amount of health, 2d6
+  -- TODO: Shielding, and other factors
+  orbital.health = orbital.health - (math.random(6) + math.random(6))
+  if orbital.health <= 0 then
+    Gui.message{force=orbital.force,target=orbital,
+      message={"portal-research.orbital-messages.orbital-died-disrepair", {"item-name." .. orbital.name}, Sites.getSiteName(orbital.site)}
+    }
+    Orbitals.remove(orbital)
+  else
+    -- TODO: Warn when health dips under 25%
+    orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
+  end
+end
+
 function Orbitals.remove(orbital)
   orbital.deleted = true
   global.orbitals[orbital.id] = nil
+  if orbital.next_update_tick then
+    Ticks.cancel(orbital.next_update_tick)
+  end
+
   if orbital.name == "portal-lander" then
     global.landers[orbital.id] = nil
   elseif orbital.name == "solar-harvester" then
@@ -225,7 +250,7 @@ function Orbitals.buildOrbitalsList(player, root, options)
       caption={"item-name." .. name}
     })
   end
-  local table = root.add{type="table",colspan=5}
+  local table = root.add{type="table",colspan=7}
   for orbital in list do
     --local row = root.add{type="flow",direction="horizontal"}
     local name_base = "-orbital-" .. orbital.id .. "-button"
@@ -236,9 +261,19 @@ function Orbitals.buildOrbitalsList(player, root, options)
       tooltip={"item-name." .. orbital.name}
     }
 
+    local healthSprite = table.add{
+      type="sprite",
+      sprite="util/bonus_icon",
+      tooltip={"portal-research.health-bar-caption"}
+    }
+    healthSprite.style.maximal_width = 32
+    healthSprite.style.maximal_height = 32
+
+    table.add{type="progressbar", size=32, value = orbital.health/1000}
+
     if orbital.in_transit then
       siteMiniDetails(player, orbital.transit_destination, table, false)
-      table.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
+      table.add{type="progressbar", size=32, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
     else
       siteMiniDetails(player, orbital.site, table, false)
       -- Empty cells

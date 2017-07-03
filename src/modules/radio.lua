@@ -115,7 +115,7 @@ end
 function Radio.changeMastChannel(entityData, channel)
   -- TODO: Clearing channel immediately, should lag a bit?
   if entityData.channel == channel then return end
-  local channels = getChannel(entityData.force)
+  local channels = getChannels(entityData.force)
   channels[entityData.channel] = nil
   entityData.channel = channel
 end
@@ -148,7 +148,7 @@ function Radio.readMastInput(entityData)
   end
 
   -- TODO: Store a list of the receivers
-  local channels = getChannel(entityData.force)
+  local channels = getChannels(entityData.force)
   channels[entityData.channel] = channels[entityData.channel] or {}
   channels[entityData.channel].parameters = {parameters = parameters} -- That's correct.
 end
@@ -157,7 +157,7 @@ function Radio.setMastOutput(entityData)
   -- TODO: Consume power
   local control_behavior = entityData.entity.get_or_create_control_behavior()
   if not control_behavior.enabled then return end
-  local channels = getChannel(entityData.force)
+  local channels = getChannels(entityData.force)
   if channels[entityData.channel] then
     control_behavior.parameters = channels[entityData.channel].parameters
   else

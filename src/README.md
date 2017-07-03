@@ -5,7 +5,7 @@ https://forums.factorio.com/viewtopic.php?f=93&t=49940&p=290043
 
 This mod adds a number of late- and end-game technologies, unlocking amazing new items and locations and providing an entirely new post-rocket-launch game layer.
 
-Scan the skies for resource-rich asteroids, then teleport up there and build your outpost. Maintain your orbital fleet 
+Scan the skies for resource-rich asteroids, then teleport up there and build your outpost. Maintain your orbital fleet by launching a variety of different kinds of satellites.
 
 Note: This is still a work in progress but has plenty of functional gameplay already. Recipes are unfortunately changing quite a bit between releases. The biggest problem is the GUI which is taking a lot of work!
 
@@ -24,12 +24,12 @@ Resources can be returned to your base using a portal chest but watch out, porta
 ### Orbital Network
 
 Units that you launch will initially orbit your home base (Nauvis) but they can be sent to other locations that you've discovered to provide support there instead. Orbital units will take damage over time however and must be repaired by launching a Repair Station and keeping it stocked.
-
+  
 ## 3rd party mod integrations
 
 This list will be maintained whenever I am made aware of an integration. A huge thanks to any authors who create these, and of course to the original creators of the mods in question! Below the list is some information about the script interface to add new integrations.
 
-### RSO (Resource Spawner Overhaul) https://mods.factorio.com/mods/orzelek/rso-modhttps://mods.factorio.com/mods/orzelek/rso-mod
+### RSO (Resource Spawner Overhaul) https://mods.factorio.com/mods/orzelek/rso-mod
 
 Built-in support added v 3.3.10 by orzelek.
 
