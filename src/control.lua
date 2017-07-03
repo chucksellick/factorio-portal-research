@@ -71,7 +71,6 @@ function On_Init()
 
   Ticks.init()
   Orbitals.init()
-  Radio.init()
 end
 
 script.on_init(On_Init)

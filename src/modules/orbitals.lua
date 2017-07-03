@@ -14,7 +14,7 @@ function Orbitals.init()
       end
     end
   end
-  for i,orbital in global.orbitals do
+  for i,orbital in pairs(global.orbitals) do
     if not orbital.next_update_tick then
       orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
       orbital.health = 1000 -- Better health
@@ -102,6 +102,10 @@ function Orbitals.update(orbital)
     orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
   end
 end
+
+Ticks.registerHandler("orbital.update", function(data)
+  Orbitals.update(data.orbital)
+end)
 
 function Orbitals.remove(orbital)
   orbital.deleted = true
@@ -250,7 +254,7 @@ function Orbitals.buildOrbitalsList(player, root, options)
       caption={"item-name." .. name}
     })
   end
-  local table = root.add{type="table",colspan=7}
+  local table = root.add{type="table",colspan=6}
   for orbital in list do
     --local row = root.add{type="flow",direction="horizontal"}
     local name_base = "-orbital-" .. orbital.id .. "-button"
@@ -261,19 +265,22 @@ function Orbitals.buildOrbitalsList(player, root, options)
       tooltip={"item-name." .. orbital.name}
     }
 
-    local healthSprite = table.add{
+    --[[local healthSprite = table.add{
       type="sprite",
-      sprite="util/bonus_icon",
+      sprite="util/bonus-icon",
       tooltip={"portal-research.health-bar-caption"}
-    }
+      }
     healthSprite.style.maximal_width = 32
-    healthSprite.style.maximal_height = 32
+    healthSprite.style.maximal_height = 32]]
 
-    table.add{type="progressbar", size=32, value = orbital.health/1000}
+    table.add{type="progressbar", size=32, value = orbital.health/1000, tooltip={"portal-research.health-bar-caption"}}
 
     if orbital.in_transit then
       siteMiniDetails(player, orbital.transit_destination, table, false)
-      table.add{type="progressbar", size=32, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
+      table.add{type="progressbar", size=32, value=(game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at),
+        -- TODO: Display actual ETA on tooltip
+        tooltip={"portal-research.orbital-eta-bar-caption"}
+      }
     else
       siteMiniDetails(player, orbital.site, table, false)
       -- Empty cells

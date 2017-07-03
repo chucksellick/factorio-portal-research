@@ -1,5 +1,11 @@
 # Portal Research Changelog
 
+### 0.7.3
+
+  * Orbitals now take damage over time and eventually die
+  * Fixed a silly init bug
+  * Fixed an occasional lockup due to tick handling
+
 ### 0.7.2
 
   * Added entity: Orbital Logistics Combinator

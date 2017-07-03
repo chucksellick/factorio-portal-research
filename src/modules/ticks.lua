@@ -34,7 +34,7 @@ function Ticks.on(tick, action, data)
         last_tick.next = target_tick
         break
       elseif this_tick.tick == tick then
-        target_tick = next_tick
+        target_tick = this_tick
         break
       elseif this_tick.tick > tick and last_tick.tick < tick then
         -- Splice
