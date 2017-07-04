@@ -336,7 +336,7 @@ local function pickPortalTargets(player, portal)
   local allowLongRange = player.force.technologies["interplanetary-teleportation"]
     and player.force.technologies["interplanetary-teleportation"].researched
 
-  local row = gui.add{
+  local table = gui.add{
     type="table",
     colspan=5
   }
@@ -434,7 +434,7 @@ function Gui.showEntityDetails(player, data, options)
   if data.entity.name == "medium-portal"
     or data.entity.name == "portal-chest" then
 
-    window_options.open_target_select = (window_name == "object-detail")
+    window_options.open_target_select = (window_options.window == "object-detail")
     Gui.showPortalDetails(playerData, gui, data, window_options)
 
   elseif data.entity.name == "radio-mast"

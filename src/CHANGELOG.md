@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.7.6
+
+  * Fix broken portal GUI
+
 ### 0.7.5
 
   * Fix error when launching orbitals
