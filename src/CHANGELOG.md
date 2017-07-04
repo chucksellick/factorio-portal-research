@@ -1,4 +1,8 @@
-# Portal Research Changelog
+## Changelog
+
+### 0.7.4
+
+  * Add a button to forget sites you're not interested in
 
 ### 0.7.3
 
