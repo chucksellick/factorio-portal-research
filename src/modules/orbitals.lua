@@ -169,6 +169,16 @@ function Orbitals.orbitalArrivedAtSite(orbital)
   Gui.update{tab="orbitals", force=orbital.force, object=orbital}
 end
 
+-- TODO: Function should be optimised with a lookup of orbitals at each site. Also use
+-- this information to show orbital counts etc on sites list.
+function Orbitals.anyOrbitalsAtSite(site)
+  for i,orbital in pairs(global.orbitals) do
+    if orbital.site == site or orbital.transit_destination == site then
+      return true
+    end
+  end
+end
+
 local function orbitalSpeed(orbital)
   -- TODO: Orbital speed should vary with research, mass of orbital, # of thrusters
   return 0.1

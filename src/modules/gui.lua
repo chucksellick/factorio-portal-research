@@ -294,7 +294,7 @@ function Gui.buildSitesList(player, list, root, options)
       end
     else
       -- Can't destroy sites that are already populated (for now, and definitely not without a yes/no confirmation!)
-      if site.is_offworld and not site.surface_generated then
+      if site.is_offworld and not site.surface_generated and not Orbitals.anyOrbitalsAtSite(site) then
         Gui.createButton(player, table, {
           name="forget-site-" .. site.name,
           caption={"portal-research.forget-site-button-caption"},

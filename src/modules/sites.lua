@@ -181,15 +181,24 @@ function Sites.generateRandom(force, scanner, scan_spec)
 
   -- Store in global table
   global.sites[site.surface_name] = site
-  -- TODO: Handle deletion of sites
 
   Sites.generateResourceEstimate(site)
   return site
 end
 
 function Sites.forgetSite(site)
-  global.sites[site.surface_name] = nil
-  Gui.update{tab="sites", force=site.force}
+  if site.surface_generated then
+    Gui.message{force=site.force,
+      message={"portal-research.site-messages.site-already-has-surface", Sites.getSiteName(orbital.site)}
+    }
+  elseif Orbitals.anyOrbitalsAtSite(site) then
+    Gui.message{force=orbital.force,target=orbital,
+      message={"portal-research.site-messages.site-already-has-orbitals", Sites.getSiteName(orbital.site)}
+    }
+  else
+    global.sites[site.surface_name] = nil
+    Gui.update{tab="sites", force=site.force}
+  end
 end
 
 local function averageResourceAmountOnTile(resource, site)
@@ -197,21 +206,22 @@ local function averageResourceAmountOnTile(resource, site)
 end
 
 local function resourceAmountOnTile(resource, site)
-  return math.max(0, math.floor(5000 * site.distance * resource.richness * (math.random() - 0.1)))
+  return math.max(0, math.floor(5000 * site.distance * resource.richness * (0.25 + 0.5 * math.random())))
 end
 
--- Note: Resources to iron, copper, stone, uranium (v rare). Player still
--- needs trains to get coal, factorium, oil, reliable quantities of uranium, and
--- any other modded ores.
--- (Well. Would be nice to have liquid logistics. TODO: Consider allowing a whole new type
+-- Note: Most resources now show up. Coal is standing in for carbon as the most common type of asteroid,
+-- not strictly realistic but close enough for now.
+-- TODO: Would be nice to have liquid logistics. Consider allowing a whole new type
 -- of liquid. Possible candidates are lava on volcanic asteroids/moons {process to acquire metal
 -- ores? use heat for power generation?}, or a liquid that Factorium can be extracted from,
 -- or something else...)
 local offworld_resources = {
   { name="iron-ore",  weight=120,  richness=1 },
   { name="copper-ore", weight=100, richness=1.2 },
-  { name="stone", weight=200, richness=0.8 },
-  { name="uranium-ore", weight=1, richness=0.05 }
+  { name="stone", weight=180, richness=0.8 },
+  { name="uranium-ore", weight=33, richness=0.05 },
+  { name="factorium-ore", weight=20, richness=0.02 },
+  { name="coal", weight=220, richness=1.5 }
 }
 
 function Sites.addOffworldResource(name, weight, richness)
