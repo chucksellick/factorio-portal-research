@@ -411,7 +411,6 @@ data:extend(
         type = "unlock-recipe",
         recipe = "cargo-drop-site"
       },]]
-
   {
     type = "recipe",
     name = "satellite-housing",
@@ -426,8 +425,6 @@ data:extend(
     },
     result = "satellite-housing"
   },
-  -- TODO: A relatively simple "space probe" to replace the normal satellite and get 1000 science packs.
-  -- Just housing, navigation systems, and fuel?
   {
     type = "recipe",
     name = "solar-array",
@@ -475,11 +472,46 @@ data:extend(
     result = "communication-systems"
   },
   {
+    type = "recipe-category",
+    name = "satellites"
+  },
+  {
+    type = "recipe",
+    name = "satellite-hangar",
+    energy_required = 120,
+    enabled = false,
+    category = "crafting",
+    ingredients =
+    {
+      {"assembling-machine-3", 4},
+      {"stack-filter-inserter", 24},
+      {"steel-plate", 50},
+      {"iron-gear-wheel", 50},
+      {"express-transport-belt", 12}
+      -- Vacuum tube? Modules? More circuits?
+    },
+    result = "satellite-hangar"
+  },
+  {
+    -- Cheap probe to get a little space science going (and increase asteroid probe depth)
+    type = "recipe",
+    name = "space-probe",
+    energy_required = 30,
+    enabled = false,
+    category = "satellites",
+    ingredients = {
+      {"satellite-housing", 1},
+      {"communication-systems", 1},
+      {"rocket-fuel", 100}
+    },
+    result = "space-probe"
+  },
+  {
     type = "recipe",
     name = "solar-harvester",
     energy_required = 60,
     enabled = false,
-    category = "crafting",
+    category = "satellites",
     ingredients = {
       {"satellite-housing", 1},
       {"navigation-computer", 1},
@@ -488,16 +520,16 @@ data:extend(
       -- 12 arrays: satellite normally needs 1 just to power itself, leaving 10x
       -- worth of arrays to transmit, and power from 1x is lost in transit == 100MW total
       {"solar-array", 12}
+      -- Plexiglass sheets to cover array?
     },
-    result = "solar-harvester",
-    stack_size = 1
+    result = "solar-harvester"
   },
   {
     type = "recipe",
     name = "portal-lander",
     energy_required = 90,
     enabled = false,
-    category = "crafting",
+    category = "satellites",
     ingredients =
     {
       {"medium-portal", 1},
@@ -517,7 +549,7 @@ data:extend(
     name = "space-telescope",
     energy_required = 90,
     enabled = false,
-    category = "crafting",
+    category = "satellites",
     ingredients =
     {
       {"satellite-housing", 1},
@@ -528,13 +560,14 @@ data:extend(
       {"iron-gear-wheel", 200}
     },
     result = "space-telescope"
-  }--[[,
+  },
   {
     type = "recipe",
+    -- TODO: something port? robo-space-port? space-robor-port? orbital-repair-port?
     name = "orbital-repair-station",
     energy_required = 120,
     enabled = false,
-    category = "crafting",
+    category = "satellites",
     ingredients =
     {
       {"satellite-housing", 1},
@@ -544,9 +577,9 @@ data:extend(
       {"construction-robot", 100},
       {"roboport", 5},
       {"repair-pack", 1000}
-      -- TODO: A whole new assembler for satellites! (satellite hangar?) and have them all require 7-8 ingredients
     },
     result = "orbital-repair-station"
+    -- TODO: orbital-resupply-shuttle (pref. reusable)
   }
   --[[
   -- TODO: Spy satellite and space telescope could have an imaging system in common?
@@ -588,5 +621,34 @@ data:extend(
     },
     result = "orbital-mining-laser"
   },
+  {
+    type = "recipe",
+    name = "reusable-rocket-part",
+    energy_required = 5,
+    enabled = false,
+    hidden = true,
+    -- TODO: Allow silo to switch recipes, or require a whole different type of silo?
+    category = "rocket-building",
+    ingredients =
+    {
+      -- 50% more investment but get 50% parts back?
+      {"low-density-structure", 15},
+      {"rocket-fuel", 15},
+      {"rocket-control-unit", 15}
+    },
+    result= "rocket-part"
+
+  --[[
+    -- And/or: could have a different recipe that is like
+    ingredients =
+    {
+      {"recovered-rocket-part", 1},
+      {"low-density-structure", 5},
+      {"rocket-fuel", 5},
+      {"rocket-control-unit", 5}
+    },
+    -- Allowing for some interesting logistics
+  ]]
+  --[[},
   ]]
 })

@@ -9,7 +9,7 @@ Scan the skies for resource-rich asteroids, then teleport up there and build you
 
 Note: This is still a work in progress but has plenty of functional gameplay already. Recipes are unfortunately changing quite a bit between releases. The biggest problem is the GUI which is taking a lot of work!
 
-Planned features include a variety of new satellite types to launch such as probes, spy satellites, research stations, a defense grid, and orbital mining lasers! New ways to transfer resources between your base and your asteroid outposts, such as orbital drops and a space shuttle network. More fun stuff to happen in space! And perhaps one day the ultimate crowning achievement, the Space Elevator.
+Planned features include a variety of new satellite types to launch such as probes, spy satellites, research stations, a defense grid, and orbital mining lasers! New ways to transfer resources between your base and your asteroid outposts, such as orbital drops and a space shuttle network. Reusable rockets! More fun stuff to happen in space! And perhaps one day the ultimate crowning achievement, the Space Elevator.
 
 ## Guide
 

@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.7.5
+
+  * Add more varied resources back to sites
+  * Don't show forget button for asteroids that have orbitals
+
 ### 0.7.4
 
   * Add a button to forget sites you're not interested in

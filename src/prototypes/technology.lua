@@ -287,6 +287,44 @@ data:extend(
   },
   {
     type = "technology",
+    name = "orbital-network",
+    icon = ICON_BASE .. "rocket-silo.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "satellite-hangar"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "space-probe"
+      },
+      -- TODO: Unless I think of something for satellites to actually do, they ARE the probes
+      {
+        type = "unlock-recipe",
+        recipe = "satellite"
+      }
+    },
+    prerequisites = {"rocket-silo", "astronomy"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"high-tech-science-pack", 1},
+        {"production-science-pack", 1},
+        {"military-science-pack", 1},
+      },
+      time = 45,
+      count = 1000
+    },
+    order = "e-p-b-c"
+  },
+  {
+    type = "technology",
     name = "interplanetary-teleportation",
     icon = ICON_BASE .. "interplanetary-teleportation.png",
     icon_size = 128,
@@ -298,7 +336,7 @@ data:extend(
         recipe = "portal-lander"
       }
     },
-    prerequisites = {"large-mass-teleportation", "astronomy", "rocket-silo"},
+    prerequisites = {"orbital-network", "large-mass-teleportation", "astronomy"},
     unit =
     {
       ingredients =
@@ -313,8 +351,38 @@ data:extend(
         {"space-science-pack", 1}
       },
       time = 60,
-      count = 1500 -- TODO: Seems much easier than SBSP? (Apart from portal science packs...)
+      count = 1500
     },
+    order = "e-p-b-c"
+  },
+  {
+    type = "technology",
+    name = "high-resolution-imaging", -- ? must be a better name than this
+    icon = ICON_BASE .. "optics.png",
+    icon_size = 128,
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "spy-satellite"
+      },
+    },
+    prerequisites = {"orbital-network", "advanced-optics", "radio"},
+    unit =
+    {
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 1},
+        {"high-tech-science-pack", 1},
+        {"military-science-pack", 1},
+        {"space-science-pack", 1}
+      },
+    },
+    time = 60,
+    count = 1500,
     order = "e-p-b-c"
   },
   {
@@ -329,7 +397,7 @@ data:extend(
         recipe = "solar-harvester"
       }
     },
-    prerequisites = {"microwave-power-transmission", "solar-energy", "rocket-silo"},
+    prerequisites = {"orbital-network", "microwave-power-transmission", "solar-energy"},
     unit =
     {
       ingredients =
@@ -358,7 +426,7 @@ data:extend(
         recipe = "space-telescope"
       }
     },
-    prerequisites = {"astronomy", "radio", "rocket-silo"},
+    prerequisites = {"orbital-network", "astronomy", "radio"},
     unit =
     {
       count = 2500,
@@ -420,7 +488,7 @@ data:extend(
       },
       time = 60
     }
-  }--[[,,
+  },
   {
     type = "technology",
     name = "zero-gravity-robotics",
@@ -448,7 +516,7 @@ data:extend(
       },
       time = 60
     }
-  }
+  }--[[
     {
     type = "technology",
     name = "orbital-mining",
@@ -482,5 +550,36 @@ data:extend(
     --    recipe = "portal-logistics-robot"
   --    }
     }
-  }]]--
+  },
+
+  {
+    type = "technology",
+    name = "reusable-rockets",
+    icon = "__base__/graphics/technology/rocket-silo.png",
+    prerequisites = {"rocket-silo", "orbital-logistics"}, --? uses same landing site as cargo ?--
+    effects =
+    {
+      {
+        type = "unlock-recipe",
+        recipe = "reusable-rocket-part"
+      }
+    },
+    unit =
+    {
+      count = 3000,
+      ingredients =
+      {
+        {"science-pack-1", 1},
+        {"science-pack-2", 1},
+        {"science-pack-3", 1},
+        {"production-science-pack", 1},
+        {"high-tech-science-pack", 1},
+        {"military-science-pack", 1},
+        {"space-science-pack", 1}
+      },
+      time = 60
+    }
+  }
+
+  ]]--
 })
