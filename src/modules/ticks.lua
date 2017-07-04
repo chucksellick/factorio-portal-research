@@ -14,7 +14,7 @@ function Ticks.init()
   -- TODO: Can only hope that the serializer supports a lot of recursion...
   global.next_tick = global.next_tick or nil
 
-  debugTicks()
+  --debugTicks()
 end
 
 function debugTicks()
