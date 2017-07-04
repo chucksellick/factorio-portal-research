@@ -11,6 +11,7 @@
 
   * Add more varied resources back to sites
   * Don't show forget button for asteroids that have orbitals
+  * Fix error when launching orbitals
 
 ### 0.7.4
 
