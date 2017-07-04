@@ -243,10 +243,12 @@ function Gui.showSiteDetails(playerData, site, gui, window_options)
 
   local resourceTable = gui.add{type="table", colspan="2"}
   local count = 0
-  for i,estimate in pairs(site.resources) do
-    count = count+1
-    resourceTable.add{type="sprite", sprite="entity/"..estimate.resource.name, tooltip={"entity-name."..estimate.resource.name}}
-    resourceTable.add{type="label", caption=formatResourceAmount(estimate.amount)}
+  if site.resources then
+    for i,estimate in pairs(site.resources) do
+      count = count+1
+      resourceTable.add{type="sprite", sprite="entity/"..estimate.resource.name, tooltip={"entity-name."..estimate.resource.name}}
+      resourceTable.add{type="label", caption=formatResourceAmount(estimate.amount)}
+    end
   end
   if count == 0 then
     gui.add{type="label", caption={"estimated-resources-none"}}
@@ -275,7 +277,7 @@ end
 
 function Gui.buildSitesList(player, list, root, options)
   local options = options or {}
-  local table = root.add{type="table",colspan=(4 + (options.extra_buttons and #options.extra_buttons or 0))}
+  local table = root.add{type="table",colspan=(4 + (options.extra_buttons and #options.extra_buttons or 1))}
 
   for site in list do
     siteMiniDetails(player, site, table)
@@ -284,12 +286,22 @@ function Gui.buildSitesList(player, list, root, options)
     Gui.createButton(player, table, {
       name="view-site-details-" .. site.name,
       caption={"portal-research.site-details-button-caption"},
-      action={name="site-details",site=site,window="tertiary-pane"},
-      window="secondary-pane"
+      action={name="site-details",site=site,window="tertiary-pane"}
     })
     if options.extra_buttons then
       for i,button in pairs(options.extra_buttons) do
         Gui.createButton(player, table, button(site))
+      end
+    else
+      -- Can't destroy sites that are already populated (for now, and definitely not without a yes/no confirmation!)
+      if site.is_offworld and not site.surface_generated then
+        Gui.createButton(player, table, {
+          name="forget-site-" .. site.name,
+          caption={"portal-research.forget-site-button-caption"},
+          action={name="forget-site",site=site}
+        })
+      else
+        table.add{type="flow"}
       end
     end
   end
@@ -595,6 +607,8 @@ local function onGuiClick(event)
     -- function before it gets out of control
     if button.action.name == "site-details" then
       Gui.showObjectDetails(player, button.action.site, button.action)
+    elseif button.action.name == "forget-site" then
+      Sites.forgetSite(button.action.site)
     elseif button.action.name == "filter-orbitals-list" then
       buildTab(player, "orbitals", {orbital_type=button.action.type})
     elseif button.action.name == "orbital-details" then

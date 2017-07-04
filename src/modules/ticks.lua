@@ -13,6 +13,19 @@ end
 function Ticks.init()
   -- TODO: Can only hope that the serializer supports a lot of recursion...
   global.next_tick = global.next_tick or nil
+
+  debugTicks()
+end
+
+function debugTicks()
+  local this_tick = global.next_tick
+  local debug = ""
+  while true do
+    debug = debug .. this_tick.tick .. ", "
+    this_tick = this_tick.next
+    if this_tick.next == nil then break end
+  end
+  game.print(debug)
 end
 
 function Ticks.on(tick, action, data)

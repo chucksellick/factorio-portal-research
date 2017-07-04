@@ -187,6 +187,11 @@ function Sites.generateRandom(force, scanner, scan_spec)
   return site
 end
 
+function Sites.forgetSite(site)
+  global.sites[site.surface_name] = nil
+  Gui.update{tab="sites", force=site.force}
+end
+
 local function averageResourceAmountOnTile(resource, site)
   return math.floor(5000 * site.distance * resource.richness * 0.5)
 end
