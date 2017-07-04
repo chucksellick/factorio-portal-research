@@ -46,8 +46,9 @@ satellite_recipe.ingredients = {
 }
 
 local rocket = data.raw["rocket-silo-rocket"]["rocket-silo-rocket"]
-table.insert(rocket.result_items, {"space-science-pack", 500, "space-probe"})
+table.insert(rocket.result_items, {"space-science-pack", 500, "space-probe"}) --TODO: Is it 500 for each probe in a stack of 10?
 table.insert(rocket.result_items, {"space-science-pack", 2000, "solar-harvester"})
+table.insert(rocket.result_items, {"space-science-pack", 2000, "spy-satellite"})
 table.insert(rocket.result_items, {"space-science-pack", 3000, "portal-lander"})
 table.insert(rocket.result_items, {"space-science-pack", 4000, "space-telescope"}) -- Telescopes are great for research!
 table.insert(rocket.result_items, {"space-science-pack", 5000, "orbital-repair-station"})

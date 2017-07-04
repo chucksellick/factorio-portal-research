@@ -265,7 +265,7 @@ data:extend(
     icon = ICON_BASE .. "satellite-housing.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite-component",
-    order = "a[satellite-housing]",
+    order = "b[satellite-housing]",
     stack_size = 10
   },
   {
@@ -283,7 +283,7 @@ data:extend(
     icon = ICON_BASE .. "navigation-computer.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite-component",
-    order = "b[navigation-computer]",
+    order = "d[navigation-computer]",
     stack_size = 10
   },
   {
@@ -292,8 +292,28 @@ data:extend(
     icon = ICON_BASE .. "solar-array.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite-component",
-    order = "d[solar-array]",
+    order = "e[solar-array]",
     stack_size = 10
+  },
+  {
+    type = "item",
+    name = "satellite-hangar",
+    --icon = ICON_BASE .. "solar-array.png",
+    icons = {{icon="__base__/graphics/icons/assembling-machine-1.png", tint={r=0.8,g=0.8,b=1,a=1}}},
+    flags = {"goes-to-main-inventory"},
+    subgroup = "satellite-component",
+    order = "a[satellite-hangar]",
+    place_result = "satellite-hangar",
+    stack_size = 10
+  },
+  {
+    type = "item",
+    name = "space-probe",
+    icon = "__base__/graphics/icons/satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "satellite",
+    order = "b[space-probe]",
+    stack_size = 10 -- TODO: Too much? Maybe 8 instead
   },
   {
     type = "item",
@@ -301,7 +321,7 @@ data:extend(
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite",
-    order = "a[portal-lander]",
+    order = "c[portal-lander]",
     stack_size = 1
   },
   {
@@ -310,7 +330,7 @@ data:extend(
     icon = ICON_BASE .. "solar-harvester.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite",
-    order = "b[solar-harvester]",
+    order = "d[solar-harvester]",
     stack_size = 1
   },
   {
@@ -319,7 +339,7 @@ data:extend(
     icon = ICON_BASE .. "space-telescope.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite",
-    order = "c[space-telescope]",
+    order = "e[space-telescope]",
     stack_size = 1
   },
   {
@@ -328,7 +348,17 @@ data:extend(
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite",
-    order = "d[orbital-mining-laser]",
+    order = "f[orbital-repair-station]",
+    stack_size = 1
+  },
+  {
+    type = "item",
+    name = "spy-satellite",
+    icon = "__base__/graphics/icons/satellite.png",
+    --icon = ICON_BASE .. "spy-satellite.png",
+    flags = {"goes-to-main-inventory"},
+    subgroup = "satellite",
+    order = "e[space-telescope]",
     stack_size = 1
   },
   {
@@ -337,7 +367,7 @@ data:extend(
     icon = "__base__/graphics/icons/satellite.png",
     flags = {"goes-to-main-inventory"},
     subgroup = "satellite",
-    order = "e[orbital-mining-laser]",
+    order = "g[orbital-mining-laser]",
     stack_size = 1
   }
 })

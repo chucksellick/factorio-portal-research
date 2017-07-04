@@ -300,13 +300,14 @@ data:extend(
     },
     fluid_boxes =
     {
+      -- TODO: Additional fluid boxes, maybe require dry ice for some builds
       {
         production_type = "input",
         pipe_picture = assembler3pipepictures(),
         pipe_covers = pipecoverspictures(),
         base_area = 10,
         base_level = -1,
-        pipe_connections = {{ type="input", position = {0, -2} }},
+        pipe_connections = {{ type="input", position = {0, -3.5} }},
         secondary_draw_orders = { north = -1 }
       },
       {
@@ -315,7 +316,7 @@ data:extend(
         pipe_covers = pipecoverspictures(),
         base_area = 10,
         base_level = 1,
-        pipe_connections = {{ type="output", position = {0, 2} }},
+        pipe_connections = {{ type="output", position = {0, 3.5} }},
         secondary_draw_orders = { north = -1 }
       },
       off_when_no_fluid_recipe = true
@@ -406,4 +407,5 @@ data:extend(
     },
     allowed_effects = {"consumption", "speed", "productivity", "pollution"}
   }
+}
 )

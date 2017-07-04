@@ -580,8 +580,7 @@ data:extend(
     },
     result = "orbital-repair-station"
     -- TODO: orbital-resupply-shuttle (pref. reusable)
-  }
-  --[[
+  },
   -- TODO: Spy satellite and space telescope could have an imaging system in common?
   {
     type = "recipe",
@@ -601,7 +600,7 @@ data:extend(
       {"processing-unit", 100},
     },
     result = "spy-satellite"
-  },
+  }--[[,
   {
     type = "recipe",
     name = "orbital-mining-laser",
@@ -650,5 +649,25 @@ data:extend(
     -- Allowing for some interesting logistics
   ]]
   --[[},
+  {
+    type = "recipe",
+    name = "space-research-station", -- Research platform? Space station? Research vessel?
+    energy_required = 120,
+    enabled = false,
+    category = "satellites",
+    ingredients =
+    {
+      {"satellite-housing", 1},
+      {"navigation-computer", 1},
+      {"communication-systems", 2},
+      {"solar-array", 8},
+      {"lab", 100},
+      {"science-crate", 10} -- == 2000 of each science pack? That's not enough for 1 research (good thing?)
+      -- TODO: Free space science doesn't seem unreasonable at this point. Or maybe don't require so many of them in the crates.
+    },
+    result = "space-research-station"
+    -- TODO: Maybe space station could generate wood in its arboretum and deliver it via drop.
+    -- Prerequisite orbital logistics. Need orbital logistics robots to deliver the goods?
+  }
   ]]
 })

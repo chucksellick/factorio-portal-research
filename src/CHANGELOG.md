@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.8.0
+
+  * Completely ruin any existing satellite builds
+  * New production machine for building satellites: Satellite hangar
+  * New orbital units: Spy satellite, Space probe, Orbital repair station
+  * Different health for some orbital types
+
 ### 0.7.5
 
   * Add more varied resources back to sites

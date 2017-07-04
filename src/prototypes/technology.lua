@@ -298,9 +298,25 @@ data:extend(
       },
       {
         type = "unlock-recipe",
+        recipe = "communication-systems"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "satellite-housing"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "navigation-computer"
+      },
+      {
+        type = "unlock-recipe",
+        recipe = "solar-array"
+      },
+      -- TODO: Quite a lot unlocked here now. Move probe to a different tech? With space telescopes maybe?
+      {
+        type = "unlock-recipe",
         recipe = "space-probe"
       },
-      -- TODO: Unless I think of something for satellites to actually do, they ARE the probes
       {
         type = "unlock-recipe",
         recipe = "satellite"
@@ -380,9 +396,9 @@ data:extend(
         {"military-science-pack", 1},
         {"space-science-pack", 1}
       },
+      time = 60,
+      count = 1500,
     },
-    time = 60,
-    count = 1500,
     order = "e-p-b-c"
   },
   {
@@ -517,7 +533,7 @@ data:extend(
       time = 60
     }
   }--[[
-    {
+  {
     type = "technology",
     name = "orbital-mining",
     prerequisites = {"long-range-optics"},
@@ -534,7 +550,7 @@ data:extend(
     }
   },
 
-    {
+  {
     type = "technology",
     name = "portal-robotics",
     prerequisites = {"construction-robotics", "orbital-logistics"},

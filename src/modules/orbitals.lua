@@ -47,25 +47,31 @@ function Orbitals.list(options)
 end
 
 local orbital_types = {
-  --['satellite'] = {
-
-  --},
+  ['satellite'] = {
+  },
+  ['space-probe'] = {
+    health = 100
+  },
+  ['spy-satellite'] = {
+    health = 800
+  },
   ['portal-lander'] = {
-
+    health = 600
   },
   ['solar-harvester'] = {
-
   },
   ['space-telescope'] = {
-
+  },
+  ['orbital-repair-station'] = {
   }
 }
 
 function Orbitals.newUnit(name, force, launchSite, data)
+  local orbital_type = orbital_types[name]
   local orbital = {
     id = name .. "-" .. global.next_orbital_id,
     name = name,
-    health = 1000,
+    health = orbital_type.health or 1000,
     created_at = game.tick,
     is_orbital = true,
     force = force,
