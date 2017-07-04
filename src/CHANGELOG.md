@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.7.5
+
+  * Fix error when launching orbitals
+
 ### 0.7.4
 
   * Add a button to forget sites you're not interested in

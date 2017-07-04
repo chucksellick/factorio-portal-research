@@ -76,7 +76,11 @@ function Orbitals.newUnit(name, force, launchSite, data)
   -- Store and increment id count
   global.orbitals[orbital.id] = orbital
   global.next_orbital_id = global.next_orbital_id + 1
-  global.orbital_counts[orbital.name] = global.orbital_counts[orbital.name] + 1
+  if global.orbital_counts[orbital.name] == nil then
+    global.orbital_counts[orbital.name] = 1
+  else
+    global.orbital_counts[orbital.name] = global.orbital_counts[orbital.name] + 1
+  end
 
   if orbital.name == "portal-lander" then
     global.landers[orbital.id] = orbital
