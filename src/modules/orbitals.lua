@@ -3,6 +3,14 @@
 
 local Orbitals = {}
 
+local orbital_update_time_min = 2250
+local orbital_update_time_var = 1500
+
+local function registerNextTick(orbital)
+  orbital.next_update_tick = Ticks.after(orbital_update_time_min + math.random(orbital_update_time_var),
+    "orbital.update", {orbital=orbital})
+end
+
 function Orbitals.init()
   if not global.orbital_counts then
     global.orbital_counts = {}
@@ -16,7 +24,7 @@ function Orbitals.init()
   end
   for i,orbital in pairs(global.orbitals) do
     if not orbital.next_update_tick then
-      orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
+      registerNextTick(orbital)
       orbital.health = 1000 -- Better health
     end
   end
@@ -57,7 +65,7 @@ function Orbitals.newUnit(name, force, launchSite, data)
   local orbital = {
     id = name .. "-" .. global.next_orbital_id,
     name = name,
-    health = 100,
+    health = 1000,
     created_at = game.tick,
     is_orbital = true,
     force = force,
@@ -89,9 +97,9 @@ function Orbitals.newUnit(name, force, launchSite, data)
 end
 
 function Orbitals.update(orbital)
-  -- Lose a random amount of health, 2d6
+  -- Lose a random amount of health, 2d6 / 2
   -- TODO: Shielding, and other factors
-  orbital.health = orbital.health - (math.random(6) + math.random(6))
+  orbital.health = orbital.health - math.floor((math.random(6) + math.random(6))/2)
   if orbital.health <= 0 then
     Gui.message{force=orbital.force,target=orbital,
       message={"portal-research.orbital-messages.orbital-died-disrepair", {"item-name." .. orbital.name}, Sites.getSiteName(orbital.site)}
@@ -99,7 +107,7 @@ function Orbitals.update(orbital)
     Orbitals.remove(orbital)
   else
     -- TODO: Warn when health dips under 25%
-    orbital.next_update_tick = Ticks.after(299 + math.random(151), "orbital.update", {orbital=orbital})
+    registerNextTick(orbital)
   end
 end
 

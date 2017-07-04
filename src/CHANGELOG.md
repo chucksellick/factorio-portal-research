@@ -3,6 +3,7 @@
 ### 0.7.4
 
   * Add a button to forget sites you're not interested in
+  * Make orbitals die MUCH more slowly. Could still be too fast.
 
 ### 0.7.3
 
