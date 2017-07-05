@@ -35,7 +35,7 @@ function Scanners.scan(event)
           -- mysterious objects from ancient civilisations, space debris, pods (send probes to intercept)
           -- TODO: This message will get really annoying with a whole bunch of scanners. Instead, the first time
           -- this happens, display a tutorial message saying "Your scanner found nothing this time, keep trying yada yada" (once for each player)
-          scanner.entity.force.print({"scan-found-nothing", {"entity-name."..scanner.entity.name}})
+          --scanner.entity.force.print({"scan-found-nothing", {"entity-name."..scanner.entity.name}})
         end
       end
       result[1].clear()

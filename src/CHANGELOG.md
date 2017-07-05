@@ -7,6 +7,15 @@
   * New orbital units: Spy satellite, Space probe, Orbital repair station
   * Different health for some orbital types
 
+### 0.7.7
+
+  * Add button to change destination on existing portal/chest
+  * Lots of GUI tweaks and improvements (and some fixes)
+
+### 0.7.6
+
+  * Fix broken portal GUI
+
 ### 0.7.5
 
   * Add more varied resources back to sites
