@@ -227,11 +227,14 @@ end
 function deleteEntityData(entityData)
   entityData.deleted = true
   global.entities[entityData.id] = nil
+
   -- Clean up power
   if entityData.fake_energy then
     entityData.fake_energy.destroy()
     entityData.fake_energy = nil
   end
+  Power.destroyBeamEntity(entityData)
+
   -- Clean up registered ticks
   if entityData.next_update_tick then
     Ticks.cancel(entityData.next_update_tick)
@@ -247,6 +250,7 @@ function deleteEntityData(entityData)
       Portals.updateEnergyProperties(entityData.teleport_target)
     end
   end
+  
   if global.scanners[entityData.id] ~= nil then
     global.scanners[entityData.id] = nil
   end

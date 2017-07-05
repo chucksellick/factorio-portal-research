@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.7.8
+
+  * Fixed antennas removed while receiving orbital power would crash (HorusOP)
+
 ### 0.7.7
 
   * Add button to change destination on existing portal/chest

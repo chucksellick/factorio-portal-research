@@ -3,7 +3,7 @@ local Power = {}
 -- TODO: Player beams are particularly distracting. Better to just have some glowly sprite
 -- sticking out of the player's backpack rather than a whole beam.
 
-local function destroyBeamEntity(transmitter)
+function Power.destroyBeamEntity(transmitter)
   if transmitter.beam_entity and transmitter.beam_entity.valid then
     transmitter.beam_entity.destroy()
     transmitter.beam_entity = nil
@@ -22,7 +22,7 @@ local function createBeamEntity(transmitter)
     return
   end
 
-  destroyBeamEntity(transmitter)
+  Power.destroyBeamEntity(transmitter)
 
   local beam_name = "microwave-beam"
   local beam_source = transmitter.entity
@@ -80,7 +80,7 @@ function Power.distributeMicrowavePower(event)
       end
 
       -- Beam can become invalid when the source or target are removed
-      destroyBeamEntity(transmitter)
+      Power.destroyBeamEntity(transmitter)
 
       -- Pick a new target.
       if transmitter.current_target_index == nil then transmitter.current_target_index = #transmitter.target_antennas end
@@ -167,7 +167,7 @@ function Power.updateMicrowaveTargets()
     if data.current_target then
       -- Has transmitter been deleted?
       if data.deleted then
-        destroyBeamEntity(data)
+        Power.destroyBeamEntity(data)
         -- TODO: Should have an is_entity probably...
         if not data.current_target.is_equipment then
           data.current_target.entity.active = false
@@ -175,7 +175,7 @@ function Power.updateMicrowaveTargets()
         data.current_target.current_source = nil
       end
       -- Has receiver been deleted?
-      if (data.current_target.entity and not data.current_target.entity.valid)
+      if (data.current_target.entity and (not data.current_target.entity.valid or data.current_target.deleted))
         or (data.current_target.is_equipment and 
           (not data.current_target.equipment.valid
             or data.current_target.player.surface ~= data.site.surface))
@@ -184,7 +184,7 @@ function Power.updateMicrowaveTargets()
         data.current_target = nil
         -- Check same index again next time rather than end up skipping a target
         data.current_target_index = data.current_target_index - 1
-        destroyBeamEntity(data)
+        Power.destroyBeamEntity(data)
       end
     end
     for i, antenna in pairs(global.receivers) do
