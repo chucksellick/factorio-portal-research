@@ -1,5 +1,34 @@
 local Portals = {}
 
+function Portals.clearPortalTarget(portal)
+  if not portal.teleport_target then return end
+  portal.teleport_target.teleport_target = nil
+  portal.teleport_target = nil
+end
+
+function Portals.setPortalTarget(portal, target)
+
+  Portals.clearPortalTarget(portal)
+
+  portal.teleport_target = target
+  target.teleport_target = portal
+
+  -- TODO: Allow this to be toggled in GUI.
+  -- TODO: Allow naming things (soon).
+  -- TODO: (Much later) GUI can show connections diagrammatically
+  if target.entity.name == "portal-chest" then
+    target.is_sender = false
+    target.teleport_target.is_sender = true
+  end
+
+  -- Buffer size will need to change
+  Portals.updateEnergyProperties(target)
+  Portals.updateEnergyProperties(target.teleport_target)
+  -- Refresh portal details for any players that have them open
+  Gui.update{object=portal}
+  Gui.update{object=target}
+end
+
 function Portals.emergencyHomeTeleport(player)
   -- Laws-of-physics-defying emergency teleport ... it will at least destroy a portal (if still valid)
   -- as a punishment!
@@ -64,10 +93,15 @@ local function energyRequiredForPlayerTeleport(portal, player)
 end
 
 local function enterPortal(player, portal, direction)
+  local playerData = getPlayerData(player)
   if portal.teleport_target == nil then
+    -- Open the dialog slightly more permanently
     Gui.showEntityDetails(player, portal)
+    playerData.opened_object = portal
+    playerData.manually_opened_object = true
     return
   end
+
   -- Check enough energy is available
   local energyRequired = energyRequiredForPlayerTeleport(portal)
   local energyAvailable = portal.entity.energy + portal.teleport_target.entity.energy
@@ -83,7 +117,6 @@ local function enterPortal(player, portal, direction)
   -- Note: "home" is always nauvis for now.
   local currentSite = Sites.getSiteForEntity(player)
   if currentSite ~= portal.site and (currentSite == nil or currentSite.surface.name == "nauvis") then
-    local playerData = getPlayerData(player)
     playerData.emergency_home_portal = portal
     playerData.emergency_home_position = portal.entity.position
   end
@@ -119,37 +152,42 @@ function Portals.checkPlayersForTeleports()
     local playerData = getPlayerData(player)
     if player.connected and not player.driving then
     -- and tick - (global.last_player_teleport[player_index] or 0) >= 45 then
-      local walking_state = player.walking_state
-      if walking_state.walking
-        and walking_state.direction ~= defines.direction.east
-        and walking_state.direction ~= defines.direction.west then
 
-          -- Look for a portal nearby
-          local portal = findPortalInArea(player.surface, {
-            {player.position.x-0.3, player.position.y-0.3},
-            {player.position.x+0.3, player.position.y+0.3}
-          })
+      -- Look for a portal nearby
+      local portal = findPortalInArea(player.surface, {
+        {player.position.x-0.3, player.position.y-0.3},
+        {player.position.x+0.3, player.position.y+0.3}
+      })
 
-          -- Check we are in the center bit of the portal and walking in the appropriate direction
-          -- TODO: Allow portal rotation and support east/west portal entry
-          if portal ~= nil then
-            local direction = defines.direction.north
-            if walking_state.direction == defines.direction.southwest
-            or walking_state.direction == defines.direction.south
-            or walking_state.direction == defines.direction.southeast then
-              direction = defines.direction.south
-            end
-
-            if (direction == defines.direction.north
-              and player.position.y > portal.entity.position.y
-              and player.position.y < portal.entity.position.y + 1)
-              or (walking_state.direction == defines.direction.south
-              and player.position.y < portal.entity.position.y
-              and player.position.y > portal.entity.position.y - 1) then
-              -- Teleport
-              enterPortal(player, portal, direction)
-            end
+      -- Update model/gui based on last frame
+      if playerData.nearest_portal == portal then
+        if not portal then return end
+      else
+        -- Portal nearby has changed
+        if not portal then
+          Gui.closeEntityDetails(player, playerData.nearest_portal)
+        else
+          playerData.last_position = player.position
+          if not playerData.opened_object then
+            Gui.showEntityDetails(player, portal)
           end
+        end
+        playerData.nearest_portal = portal
+        return
+      end
+
+      -- So, nearby portal was also nearby last frame. Check if player has moved across the center point.
+      local walking_state = player.walking_state
+      if walking_state.walking then
+
+        -- TODO: Allow portal rotation and support east/west portal entry
+        if (playerData.last_position.y < portal.entity.position.y) ~= (player.position.y < portal.entity.position.y) then
+          -- Teleport
+          enterPortal(player, portal, direction)
+        else
+          -- Update position for next time
+          playerData.last_position = player.position
+        end
       end
     end
   end
@@ -205,7 +243,7 @@ function Portals.updateEnergyProperties(portal)
   if portal.is_fully_charged then
     portal.is_fully_charged = false
     interface.energy = interface.electric_buffer_size
-   end
+  end
   --TODO: This caused a super strange error but I don't know if drain is the same energy_usage value from the actual prototype...
   --interface.power_usage = interface.prototype.energy_usage
 end

@@ -14,6 +14,10 @@ local tabDefs = {
 }
 local windowNames = { "primary-tab", "object-detail", "secondary-pane", "tertiary-pane", "hover-detail" }
 
+local window_types = {
+  object_detail = "object-detail"
+}
+
 function Gui.initForPlayer(player)
 
   -- XXX: Cleanup old buttons
@@ -137,7 +141,10 @@ function Gui.openWindow(player, options)
   local playerData = getPlayerData(player)
   local window = playerData.windows[options.window]
   if window == nil then player.print("Unknown window: " .. options.window) end
-
+  if window.current_options then
+    Gui.closeWindow(player, {window=options.window})
+  end
+  window.current_options = options
   window.frame.style.visible = true
   window.frame.caption = options.caption
   window.scroll.clear()
@@ -149,20 +156,34 @@ function Gui.openWindow(player, options)
   return window.scroll
 end
 
-local function closeWindow(player, options)
+function Gui.closeWindow(player, options)
+
   local playerData = getPlayerData(player)
+  if not playerData.windows[options.window].current_options then return end
   local playerGui = getPlayerGui(playerData)
   local frame = playerGui[options.window]
+
   frame.style.visible = false
   frame.scroll.clear()
   cleanUpButtons(player)
-  -- TODO: Actually delete gui, cancel ticks
+  local old_options = playerData.windows[options.window].current_options
+  playerData.windows[options.window].current_options = nil
+  -- Close all the other windows when the object detail view closes
+  -- TODO: More thorough system for linking attached windows and closing them when relevant
+  -- ..OR just load some of the sub-gui inside the parent instead of in the additional window
+  if options.window == "object-detail" then
+    playerData.opened_object = nil
+    playerData.manually_opened_object = false
+    Gui.closeWindow(player, {window="secondary-pane"})
+    Gui.closeWindow(player, {window="tertiary-pane"})
+  end
+  -- TODO: Cancel GUI ticks
   -- TODO: Also nilify playerData.current_tab if window was primary-tab
 end
 
-local function closeWindows(player)
+function Gui.closeWindows(player)
   for i,windowName in pairs(windowNames) do
-    closeWindow(player, {window=windowName})
+    Gui.closeWindow(player, {window=windowName})
   end
 end
 
@@ -377,7 +398,7 @@ end
 -- TODO: Close GUI when running away from portal.
 function Gui.showPortalDetails(playerData, gui, portal, options)
   -- TODO: Show energy also
-  buildNameEditor(playerData, gui, window_options)
+  buildNameEditor(playerData, gui, options)
 
   local preview_size = 200
   -- TODO: Add a function to build a "standard" camera widget with map toggle and zoom support
@@ -411,11 +432,27 @@ function Gui.showPortalDetails(playerData, gui, portal, options)
     }
     target_camera.style.minimal_width = preview_size
     target_camera.style.minimal_height = preview_size
+    if (options.window == "object-detail") then
+      Gui.createButton(playerData.player, gui, {
+        name="open-pick-portal-target-" .. portal.id,
+        action={name="open-pick-portal-target",portal=portal,window="tertiary-pane"},
+        sprite="utility/reset", caption={"portal-research.change-portal-destination"}
+      })
+    end
   else
     gui.add{type="label", caption={"portal-research.no-target-portal"}}
     if options.open_target_select ~= false then
       pickPortalTargets(playerData.player, portal)
     end
+  end
+end
+
+function Gui.closeEntityDetails(player, data, options)
+  local window_options = options or {}
+  window_options.window = window_options.window or "object-detail"
+  local playerData = getPlayerData(player)
+  if playerData.windows[window_options.window].current_options.object == data then
+    Gui.closeWindow(player, window_options)
   end
 end
 
@@ -427,6 +464,7 @@ function Gui.showEntityDetails(player, data, options)
   window_options.caption = window_options.caption
     or {"portal-research." .. data.entity.name .. "-details-caption"}
   window_options.object = data
+  window_options.window_type = window_types.object_detail
 
   local gui = Gui.openWindow(player, window_options)
   local playerData = getPlayerData(player)
@@ -446,10 +484,16 @@ function Gui.showEntityDetails(player, data, options)
 end
 
 function Gui.showObjectDetails(player, object, options)
+  if not object.is_orbital and object.entity then
+    Gui.showEntityDetails(player, object, options)
+    return
+  end
+
   local playerData = getPlayerData(player)
   local window_options = options or {}
   window_options.window = window_options.window or "object-detail"
   window_options.object = object
+  window_options.window_type = window_types.object_detail
 
   if window_options.caption == nil then
     if object.is_offworld then
@@ -496,6 +540,14 @@ function Gui.updateForPlayer(player, options)
   if options.object then
     if options.show then
       Gui.showObjectDetails(player, options.object)
+    else
+      for i,window in pairs(playerData.windows) do
+        if window.current_options and window.current_options.window_type == window_types.object_detail
+          and window.current_options.object == options.object then
+          -- Redisplay the current object
+          Gui.showObjectDetails(player, options.object, window.old_options)
+        end
+      end
     end
   end
 end
@@ -535,7 +587,6 @@ function Gui.message(options)
     end
   end
 end
-
 function Gui.tick(event)
   for i,player in pairs(game.players) do
     -- TODO: More optimal to just loop through playerData instead since this happens every tick?
@@ -546,7 +597,7 @@ function Gui.tick(event)
     if playerData.opened_object and not playerData.manually_opened_object
       and player.opened ~= playerData.opened_object then
 
-      closeWindow(player, {window="object-detail"})
+      Gui.closeWindow(player, {window="object-detail"})
       playerData.opened_object = nil
     end
     if player.opened and player.opened ~= playerData.opened_object and entity_types[player.opened.name] then
@@ -560,7 +611,7 @@ function Gui.tick(event)
     if playerData.hovered_object ~= nil and (player.selected ~= playerData.hovered_object
       or playerData.hovered_object == playerData.opened_object) then
 
-      closeWindow(player, {window="hover-detail"})
+      Gui.closeWindow(player, {window="hover-detail"})
       playerData.hovered_object = nil
     end
     if player.selected and player.selected ~= playerData.hovered_object
@@ -591,7 +642,7 @@ local function onGuiClick(event)
 
   if playerData.tabs[name] and playerData.tabs[name].button == event.element then
     local clicked_tab = playerData.tabs[name]
-    closeWindows(player)
+    Gui.closeWindows(player)
     if playerData.current_tab == clicked_tab then
       playerData.current_tab = nil
     else
@@ -617,30 +668,13 @@ local function onGuiClick(event)
       Orbitals.pickOrbitalDestination(player, button.action.orbital, button.action)
     elseif button.action.name == "portal-details" then
       Gui.showEntityDetails(player, button.action.portal, button.action)
+    elseif button.action.name == "open-pick-portal-target" then
+      pickPortalTargets(player, button.action.portal)
     elseif button.action.name == "pick-portal-target" then
-      local chosen = button.action.target_portal
-      button.action.portal.teleport_target = chosen
-      chosen.teleport_target = button.action.portal
-
-      -- TODO: Allow this to be toggled in GUI (and even using circuits?) and leave GUI open...
-      -- TODO: Allow naming things (soon). Open portal GUI on mouse hover.
-      -- TODO: (Much later) GUI can show connections diagrammatically
-      if chosen.entity.name == "portal-chest" then
-        chosen.is_sender = false
-        chosen.teleport_target.is_sender = true
-      end
-
-      -- Buffer size will need to change
-      Portals.updateEnergyProperties(chosen)
-      Portals.updateEnergyProperties(chosen.teleport_target)
-      -- Refresh portal details
-      Gui.showEntityDetails(player, button.action.portal)
-      -- TODO: If other players had GUI open for the same portal, should update all their views
-      -- Need better tracking of what models are shown in the windows and what their original render
-      -- path was
+      Portals.setPortalTarget(button.action.portal, button.action.target_portal)
     elseif button.action.name == "pick-orbital-destination" then
       -- Close the triggering window first; could open a new window as a result
-      closeWindow(player, {window=button.window})
+      Gui.closeWindow(player, {window=button.window})
       -- Start orbital moving to selected site
       Orbitals.sendOrbitalToSite(button.action.orbital, button.action.destination)
     elseif button.action.name == "radio-mast-set-transmit" then

@@ -392,7 +392,7 @@ function chestsMoveStacks(event)
   for i,portal in pairs(global.portals) do
     if portal.entity.name == "portal-chest" then
       n = n + 1
-      if portal.is_sender and portal.teleport_target and n % checkFrequency == tick then
+      if portal.teleport_target and portal.is_sender and n % checkFrequency == tick then
         teleportChestStacks(portal, 1)
       end
     end

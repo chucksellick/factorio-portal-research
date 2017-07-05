@@ -125,7 +125,9 @@ function Orbitals.remove(orbital)
   if orbital.next_update_tick then
     Ticks.cancel(orbital.next_update_tick)
   end
-
+  if orbital.transit_complete_tick then
+    Ticks.cancel(orbital.transit_complete_tick)
+  end
   if orbital.name == "portal-lander" then
     global.landers[orbital.id] = nil
   elseif orbital.name == "solar-harvester" then
@@ -148,6 +150,7 @@ function Orbitals.orbitalArrivedAtSite(orbital)
   orbital.transit_destination = nil
   orbital.in_transit = false
   orbital.transit_complete_tick = nil
+  orbital.transit_complete_at = nil
   Gui.message{
     force = orbital.force,
     target = orbital,
@@ -196,7 +199,7 @@ function Orbitals.sendOrbitalToSite(orbital, site)
   -- But if it was already in transit then it may already have gone part-way to origin or even further
   if orbital.in_transit then
     Ticks.cancel(orbital.transit_complete_tick)
-    local distance_moved = (orbital.transit_complete_tick.tick - game.tick) * speed / 60
+    local distance_moved = (orbital.transit_complete_at - game.tick) * speed / 60
     local distance_to_origin = math.abs(distance_moved - orbital.site.distance)
     distance_to_move = distance_to_origin + site.distance
   end
@@ -204,6 +207,7 @@ function Orbitals.sendOrbitalToSite(orbital, site)
   --orbital.force.print("Arrival in " .. ticks_to_move .. " ticks")
   -- TODO: Some ticks along the way for fun stuff to happen
   orbital.transit_complete_tick = Ticks.after(ticks_to_move, "orbital.arrive_at_destination", {orbital=orbital})
+  orbital.transit_complete_at = game.tick + ticks_to_move
   orbital.transit_destination = site
   orbital.transit_distance = distance_to_move
   orbital.in_transit = true
@@ -236,9 +240,9 @@ function Orbitals.commonOrbitalDetails(playerData, orbital, gui, window_options)
     gui.add{type="label", caption={"portal-research.orbital-transitting-caption"}}
     siteMiniDetails(playerData.player, orbital.transit_destination, gui)
     -- TODO: Assumptions here and elsewhere that speed is constant (for now it is).
-    local time_to_arrival = (orbital.transit_complete_tick.tick - game.tick)/60
+    local time_to_arrival = (orbital.transit_complete_at - game.tick)/60
     gui.add{type="label", caption={"portal-research.orbital-eta-caption", Util.round(time_to_arrival, 1), Util.round(orbital.transit_distance,1)}}
-    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at)}
+    gui.add{type="progressbar", size=200, value = (game.tick - orbital.started_transit_at)/(orbital.transit_complete_at - orbital.started_transit_at)}
   else
     -- TODO: Add a function to build a "standard" camera widget with map toggle^B^B^B^B and zoom support
     if orbital.site.is_offworld and orbital.site.surface_generated then
@@ -299,7 +303,8 @@ function Orbitals.buildOrbitalsList(player, root, options)
 
     if orbital.in_transit then
       siteMiniDetails(player, orbital.transit_destination, table, false)
-      table.add{type="progressbar", size=32, value=(game.tick - orbital.started_transit_at)/(orbital.transit_complete_tick.tick - orbital.started_transit_at),
+      table.add{type="progressbar", size=32,
+        value=(game.tick - orbital.started_transit_at)/(orbital.transit_complete_at - orbital.started_transit_at),
         -- TODO: Display actual ETA on tooltip
         tooltip={"portal-research.orbital-eta-bar-caption"}
       }
