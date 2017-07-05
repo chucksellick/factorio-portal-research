@@ -38,6 +38,10 @@ Built-in support added v 3.3.10 by orzelek.
 Support by nucleargen:
 https://mods.factorio.com/mods/nucleargen/portal-research-addon
 
+### Factorio Cross Mod https://mods.factorio.com/mods/nucleargen/factorio_cross_mod
+
+Omnimatter + StrangeMatter support, and RU locale
+
 ## Script interface for mod authors
 
 All script interfaces are in the "portal_research" namespace:
