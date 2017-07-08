@@ -1,8 +1,14 @@
 ## Changelog
 
+### 0.7.9
+
+  * Fixed dying space telescopes would crash the game (The Zero)
+  * Massively decrease orbital death rate until repair stations are implemented
+
 ### 0.7.8
 
   * Fixed antennas removed while receiving orbital power would crash (HorusOP)
+  * Mention Factorio Cross Mod in README
 
 ### 0.7.7
 

@@ -3,8 +3,10 @@
 
 local Orbitals = {}
 
-local orbital_update_time_min = 2250
-local orbital_update_time_var = 1500
+-- TODO: 100x tick delay is temporary so this is basically never a problem, until repair stations
+-- are implemented and the death rate can be sensibly balanced
+local orbital_update_time_min = 2250 * 100
+local orbital_update_time_var = 1500 * 100
 
 local function registerNextTick(orbital)
   orbital.next_update_tick = Ticks.after(orbital_update_time_min + math.random(orbital_update_time_var),
@@ -359,5 +361,12 @@ end
 function Orbitals.getCounts()
   return global.orbital_counts
 end
+
+-- Debug/testing commands
+commands.add_command("portal_research_set_low_health_all_orbitals", "Sets all orbitals to 1 health", function()
+  for i,orbital in pairs(global.orbitals) do
+    orbital.health = 1
+  end
+end)
 
 return Orbitals

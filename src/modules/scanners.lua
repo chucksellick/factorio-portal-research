@@ -7,6 +7,10 @@ function Scanners.setupWorkerEntity(scanner)
   scanner.entity = Sites.addHiddenWorkerEntity(scanner, { name = "space-telescope-worker", force = scanner.force })
 end
 
+function Scanners.destroyWorkerEntity(scanner)
+  Sites.removeHiddenWorkerEntity(scanner)
+end
+
 local scanner_types = {}
 scanner_types["observatory"] = { max_size = 3, base_distance = 1, scan_chance = 0.01 }
 scanner_types["space-telescope-worker"] = { max_size = 5, base_distance = 10, scan_chance = 0.05 }

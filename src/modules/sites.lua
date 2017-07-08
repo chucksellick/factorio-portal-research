@@ -102,6 +102,17 @@ function Sites.addHiddenWorkerEntity(attached_to, entity_spec)
   return entity
 end
 
+function Sites.removeHiddenWorkerEntity(attached_to)
+  if attached_to.worker_entities then
+    for i,entity in pairs(attached_to.worker_entities) do
+      if entity.valid then
+        entity.destroy()
+      end
+    end
+    attached_to.worker_entities = {}
+  end
+end
+
 function Sites.generateAsteroidName()
   local name
   local done
